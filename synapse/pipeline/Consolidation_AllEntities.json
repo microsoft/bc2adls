@@ -1,0 +1,104 @@
+{
+	"name": "Consolidation_AllEntities",
+	"properties": {
+		"activities": [
+			{
+				"name": "Entities",
+				"type": "Lookup",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "JsonSource",
+						"storeSettings": {
+							"type": "AzureBlobFSReadSettings",
+							"recursive": true,
+							"enablePartitionDiscovery": false
+						},
+						"formatSettings": {
+							"type": "JsonReadSettings"
+						}
+					},
+					"dataset": {
+						"referenceName": "deltasManifest_dataset",
+						"type": "DatasetReference",
+						"parameters": {
+							"containerName": {
+								"value": "@pipeline().parameters.containerName",
+								"type": "Expression"
+							}
+						}
+					},
+					"firstRowOnly": false
+				}
+			},
+			{
+				"name": "For each entity",
+				"type": "ForEach",
+				"dependsOn": [
+					{
+						"activity": "Entities",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('Entities').output.value[0].entities",
+						"type": "Expression"
+					},
+					"isSequential": false,
+					"activities": [
+						{
+							"name": "Consolidate entity",
+							"type": "ExecutePipeline",
+							"dependsOn": [],
+							"userProperties": [],
+							"typeProperties": {
+								"pipeline": {
+									"referenceName": "Consolidation_OneEntity",
+									"type": "PipelineReference"
+								},
+								"waitOnCompletion": true,
+								"parameters": {
+									"containerName": {
+										"value": "@pipeline().parameters.containerName",
+										"type": "Expression"
+									},
+									"entityName": {
+										"value": "@item().entityName",
+										"type": "Expression"
+									},
+									"deleteDeltas": {
+										"value": "@pipeline().parameters.deleteDeltas",
+										"type": "Expression"
+									}
+								}
+							}
+						}
+					]
+				}
+			}
+		],
+		"parameters": {
+			"containerName": {
+				"type": "string",
+				"defaultValue": "business-central"
+			},
+			"deleteDeltas": {
+				"type": "bool",
+				"defaultValue": false
+			}
+		},
+		"annotations": []
+	}
+}
