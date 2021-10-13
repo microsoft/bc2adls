@@ -17,21 +17,21 @@ Now you must configure the above storage account to allow changes by the credent
 ![Sample storage account](/.assets/storageAccount.png)
 
 ## Configuring the Dynamics 365 Business Central
-In order to export the data from inside Dynamics 365 Business Central (BC) to the data lake, you will need to add a configuration to make BC aware of the location in the data lake.
+In order to export the data from inside BC to the data lake, you will need to add a configuration to make BC aware of the location in the data lake.
 
 ### Step 4. Enter the BC settings
 Let us take a look at the settings show in the sample screenshot of the main `Page 82560 - Export to Azure data lake Storage` below,
 - **a)** The container name (defaulted to `business-central`) inside the storage account where the data shall be exported as block blobs. The export process creates this location if it does not already exist. Please ensure that the name corresponds to the requirements as outlined at [Naming and Referencing Containers, Blobs, and Metadata - Azure Storage | Microsoft Docs](https://docs.microsoft.com/en-us/rest/api/storageservices/Naming-and-Referencing-Containers--Blobs--and-Metadata).
-- **b)** The tenant id at which the app registration created above resides (refer to **b)** in the picture at Step 1)
+- **b)** The tenant id at which the app registration created above resides (refer to **b)** in the picture at [Step 1](/.assets/Setup.md#step-1-create-an-azure-service-principal))
 - **c)** The storage account in which the data are stored
-- **d)** The Application (client) ID from the App registration (refer to **a)** in the picture at Step 1)
-- **e)** The client credential key you had defined (refer to **c)** in the in the picture at Step 1)
+- **d)** The Application (client) ID from the App registration (refer to **a)** in the picture at [Step 1](/.assets/Setup.md#step-1-create-an-azure-service-principal))
+- **e)** The client credential key you had defined (refer to **c)** in the in the picture at [Step 1](/.assets/Setup.md#step-1-create-an-azure-service-principal))
 - **f)** The size of the individual data payload that constitutes a single REST Api upload operation to the data lake. A bigger size will surely mean less number of uploads but might consume too much memory on the BC side. Note that each upload creates a new block on the blob in the data lake. So the size of such blocks are constrained as described at [Put Block (REST API) - Azure Storage | Microsoft Docs](https://docs.microsoft.com/en-us/rest/api/storageservices/put-block#remarks).
 
 ![The Export to Azure Data Lake Storage page](/.assets/bcAdlsePage.png)
 
 ## Configuring the Azure Synapse workspace
-This section deals with consolidation of the data that was uploaded to the data lake from the Dynamics 365 Business Central (BC). Note that this step is optional if you always upload the dataset in full to the data lake and do not care for increments since last upload- in that case, it may be sufficient to just use the `deltas.manifest.cdm.json` as the CDM folder end point. The general case, however, is assumed to be that you would run the exports from BC periodically and that would generate incremental changes loaded in the deltas CDM folder. The following guide takes you through steps to consolidate those increments into one data source- the first two steps are about installing the integration. The guide takes you through executing the pipeline as well as consuming the data generated in the CDM folders.
+This section deals with consolidation of the data that was uploaded to the data lake from the BC. Note that this step is optional if you always upload the dataset in full to the data lake and do not care for increments since last upload- in that case, it may be sufficient to just use the `deltas.manifest.cdm.json` as the CDM folder end point. The general case, however, is assumed to be that you would run the exports from BC periodically and that would generate incremental changes loaded in the deltas CDM folder. The following guide takes you through steps to consolidate those increments into one data source- the first two steps are about installing the integration. The guide takes you through executing the pipeline as well as consuming the data generated in the CDM folders.
 
 ### Step 5. Create an Azure Synapse Analytics workspace
 Here you must provide the following and click on Create to create the workspace
@@ -52,13 +52,13 @@ This is the step that would create the analytics pipelines in the above workspac
 3. In the **New linked service** pop-up, choose **Azure Data Lake Storage Gen2** before clicking on **Continue**.
 4. Please enter the following information to configure the data lake linked service
     - Set **Name** to `AzureDataLakeStorage`. It is important that you set it exactly to this name as this is a dependency for the next steps when you import the pipeline elements.
-    - You created a Service credential (via an **App Registration**) in Step 1 and gave it permissions to read from and write to the data lake. We will use those details to configure the linked service. Set the **Authentication method** to be **Service Principal**.
+    - You created a Service credential (via an **App Registration**) in [Step 1](/.assets/Setup.md#step-1-create-an-azure-service-principal) and gave it permissions to read from and write to the data lake. We will use those details to configure the linked service. Set the **Authentication method** to be **Service Principal**.
     - Choose **Account selection method** to be **Enter**ed **manually**.
     - Set the **URL** to point to the data lake store.
-    - Set the **Tenant** to be the tenant guid for the App Registration (see **b)** in the picture at Step 1).
-    - Set the **Service principal ID** to be equal to the **Application ID** in the App Registration (see **a)** in the picture at Step 1).
+    - Set the **Tenant** to be the tenant guid for the App Registration (see **b)** in the picture at [Step 1](/.assets/Setup.md#step-1-create-an-azure-service-principal)).
+    - Set the **Service principal ID** to be equal to the **Application ID** in the App Registration (see **a)** in the picture at [Step 1](/.assets/Setup.md#step-1-create-an-azure-service-principal)).
     - Set the **Service principal credential type** to be **Service principal key**.
-    - Set the value of the **Service principal key** to be one of the secrets that you must have configured in the **Certificates & secrets** link of the App Registration (see **c)** in the picture at Step 1).
+    - Set the value of the **Service principal key** to be one of the secrets that you must have configured in the **Certificates & secrets** link of the App Registration (see **c)** in the picture at [Step 1](/.assets/Setup.md#step-1-create-an-azure-service-principal)).
     - It is always a good idea to click and verify that the **Test connection** button goes green when clicked. Once verified, click on **Create**.
     ![New linked service](/.assets/synapseNewLinkedService.png)
 5. Let us deploy the pipelines and resources now. Note that for each resource, you will have create a dummy entry in the Synapse Studio first with the name matching the value in the Name column in the table below. Then the content of the resource should be replaced with the content of the Github JSON file after clicking on the curly braces `{}` on the top right corner of the page. The following shows how to create a new dataset, for example. Note that the name of the tab is `Data` and the name of the menu to invoke under the `+` sign is `Integration dataset`.

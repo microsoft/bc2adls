@@ -1,4 +1,4 @@
-Now that the steps to setup the tool are complete, let's look at how to run it and derive the insights from it. The execution consists of 2 steps- exporting the incremental updates from `Dynamics 365 Business Central` (BC) to the data lake and then to consolidate them into a final data store.
+Now that the steps to setup the tool are complete, let's look at how to run it and derive the insights from it. The execution consists of 2 steps- exporting the incremental updates from Dynamics 365 Business Central (BC) to the data lake and then to consolidate them into a final data store.
 
 # Exporting data from BC
 Open the `Page 82560 - Export to Azure Data Lake Storage` and add some tables that should be exported at the bottom grid of the page. Do not forget to explicitly (and judiciously) select the fields in the table that should be exported. Ensure that the `State` columns for the table rows are set to Ready. Click now on the `Export` action at the top of the page. This spawns multiple sessions that export each table in parallel. 
