@@ -1,14 +1,19 @@
 # Project
 
-> This repo has been populated by an initial template to help get you started. Please
-> make sure to update the content to build a great experience for community-building.
+## Introduction
 
-As the maintainer of this project, please make a few updates:
+This tool is used to export data from [Dynamics 365 Business Central](https://dynamics.microsoft.com/en-us/business-central/overview/) (BC) to [Azure Data Lake Storage](https://docs.microsoft.com/en-us/azure/storage/blobs/data-lake-storage-introduction) and expose it in the [CDM folder](https://docs.microsoft.com/en-us/common-data-model/data-lake) format. The components involved are the following,
+- **[businessCentral](/tree/main/businessCentral/)** This folder holds a [BC extension](https://docs.microsoft.com/en-gb/dynamics365/business-central/ui-extensions) called `Azure Data Lake Storage Export` (ADLSE) which enables export of incremental data updates to a container on the data lake. The increments are stored in the CDM folder format described by the `deltas.cdm.manifest.json manifest`.
+- **[synapse](/tree/main/synapse/)**\. This folder holds the templates needed to create an [Azure Synapse](https://azure.microsoft.com/en-gb/services/synapse-analytics/) pipeline that consolidates the increments into a final `data` CDM folder.
 
-- Improving this README.MD file to provide a great experience
-- Updating SUPPORT.MD with content about this project's support experience
-- Understanding the security reporting process in SECURITY.MD
-- Remove this section from the README
+The following diagram illustrates the flow of data through a usage scenario- the main points being,
+- Incremental update data from BC is moved to Azure Data Lake Storage through the ADLSE extension into the `deltas` folder.
+- Triggering the Synapse pipeline(s) consolidates the increments into the data folder.
+- The data is now ready for consumption by analytics apps like Power BI,
+	- via the `data.cdm.manifest.json manifest` file, or
+	- via the raw CSV files for each individual entity inside the `data` folder
+
+![Architecture](/.assets/architecture.jpg "Flow of data")
 
 ## Contributing
 
