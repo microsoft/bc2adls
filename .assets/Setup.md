@@ -61,7 +61,7 @@ This is the step that would create the analytics pipelines in the above workspac
     - Set the value of the **Service principal key** to be one of the secrets that you must have configured in the **Certificates & secrets** link of the App Registration (see **c)** in the picture at [Step 1](/.assets/Setup.md#step-1-create-an-azure-service-principal)).
     - It is always a good idea to click and verify that the **Test connection** button goes green when clicked. Once verified, click on **Create**.
     ![New linked service](/.assets/synapseNewLinkedService.png)
-5. Let us deploy the pipelines and resources now. Note that for each resource, you will have create a dummy entry in the Synapse Studio first with the name matching the value in the Name column in the table below. Then the content of the resource should be replaced with the content of the file linked in the table below, after clicking on the curly braces `{}` on the top right corner of the page. The following shows how to create a new dataset, for example. Note that the name of the tab is `Data` and the name of the menu to invoke under the `+` sign is `Integration dataset`.
+5. Let us deploy the pipelines and resources now. Note that for each resource, you will have to create a dummy entry in the Synapse Studio first with the name matching the value in the Name column in the table below. Then the content of the resource should be replaced with the content of the file linked in the table below, after clicking on the curly braces `{}` on the top right corner of the page. The following shows how to create a new dataset, for example. Note that the name of the tab is `Data` and the name of the menu to invoke under the `+` sign is `Integration dataset`.
 
     ![New Dataset](/.assets/synapseNewIntegrationDataset.png)
 
@@ -76,12 +76,14 @@ This is the step that would create the analytics pipelines in the above workspac
 |5|[`staging_dataset`](/synapse/dataset/staging_dataset.json)|`Data`|`Integration dataset`|
 |6|[`Consolidation_flow`](/synapse/dataflow/Consolidation_flow.json)|`Develop`|`Data flow`|
 |7|[`Consolidation_OneEntity`](/synapse/pipeline/Consolidation_OneEntity.json)|`Integrate`|`Pipeline`|
-|8|[`Consolidation_AllEntities`](/synapse/pipeline/Consolidation_AllEntities.json)|`Integrate`|`Pipeline`|
+|8|[`Consolidation_CheckForDeltas`](/synapse/pipeline/Consolidation_CheckForDeltas.json)|`Integrate`|`Pipeline`|
+|9|[`Consolidation_AllEntities`](/synapse/pipeline/Consolidation_AllEntities.json)|`Integrate`|`Pipeline`|
 
 6. At the toolbar of the **Synapse Studio** at the top, you may now click on **Validate all** and if there are no errors, click on **Publish all**.
 
 
-
+## Congratulations!
+You have completed configuring the resources. Please proceed to running the tool and exporting BC data to data lake [here](/.assets/RunningAnalytics.md).
 
 
 
