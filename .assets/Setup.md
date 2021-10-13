@@ -9,8 +9,8 @@ You will need an Azure credential to be able to connect BC to the Azure Data Lak
 
 Take particular note of the **a)** and **b)** fields on it. Also note that you will need to generate a secret **c)** by following the steps detailed in the [Option 2: Create a new application secret](https://docs.microsoft.com/en-us/azure/active-directory/develop/howto-create-service-principal-portal#authentication-two-options). Add a redirected URI **d)** , `https://businesscentral.dynamics.com/OAuthLanding.htm`, so that BC can connect to Azure resources, say the Blob storage, using this credential. 
 
-### Step 2. Configure an Azure Data Lake Gen 2
-The tool exports the BC data to an Azure Data Lake Gen 2. You may refer to the following to create the resource, [Create a storage account for Azure Data Lake Storage Gen2 | Microsoft Docs](https://docs.microsoft.com/en-us/azure/storage/blobs/create-data-lake-storage-account).
+### Step 2. Configure an Azure Data Lake Gen2
+The tool exports the BC data to an Azure Data Lake Gen2. You may refer to the following to create the resource, [Create a storage account for Azure Data Lake Storage Gen2 | Microsoft Docs](https://docs.microsoft.com/en-us/azure/storage/blobs/create-data-lake-storage-account).
 
 ### Step 3. Connect credential to the blob storage
 Now you must configure the above storage account to allow changes by the credential created above. Make sure you add a role assignment so that the above credential is granted the **Storage Blob Data Contributor** role on the storage account. Learn more to do this at [Assign an Azure role for access to blob data - Azure Storage | Microsoft Docs](https://docs.microsoft.com/en-us/azure/storage/blobs/assign-azure-role-data-access?tabs=portal#assign-an-azure-role). In the following screenshot, a sample storage account called **bc2adlssa** has been assigned a credential called **bc2adls**.
@@ -23,7 +23,7 @@ In order to export the data from inside BC to the data lake, you will need to ad
 Let us take a look at the settings show in the sample screenshot of the main `Page 82560 - Export to Azure data lake Storage` below,
 - **a)** The container name (defaulted to `business-central`) inside the storage account where the data shall be exported as block blobs. The export process creates this location if it does not already exist. Please ensure that the name corresponds to the requirements as outlined at [Naming and Referencing Containers, Blobs, and Metadata - Azure Storage | Microsoft Docs](https://docs.microsoft.com/en-us/rest/api/storageservices/Naming-and-Referencing-Containers--Blobs--and-Metadata).
 - **b)** The tenant id at which the app registration created above resides (refer to **b)** in the picture at [Step 1](/.assets/Setup.md#step-1-create-an-azure-service-principal))
-- **c)** The name of the storage account that you created in [Step 2]().
+- **c)** The name of the storage account that you created in [Step 2](/.assets/Setup.md#step-2-configure-an-azure-data-lake-gen2).
 - **d)** The Application (client) ID from the App registration (refer to **a)** in the picture at [Step 1](/.assets/Setup.md#step-1-create-an-azure-service-principal))
 - **e)** The client credential key you had defined (refer to **c)** in the in the picture at [Step 1](/.assets/Setup.md#step-1-create-an-azure-service-principal))
 - **f)** The size of the individual data payload that constitutes a single REST Api upload operation to the data lake. A bigger size will surely mean less number of uploads but might consume too much memory on the BC side. Note that each upload creates a new block within the blob in the data lake. So the size of such blocks are constrained as described at [Put Block (REST API) - Azure Storage | Microsoft Docs](https://docs.microsoft.com/en-us/rest/api/storageservices/put-block#remarks).
@@ -45,7 +45,7 @@ This is the step that would create the analytics pipelines in the above workspac
 
     ![Open Synapse Studio](/.assets/openSynapseStudio.png)
 
-2. We need a linked service that establishes the connection to the storage account you created in Step 2. Click on **New** button on the Linked Services under the **Manage** pane.
+2. We need a linked service that establishes the connection to the storage account you created in [Step 2](/.assets/Setup.md#step-2-configure-an-azure-data-lake-gen2). Click on **New** button on the Linked Services under the **Manage** pane.
 
     ![Synapse Linked Services](/.assets/synapseLinkedService.png)
 
