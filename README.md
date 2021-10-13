@@ -12,6 +12,7 @@ The following diagram illustrates the flow of data through a usage scenario- the
 - The data is now ready for consumption by analytics apps like Power BI,
 	- via the `data.cdm.manifest.json manifest` file, or
 	- via the raw CSV files for each individual entity inside the `data` folder
+	
 ![Architecture](/.assets/architecture.jpg "Flow of data")
 
 Learn more,
