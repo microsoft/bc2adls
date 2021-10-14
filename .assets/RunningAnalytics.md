@@ -3,7 +3,7 @@ Now that the steps to setup the tool are complete, let's look at how to run it a
 # Exporting data from BC
 Open the `Page 82560 - Export to Azure Data Lake Storage` and add some tables that should be exported at the bottom grid of the page. Do not forget to explicitly (and judiciously) select the fields in the table that should be exported.
 
-> Note that BLOB fields, FlowFields and FilterFields are not supported currently.
+> **<em>Note</em>** BLOB fields, FlowFields and FilterFields are not supported currently.
 
 Ensure that the `State` columns for the table rows are set to Ready. Click now on the `Export` action at the top of the page. This spawns multiple sessions that export each table in parallel and uploads only the incremental updates to the data since the last export. 
 
@@ -20,7 +20,7 @@ The **Consolidation_AllEntities** pipeline should be invoked after an export pro
 Follow the instructions at [Pipeline execution and triggers in Azure Data Factory or Azure Synapse Analytics | Microsoft Docs](https://docs.microsoft.com/en-us/azure/data-factory/concepts-pipeline-execution-triggers) to trigger the pipeline. You will be required then to provide values for the parameters mentioned above.
 ![Trigger pipeline run](/.assets/synapseTriggerNow.png)
 
-> Ensure that the pipeline is not triggered for an Azure data lake container in which data is either being exported from BC or another pipeline is consolidating data.
+> **<em>Note</em>** Ensure that the pipeline is not triggered for an Azure data lake container in which data is either being exported from BC or another pipeline is consolidating data.
 
 # Consuming the CDM folders
 Once the consolidation run is completed, the CDM folder is ready to be consumed using the `data.manifest.cdm.json` file. In the given sample screenshot from Power BI, that translates to a data source called `data-manifest` (see **a)** below). 

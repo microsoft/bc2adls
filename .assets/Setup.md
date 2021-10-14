@@ -30,7 +30,7 @@ Let us take a look at the settings show in the sample screenshot of the main `Pa
 
 ![The Export to Azure Data Lake Storage page](/.assets/bcAdlsePage.png)
 
-> The above settings are applied for all companies inside BC. Thus, data from all companies in your BC environment will go to the same Azure Data Lake container. It is recommended to use different containers for different environments.
+> **<em>Note</em>** The above settings are applied for all companies inside BC. Thus, data from all companies in your BC environment will go to the same Azure Data Lake container. It is recommended to use different containers for different environments.
 
 ## Configuring the Azure Synapse workspace
 This section deals with consolidation of the data that was uploaded to the data lake from BC. It is assumed that you would run the exports from BC periodically and that would generate incremental changes loaded in the `deltas` CDM folder. These incremental changes will then be consolidated into the final `data` CDM folder using Azure Synapse.
