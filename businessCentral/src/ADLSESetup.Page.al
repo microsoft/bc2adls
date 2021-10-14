@@ -8,7 +8,7 @@ page 82560 "ADLSE Setup"
     SourceTable = "ADLSE Setup";
     InsertAllowed = false;
     DeleteAllowed = false;
-    Caption = 'Export to Azure data lake storage';
+    Caption = 'Export to Azure Data Lake Storage';
 
     layout
     {

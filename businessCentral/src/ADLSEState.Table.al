@@ -30,7 +30,7 @@ table 82560 "ADLSE Setup"
 
         field(3; MaxPayloadSizeMiB; Integer)
         {
-            Caption = 'Max payload size (MiB)';
+            Caption = 'Max payload size (MiBs)';
             InitValue = 4;
             // Refer max limit for pub block calls (https://docs.microsoft.com/en-us/rest/api/storageservices/put-block#remarks)
             MaxValue = 4000;
