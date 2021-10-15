@@ -1,5 +1,5 @@
 // Copyright (c) Microsoft Corporation.
-// Licensed under the MIT License.
+// Licensed under the MIT License. See LICENSE in the project root for license information.
 codeunit 82562 "ADLSE Communication"
 {
     Access = Internal;

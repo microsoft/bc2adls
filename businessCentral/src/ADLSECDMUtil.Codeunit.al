@@ -1,5 +1,5 @@
 // Copyright (c) Microsoft Corporation.
-// Licensed under the MIT License.
+// Licensed under the MIT License. See LICENSE in the project root for license information.
 codeunit 82566 "ADLSE CDM Util" // Refer Common Data Model https://docs.microsoft.com/en-us/common-data-model/sdk/overview
 {
     Access = Internal;
@@ -50,7 +50,7 @@ codeunit 82566 "ADLSE CDM Util" // Refer Common Data Model https://docs.microsof
         Content.Add('jsonSchemaSemanticVersion', '1.0.0');
         Content.Add('imports', BlankArray);
         Content.Add('manifestName', StrSubstNo('%1-manifest', Folder));
-        Content.Add('explanation', 'Data exported from the Business Central to the Azure data lake storage');
+        Content.Add('explanation', 'Data exported from the Business Central to the Azure Data Lake Storage');
 
         EntityName := ADLSEUtil.GetDataLakeCompliantTableName(TableID);
         if ExistingContent.Contains('entities') then begin
