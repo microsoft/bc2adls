@@ -1,5 +1,5 @@
 // Copyright (c) Microsoft Corporation.
-// Licensed under the MIT License.
+// Licensed under the MIT License. See LICENSE in the project root for license information.
 page 82561 "ADLSE Setup Tables"
 {
     Caption = 'Tables';
@@ -191,17 +191,30 @@ page 82561 "ADLSE Setup Tables"
 
     trigger OnAfterGetRecord()
     var
+        TableMetadata: Record "Table Metadata";
         ADLSETableLastTimestamp: Record "ADLSE Table Last Timestamp";
         ADLSEUtil: Codeunit "ADLSE Util";
     begin
-        TableCaptionValue := ADLSEUtil.GetTableCaption(Rec."Table ID");
-        NumberFieldsChosenValue := Rec.FieldsChosen();
-        CanBeDisabledValue := Rec.CanBeDisabled();
-        CanBeEnabledValue := Rec.CanBeEnabled();
-        UpdatedLastTimestamp := ADLSETableLastTimestamp.GetUpdatedLastTimestamp(Rec."Table ID");
-        DeletedRecordLastEntryNo := ADLSETableLastTimestamp.GetDeletedLastEntryNo(Rec."Table ID");
+        if TableMetadata.Get(Rec."Table ID") then begin
+            TableCaptionValue := ADLSEUtil.GetTableCaption(Rec."Table ID");
+            NumberFieldsChosenValue := Rec.FieldsChosen();
+            CanBeDisabledValue := Rec.CanBeDisabled();
+            CanBeEnabledValue := Rec.CanBeEnabled();
+            UpdatedLastTimestamp := ADLSETableLastTimestamp.GetUpdatedLastTimestamp(Rec."Table ID");
+            DeletedRecordLastEntryNo := ADLSETableLastTimestamp.GetDeletedLastEntryNo(Rec."Table ID");
+            ADLSEntityName := ADLSEUtil.GetDataLakeCompliantTableName(Rec."Table ID");
+        end else begin
+            TableCaptionValue := StrSubstNo(AbsentTableCaptionLbl, Rec."Table ID");
+            NumberFieldsChosenValue := 0;
+            CanBeDisabledValue := false;
+            CanBeEnabledValue := false;
+            UpdatedLastTimestamp := 0;
+            DeletedRecordLastEntryNo := 0;
+            ADLSEntityName := '';
+            Rec.State := "ADLSE State"::OnHold;
+            Rec.Modify();
+        end;
         HasBeenExportedPreviously := (UpdatedLastTimestamp > 0) or (DeletedRecordLastEntryNo > 0);
-        ADLSEntityName := ADLSEUtil.GetDataLakeCompliantTableName(Rec."Table ID");
     end;
 
     var
@@ -213,6 +226,7 @@ page 82561 "ADLSE Setup Tables"
         ADLSEntityName: Text;
         UpdatedLastTimestamp: BigInteger;
         DeletedRecordLastEntryNo: BigInteger;
+        AbsentTableCaptionLbl: Label 'Table%1', Comment = '%1 = Table ID';
 
     local procedure DoChooseFields()
     var

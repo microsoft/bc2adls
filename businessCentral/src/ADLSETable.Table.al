@@ -1,5 +1,5 @@
 // Copyright (c) Microsoft Corporation.
-// Licensed under the MIT License.
+// Licensed under the MIT License. See LICENSE in the project root for license information.
 table 82561 "ADLSE Table"
 {
     Access = Internal;
@@ -54,11 +54,19 @@ table 82561 "ADLSE Table"
     trigger OnDelete()
     var
         ADLSETableField: Record "ADLSE Field";
+        ADLSETableLastTimestamp: Record "ADLSE Table Last Timestamp";
+        ADLSEDeletedRecord: Record "ADLSE Deleted Record";
     begin
         // CheckNotExporting();
 
         ADLSETableField.SetRange("Table ID", Rec."Table ID");
         ADLSETableField.DeleteAll();
+
+        ADLSEDeletedRecord.SetRange("Table ID", Rec."Table ID");
+        ADLSEDeletedRecord.DeleteAll();
+
+        ADLSETableLastTimestamp.SetRange("Table ID", Rec."Table ID");
+        ADLSETableLastTimestamp.DeleteAll();
     end;
 
     trigger OnModify()

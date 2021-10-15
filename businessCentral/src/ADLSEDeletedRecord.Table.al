@@ -1,5 +1,5 @@
 // Copyright (c) Microsoft Corporation.
-// Licensed under the MIT License.
+// Licensed under the MIT License. See LICENSE in the project root for license information.
 table 82563 "ADLSE Deleted Record"
 {
     Access = Internal;
@@ -43,7 +43,7 @@ table 82563 "ADLSE Deleted Record"
     var
         InvalidVariantPassedErr: Label 'The variant passed has to be of the Record or RecordRef type.';
 
-    procedure DeletedRecord(RecordVariant: Variant; EntryNo: Integer) NextEntryNo: Integer
+    procedure TrackDeletedRecord(RecordVariant: Variant; EntryNo: Integer) NextEntryNo: Integer
     var
         ADLSEDeletedRecord: Record "ADLSE Deleted Record";
         RecRef: RecordRef;
@@ -65,6 +65,8 @@ table 82563 "ADLSE Deleted Record"
         SystemIdField := RecRef.Field(RecRef.SystemIdNo());
         if IsNullGuid(SystemIdField.Value()) then
             exit;
+
+        // TODO: If table is in the list of tables to be exported, do not track.
 
         // Do not log a deletion if its for a record that is created after the last sync
         // TODO: This requires tracking the SystemModifiedAt of the last time stamp 
