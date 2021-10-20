@@ -43,13 +43,14 @@ codeunit 82560 "ADLSE Setup"
             Error(FieldClassNotSupportedErr, Fld.FieldName, Fld.Class);
     end;
 
-    procedure CheckSetup(var ADLSEState: Record "ADLSE Setup")
+    procedure CheckSetup(var ADLSESetup: Record "ADLSE Setup")
     var
         ADLSECurrentSession: Record "ADLSE Current Session";
         ADLSECredentials: Codeunit "ADLSE Credentials";
     begin
-        ADLSEState.Get(0);
-        if ADLSEState.Running then
+        ADLSESetup.Get(0);
+        ADLSESetup.TestField(Container);
+        if ADLSESetup.Running then
             // are any of the sessions really active?
             if ADLSECurrentSession.CheckSessionsActive() then
                 Error(ExportDataInProgressErr);

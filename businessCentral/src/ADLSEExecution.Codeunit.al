@@ -40,12 +40,14 @@ codeunit 82569 "ADLSE Execution"
                 ADLSEField.SetRange("Table ID", ADLSETable."Table ID");
                 ADLSEField.SetRange(Enabled, true);
                 if not ADLSEField.IsEmpty() then
-                    // Codeunit.Run(Codeunit::"ADLSE Execute", ADLSETable);
+                    // Codeunit.Run(Codeunit::"ADLSE Execute", ADLSETable) then
                     if Session.StartSession(NewSessionID, Codeunit::"ADLSE Execute", CompanyName(), ADLSETable) then
                         Counter += 1;
             until ADLSETable.Next() = 0;
 
         Message(ExportStartedTxt, Counter);
+        if ADLSESetupRec."Emit telemetry" then
+            Log('ADLSE-001', StrSubstNo(ExportStartedTxt, Counter), Verbosity::Normal, DataClassification::SystemMetadata);
     end;
 
     procedure StopExport()
@@ -54,6 +56,10 @@ codeunit 82569 "ADLSE Execution"
         ADLSETable: Record "ADLSE Table";
         ADLSECurrentSession: Record "ADLSE Current Session";
     begin
+        ADLSESetup.Get(0);
+        if ADLSESetup."Emit telemetry" then
+            Log('ADLSE-003', 'Stopping export sessions', Verbosity::Normal, DataClassification::SystemMetadata);
+
         if not ADLSECurrentSession.CancelAll(ExportStoppedDueToCancelledSessionTxt) then
             Error(ExportNotStoppedErr, GetLastErrorText() + GetLastErrorCallStack());
 
@@ -61,11 +67,12 @@ codeunit 82569 "ADLSE Execution"
         ADLSETable.ModifyAll(State, "ADLSE State"::Error);
         ADLSETable.ModifyAll(LastError, ExportStoppedDueToCancelledSessionTxt);
 
-        ADLSESetup.Get(0);
         ADLSESetup.Running := false;
         ADLSESetup.Modify();
 
         Message(SuccessfulStopMsg);
+        if ADLSESetup."Emit telemetry" then
+            Log('ADLSE-004', 'Stopped export sessions', Verbosity::Normal, DataClassification::SystemMetadata);
     end;
 
     procedure ClearTrackedDeletedRecords()
@@ -84,6 +91,18 @@ codeunit 82569 "ADLSE Execution"
                 ADLSETableLastTimestamp.SaveDeletedLastEntryNo(ADLSETable."Table ID", 0);
             until ADLSETable.Next() = 0;
         Message(TrackedDeletedRecordsRemovedMsg);
+    end;
+
+    internal procedure Log(EventId: Text; Message: Text; Verbosity: Verbosity; DataClassification: DataClassification)
+    var
+        CustomDimensions: Dictionary of [Text, Text];
+    begin
+        Log(EventId, Message, Verbosity, DataClassification, CustomDimensions);
+    end;
+
+    internal procedure Log(EventId: Text; Message: Text; Verbosity: Verbosity; DataClassification: DataClassification; CustomDimensions: Dictionary of [Text, Text])
+    begin
+        Session.LogMessage(EventId, Message, Verbosity, DataClassification, TelemetryScope::ExtensionPublisher, CustomDimensions);
     end;
 
 }

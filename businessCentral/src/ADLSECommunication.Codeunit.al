@@ -20,12 +20,14 @@ codeunit 82562 "ADLSE Communication"
         // ManifestJsonsNeedsUpdate: Boolean;
         DefaultContainerName: Text;
         MaxSizeOfPayloadMiB: Integer;
+        EmitTelemetry: Boolean;
         DeltaCdmManifestNameTxt: Label 'deltas.manifest.cdm.json', Locked = true;
         DataCdmManifestNameTxt: Label 'data.manifest.cdm.json', Locked = true;
         EntityManifestNameTemplateTxt: Label '%1.cdm.json', Locked = true, Comment = '%1 = Entity name';
         ContainerUrl: Label 'https://%1.blob.core.windows.net/%2', Comment = '%1: Account name, %2: Container Name';
         CorpusJsonPathTxt: Label '/%1', Comment = '%1 = name of the blob', Locked = true;
         CannotAddedMoreBlocksErr: Label 'The number of blocks that can be added to the blob has reached its maximum limit.';
+        SingleRecordTooLargeErr: Label 'A single record payload exceeded the max payload size. Please adjust the payload size or reduce the fields to be exported for the record.';
 
 
     procedure SetupBlobStorage()
@@ -49,7 +51,7 @@ codeunit 82562 "ADLSE Communication"
         exit(StrSubstNo(ContainerUrl, ADLSECredentials.GetStorageAccount(), DefaultContainerName));
     end;
 
-    procedure Init(TableIDValue: Integer; FieldIdListValue: List of [Integer]; LastFlushedTimeStampValue: BigInteger)
+    procedure Init(TableIDValue: Integer; FieldIdListValue: List of [Integer]; LastFlushedTimeStampValue: BigInteger; EmitTelemetryValue: Boolean)
     var
         ADLSESetup: Record "ADLSE Setup";
         ADLSEUtil: Codeunit "ADLSE Util";
@@ -69,6 +71,7 @@ codeunit 82562 "ADLSE Communication"
         LastFlushedTimeStamp := LastFlushedTimeStampValue;
         ADLSESetup.Get();
         MaxSizeOfPayloadMiB := ADLSESetup.MaxPayloadSizeMiB;
+        EmitTelemetry := EmitTelemetryValue;
     end;
 
     procedure CheckEntity(var EntityJsonNeedsUpdate: Boolean; var ManifestJsonsNeedsUpdate: Boolean)
@@ -108,6 +111,8 @@ codeunit 82562 "ADLSE Communication"
     var
         ADLSEUtil: Codeunit "ADLSE Util";
         ADLSEGen2Util: Codeunit "ADLSE Gen 2 Util";
+        ADLSEExecution: Codeunit "ADLSE Execution";
+        CustomDimension: Dictionary of [Text, Text];
         FileIdentifer: Guid;
     begin
         if DataBlobPath <> '' then
@@ -118,6 +123,10 @@ codeunit 82562 "ADLSE Communication"
         DataBlobPath := StrSubstNo('/deltas/%1/%2.csv', EntityName, ADLSEUtil.ToText(FileIdentifer));
         ADLSEGen2Util.CreateDataBlob(GetBaseUrl() + DataBlobPath, ADLSECredentials);
         //.CreateAppendBlob(GetBaseUrl() + AppendBlobDataPath, ADLSECredentials);
+        if EmitTelemetry then begin
+            CustomDimension.Add('Path', DataBlobPath);
+            ADLSEExecution.Log('ADLSE-012', 'Created new blob to hold the data to be exported', Verbosity::Normal, DataClassification::SystemMetadata, CustomDimension);
+        end;
     end;
 
     [TryFunction]
@@ -137,8 +146,12 @@ codeunit 82562 "ADLSE Communication"
 
         RecordPayLoad := ADLSEUtil.CreateCsvPayload(Rec, FieldIdList, Payload.Length() = 0);
         // check if payload exceeds the limit
-        if Payload.Length() + StrLen(RecordPayLoad) + 2 > MaxPayloadSize() then // the 2 is to account for new line characters
+        if Payload.Length() + StrLen(RecordPayLoad) + 2 > MaxPayloadSize() then begin // the 2 is to account for new line characters
+            if Payload.Length() = 0 then
+                // the record alone exceeds the max payload size
+                Error(SingleRecordTooLargeErr);
             FlushPayload();
+        end;
         LastTimestampExported := LastFlushedTimeStamp;
 
         Payload.Append(RecordPayLoad);
@@ -176,15 +189,29 @@ codeunit 82562 "ADLSE Communication"
     local procedure FlushPayload()
     var
         ADLSEGen2Util: Codeunit "ADLSE Gen 2 Util";
+        ADLSEExecution: Codeunit "ADLSE Execution";
         ADLSE: Codeunit ADLSE;
+        CustomDimensions: Dictionary of [Text, Text];
         BlockID: Text;
     begin
         if Payload.Length() = 0 then
             exit;
 
+        if EmitTelemetry then begin
+            CustomDimensions.Add('Length of payload', Format(Payload.Length()));
+            ADLSEExecution.Log('ADLSE-013', 'Flushing the payload', Verbosity::Normal, DataClassification::CustomerContent, CustomDimensions);
+        end;
+
         BlockID := ADLSEGen2Util.AddBlockToDataBlob(GetBaseUrl() + DataBlobPath, Payload.ToText(), ADLSECredentials);
+        if EmitTelemetry then begin
+            Clear(CustomDimensions);
+            CustomDimensions.Add('Block ID', BlockID);
+            ADLSEExecution.Log('ADLSE-014', 'Block added to blob', Verbosity::Normal, DataClassification::CustomerContent, CustomDimensions);
+        end;
         DataBlobBlockIDs.Add(BlockID);
         ADLSEGen2Util.CommitAllBlocksOnDataBlob(GetBaseUrl() + DataBlobPath, ADLSECredentials, DataBlobBlockIDs);
+        if EmitTelemetry then
+            ADLSEExecution.Log('ADLSE-015', 'Block committed', Verbosity::Normal, DataClassification::CustomerContent);
 
         LastFlushedTimeStamp := LastRecordOnPayloadTimeStamp;
         Payload.Clear();
@@ -192,6 +219,11 @@ codeunit 82562 "ADLSE Communication"
         NumberOfFlushes += 1;
 
         ADLSE.OnTableExported(TableID, LastFlushedTimeStamp);
+        if EmitTelemetry then begin
+            Clear(CustomDimensions);
+            CustomDimensions.Add('Flushed count', Format(NumberOfFlushes));
+            ADLSEExecution.Log('ADLSE-016', 'Flushed the payload', Verbosity::Normal, DataClassification::CustomerContent, CustomDimensions);
+        end;
     end;
 
     [TryFunction]

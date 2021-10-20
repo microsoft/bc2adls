@@ -1,5 +1,7 @@
 # Project
 
+> **This tool is not a release from the product group of Dynamics 365 Business Central. To see the details of how this tool is supported, please visit [the Support page](./SUPPORT.md).**
+
 ## Introduction
 
 The **bc2adls** tool is used to export data from [Dynamics 365 Business Central](https://dynamics.microsoft.com/en-us/business-central/overview/) (BC) to [Azure Data Lake Storage](https://docs.microsoft.com/en-us/azure/storage/blobs/data-lake-storage-introduction) and expose it in the [CDM folder](https://docs.microsoft.com/en-us/common-data-model/data-lake) format. The components involved are the following,
