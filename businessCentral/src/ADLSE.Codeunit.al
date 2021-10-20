@@ -1,5 +1,5 @@
 // Copyright (c) Microsoft Corporation.
-// Licensed under the MIT License.
+// Licensed under the MIT License. See LICENSE in the project root for license information.
 codeunit 82567 ADLSE
 {
     /// <summary>
@@ -50,11 +50,11 @@ codeunit 82567 ADLSE
     /// The entry number that should be used the next time when 
     /// calling this procedure.
     /// </returns>
-    procedure DeletedRecord(RecordVariant: Variant; EntryNo: Integer) NextEntryNo: Integer
+    procedure TrackDeletedRecord(RecordVariant: Variant; EntryNo: Integer) NextEntryNo: Integer
     var
         ADLSEDeletedRecord: Record "ADLSE Deleted Record";
     begin
-        NextEntryNo := ADLSEDeletedRecord.DeletedRecord(RecordVariant, EntryNo);
+        NextEntryNo := ADLSEDeletedRecord.TrackDeletedRecord(RecordVariant, EntryNo);
     end;
 
     /// <summary>

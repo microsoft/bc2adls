@@ -1,5 +1,5 @@
 // Copyright (c) Microsoft Corporation.
-// Licensed under the MIT License.
+// Licensed under the MIT License. See LICENSE in the project root for license information.
 table 82564 "ADLSE Table Last Timestamp"
 {
     Access = Internal;
