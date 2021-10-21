@@ -19,7 +19,10 @@ table 82560 "ADLSE Setup"
             Caption = 'Container';
 
             trigger OnValidate()
+            var
+                ADLSEExecution: Codeunit "ADLSE Execution";
             begin
+                // Name constraints based on https://docs.microsoft.com/en-us/rest/api/storageservices/naming-and-referencing-containers--blobs--and-metadata
                 if (StrLen(Container) < 3) or (StrLen(Container) > 63) // between 6 and 63 characters long
                     or TextContainerCharactersOtherThan(Container, 'abcdefghijklmnopqrstuvwxyz1234567890-') // only made of lower case letters, numerals and dashes
                     or (StrPos(Container, '--') <> 0) // no occurence of multiple dashes together
@@ -41,6 +44,12 @@ table 82560 "ADLSE Setup"
         {
             Caption = 'Exporting data';
             Editable = false;
+        }
+
+        field(11; "Emit telemetry"; Boolean)
+        {
+            Caption = 'Emit telemetry';
+            InitValue = true;
         }
     }
 

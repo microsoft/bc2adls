@@ -10,7 +10,7 @@ Ensure that the `State` columns for the table rows are set to Ready. Click now o
 When none of the table rows have a `Status` of `Exporting`, it indicates that the export process has completed. You should be able to see the data through the CDM endpoint: `deltas.cdm.manifest.json`.
 
 ## Telemetry
-The tool does not emit telemetry on its own. However, running a BC extension may emit some default telemetry- the details can be seen [here](https://docs.microsoft.com/en-us/dynamics365/business-central/dev-itpro/administration/telemetry-overview).
+You may switch off the telemetry by turning the "Emit telemetry" flag to off on the main setup page. When switched on, operational telemetry is pushed to any Application Insights account specified on the extension by the publisher. [Read more](https://docs.microsoft.com/en-us/dynamics365/business-central/dev-itpro/administration/telemetry-overview).
 
 # Running the integration pipeline
 The **Consolidation_AllEntities** pipeline should be invoked after an export process from BC has completed and it requires you to specify the following parameters,

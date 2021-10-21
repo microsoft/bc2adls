@@ -18,16 +18,6 @@ table 82561 "ADLSE Table"
             Editable = false;
             Caption = 'State';
         }
-        // field(3; UpdatedLastTimestamp; BigInteger)
-        // {
-        //     Editable = false;
-        //     Caption = 'Last timestamp exported for an updated record';
-        // }
-        // field(4; DeletedRecordLastEntryNo; BigInteger)
-        // {
-        //     Editable = false;
-        //     Caption = 'Last timestamp exported for a deleted record';
-        // }
         field(5; LastError; Text[2048])
         {
             Editable = false;
@@ -57,8 +47,6 @@ table 82561 "ADLSE Table"
         ADLSETableLastTimestamp: Record "ADLSE Table Last Timestamp";
         ADLSEDeletedRecord: Record "ADLSE Deleted Record";
     begin
-        // CheckNotExporting();
-
         ADLSETableField.SetRange("Table ID", Rec."Table ID");
         ADLSETableField.DeleteAll();
 

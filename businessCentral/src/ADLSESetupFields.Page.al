@@ -41,7 +41,7 @@ page 82562 "ADLSE Setup Fields"
                 {
                     ApplicationArea = All;
                     Caption = 'Attribute name';
-                    Tooltip = 'Specifies the name of the field in the data lake.';
+                    Tooltip = 'Specifies the name of the field for this entity in the data lake.';
                     Editable = false;
                 }
 

@@ -27,6 +27,7 @@ Let us take a look at the settings show in the sample screenshot of the main `Pa
 - **d)** The Application (client) ID from the App registration (refer to **a)** in the picture at [Step 1](/.assets/Setup.md#step-1-create-an-azure-service-principal))
 - **e)** The client credential key you had defined (refer to **c)** in the in the picture at [Step 1](/.assets/Setup.md#step-1-create-an-azure-service-principal))
 - **f)** The size of the individual data payload that constitutes a single REST Api upload operation to the data lake. A bigger size will surely mean less number of uploads but might consume too much memory on the BC side. Note that each upload creates a new block within the blob in the data lake. So the size of such blocks are constrained as described at [Put Block (REST API) - Azure Storage | Microsoft Docs](https://docs.microsoft.com/en-us/rest/api/storageservices/put-block#remarks).
+- **g)** The flag to enable or disable operational telemetry from this extension. It is set to True by default. 
 
 ![The Export to Azure Data Lake Storage page](/.assets/bcAdlsePage.png)
 

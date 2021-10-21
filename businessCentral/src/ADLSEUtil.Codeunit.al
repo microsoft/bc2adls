@@ -389,24 +389,17 @@ codeunit 82564 "ADLSE Util"
         TimestampField: FieldRef;
         SystemIdField: FieldRef;
         SystemDateField: FieldRef;
-    // DummyDateTime: DateTime;
     begin
         TimestampField := Rec.Field(0);
         TimestampField.Value(ADLSEDeletedRecord."Deletion Timestamp");
         SystemIdField := Rec.Field(Rec.SystemIdNo());
         SystemIdField.Value(ADLSEDeletedRecord."System ID");
 
-        // DummyDateTime := GetZeroDateTime(); // a non default date time
         SystemDateField := Rec.Field(Rec.SystemCreatedAtNo());
         SystemDateField.Value(0DT);
         SystemDateField := Rec.Field(Rec.SystemModifiedAtNo());
         SystemDateField.Value(0DT);
     end;
-
-    // local procedure GetZeroDateTime(): DateTime
-    // begin
-    //     exit(CreateDateTime(DMY2Date(3, 1, 1753), 0T)); // an arbitrary old date- this will at least be very close to the earliest date allowed in BC, i.e., 01 Jan 1753.
-    // end;
 
     procedure GetTextValueForKeyInJson(Object: JsonObject; "Key": Text): Text
     var
@@ -430,5 +423,35 @@ codeunit 82564 "ADLSE Util"
                 if PropertyToken.AsValue().AsText() = PropertyValue then
                     exit(true);
         end;
+    end;
+
+    var
+        TableDeleteSubscriberAttributeTxt: Label '[EventSubscriber(ObjectType::Table, Database::"%1", ''OnAfterDeleteEvent'', '''', false, false)]', Locked = true, Comment = '%1 is the table name';
+        TableDeleteSubscriberProcedureDeclarationTxt: Label 'local procedure EnsureT%1RecordIsDeletedFromDataLake(Rec: Record "%2"; RunTrigger: Boolean)', Locked = true, Comment = '%1 is the table number and %2 is the table name';
+        TableDeleteSubscriberRestOfBodyTxt: Label 'var \    AzureDataLakeStorageExport: Codeunit "Azure Data Lake Storage Export"; \    EntryNo : Integer; \begin \    EntryNo := NextEntryNo; \    NextEntryNo := AzureDataLakeStorageExport.DeletingRecord(Rec, EntryNo); \end;', Locked = true, Comment = '%1 is the TAB';
+
+    procedure ShowSubsriberToTrackTableDeletion(var ADLSETable: Record "ADLSE Table")
+    var
+        LocalADLSETable: Record "ADLSE Table";
+        Snippet: TextBuilder;
+    begin
+        LocalADLSETable.Copy(ADLSETable);
+        if LocalADLSETable.FindSet() then
+            repeat
+                Snippet.AppendLine();
+                ShowSubsriberToTrackTableDeletionOneTable(LocalADLSETable."Table ID", Snippet);
+            until LocalADLSETable.Next() = 0;
+        Message(Snippet.ToText());
+    end;
+
+    local procedure ShowSubsriberToTrackTableDeletionOneTable(TableID: Integer; var Snippet: TextBuilder)
+    var
+        RecRef: RecordRef;
+    begin
+        RecRef.Open(TableID);
+        Snippet.AppendLine();
+        Snippet.AppendLine(StrSubstNo(TableDeleteSubscriberAttributeTxt, RecRef.Name()));
+        Snippet.AppendLine(StrSubstNo(TableDeleteSubscriberProcedureDeclarationTxt, TableID, RecRef.Name()));
+        Snippet.AppendLine(TableDeleteSubscriberRestOfBodyTxt);
     end;
 }

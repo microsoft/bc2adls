@@ -6,7 +6,7 @@ codeunit 82569 "ADLSE Execution"
 
     trigger OnRun()
     begin
-
+        StartExport();
     end;
 
     var
@@ -15,6 +15,9 @@ codeunit 82569 "ADLSE Execution"
         ExportNotStoppedErr: Label 'Not all sessions that are exporting data may have been stopped. Please try cancelling sessions from the Admin Center and try again. Last Error: %1', Comment = '%1 = error text';
         SuccessfulStopMsg: Label 'The export process was stopped successfully.';
         TrackedDeletedRecordsRemovedMsg: Label 'Representations of deleted records that have been exported previously have been deleted.';
+        JobCategoryCodeTxt: Label 'ADLSE';
+        JobCategoryDescriptionTxt: Label 'Export to Azure Data Lake';
+        JobScheduledTxt: Label 'The job has been scheduled. Please go to the Job Queue Entries page to locate it and make further changes.';
 
     procedure StartExport()
     var
@@ -46,6 +49,8 @@ codeunit 82569 "ADLSE Execution"
             until ADLSETable.Next() = 0;
 
         Message(ExportStartedTxt, Counter);
+        if ADLSESetupRec."Emit telemetry" then
+            Log('ADLSE-001', StrSubstNo(ExportStartedTxt, Counter), Verbosity::Normal, DataClassification::SystemMetadata);
     end;
 
     procedure StopExport()
@@ -54,6 +59,10 @@ codeunit 82569 "ADLSE Execution"
         ADLSETable: Record "ADLSE Table";
         ADLSECurrentSession: Record "ADLSE Current Session";
     begin
+        ADLSESetup.Get(0);
+        if ADLSESetup."Emit telemetry" then
+            Log('ADLSE-003', 'Stopping export sessions', Verbosity::Normal, DataClassification::SystemMetadata);
+
         if not ADLSECurrentSession.CancelAll(ExportStoppedDueToCancelledSessionTxt) then
             Error(ExportNotStoppedErr, GetLastErrorText() + GetLastErrorCallStack());
 
@@ -61,11 +70,40 @@ codeunit 82569 "ADLSE Execution"
         ADLSETable.ModifyAll(State, "ADLSE State"::Error);
         ADLSETable.ModifyAll(LastError, ExportStoppedDueToCancelledSessionTxt);
 
-        ADLSESetup.Get(0);
         ADLSESetup.Running := false;
         ADLSESetup.Modify();
 
         Message(SuccessfulStopMsg);
+        if ADLSESetup."Emit telemetry" then
+            Log('ADLSE-004', 'Stopped export sessions', Verbosity::Normal, DataClassification::SystemMetadata);
+    end;
+
+    procedure ScheduleExport()
+    var
+        JobQueueEntry: Record "Job Queue Entry";
+        ScheduleAJob: Page "Schedule a Job";
+    begin
+        CreateJobQueueEntry(JobQueueEntry);
+        ScheduleAJob.SetJob(JobQueueEntry);
+        Commit();
+        if ScheduleAJob.RunModal() = Action::OK then
+            Message(JobScheduledTxt);
+    end;
+
+    local procedure CreateJobQueueEntry(var JobQueueEntry: Record "Job Queue Entry")
+    var
+        JobQueueCategory: Record "Job Queue Category";
+    begin
+        JobQueueCategory.InsertRec(JobCategoryCodeTxt, JobCategoryDescriptionTxt);
+        if JobQueueEntry.FindJobQueueEntry(JobQueueEntry."Object Type to Run"::Codeunit, Codeunit::"ADLSE Execution") then
+            exit;
+        JobQueueEntry.Init();
+        JobQueueEntry.Status := JobQueueEntry.Status::"On Hold";
+        JobQueueEntry.Description := JobQueueCategory.Description;
+        JobQueueEntry."Object Type to Run" := JobQueueEntry."Object Type to Run"::Codeunit;
+        JobQueueEntry."Object ID to Run" := CODEUNIT::"ADLSE Execution";
+        JobQueueEntry."Earliest Start Date/Time" := CurrentDateTime(); // now
+        JobQueueEntry."Expiration Date/Time" := CurrentDateTime() + (7 * 24 * 60 * 60 * 1000); // 7 days from now
     end;
 
     procedure ClearTrackedDeletedRecords()
@@ -84,6 +122,18 @@ codeunit 82569 "ADLSE Execution"
                 ADLSETableLastTimestamp.SaveDeletedLastEntryNo(ADLSETable."Table ID", 0);
             until ADLSETable.Next() = 0;
         Message(TrackedDeletedRecordsRemovedMsg);
+    end;
+
+    internal procedure Log(EventId: Text; Message: Text; Verbosity: Verbosity; DataClassification: DataClassification)
+    var
+        CustomDimensions: Dictionary of [Text, Text];
+    begin
+        Log(EventId, Message, Verbosity, DataClassification, CustomDimensions);
+    end;
+
+    internal procedure Log(EventId: Text; Message: Text; Verbosity: Verbosity; DataClassification: DataClassification; CustomDimensions: Dictionary of [Text, Text])
+    begin
+        Session.LogMessage(EventId, Message, Verbosity, DataClassification, TelemetryScope::ExtensionPublisher, CustomDimensions);
     end;
 
 }
