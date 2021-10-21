@@ -424,4 +424,34 @@ codeunit 82564 "ADLSE Util"
                     exit(true);
         end;
     end;
+
+    var
+        TableDeleteSubscriberAttributeTxt: Label '[EventSubscriber(ObjectType::Table, Database::"%1", ''OnAfterDeleteEvent'', '''', false, false)]', Locked = true, Comment = '%1 is the table name';
+        TableDeleteSubscriberProcedureDeclarationTxt: Label 'local procedure EnsureT%1RecordIsDeletedFromDataLake(Rec: Record "%2"; RunTrigger: Boolean)', Locked = true, Comment = '%1 is the table number and %2 is the table name';
+        TableDeleteSubscriberRestOfBodyTxt: Label 'var \    AzureDataLakeStorageExport: Codeunit "Azure Data Lake Storage Export"; \    EntryNo : Integer; \begin \    EntryNo := NextEntryNo; \    NextEntryNo := AzureDataLakeStorageExport.DeletingRecord(Rec, EntryNo); \end;', Locked = true, Comment = '%1 is the TAB';
+
+    procedure ShowSubsriberToTrackTableDeletion(var ADLSETable: Record "ADLSE Table")
+    var
+        LocalADLSETable: Record "ADLSE Table";
+        Snippet: TextBuilder;
+    begin
+        LocalADLSETable.Copy(ADLSETable);
+        if LocalADLSETable.FindSet() then
+            repeat
+                Snippet.AppendLine();
+                ShowSubsriberToTrackTableDeletionOneTable(LocalADLSETable."Table ID", Snippet);
+            until LocalADLSETable.Next() = 0;
+        Message(Snippet.ToText());
+    end;
+
+    local procedure ShowSubsriberToTrackTableDeletionOneTable(TableID: Integer; var Snippet: TextBuilder)
+    var
+        RecRef: RecordRef;
+    begin
+        RecRef.Open(TableID);
+        Snippet.AppendLine();
+        Snippet.AppendLine(StrSubstNo(TableDeleteSubscriberAttributeTxt, RecRef.Name()));
+        Snippet.AppendLine(StrSubstNo(TableDeleteSubscriberProcedureDeclarationTxt, TableID, RecRef.Name()));
+        Snippet.AppendLine(TableDeleteSubscriberRestOfBodyTxt);
+    end;
 }
