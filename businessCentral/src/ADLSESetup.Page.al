@@ -155,8 +155,10 @@ page 82560 "ADLSE Setup"
                 Image = Timesheet;
 
                 trigger OnAction()
+                var
+                    ADLSEExecution: Codeunit "ADLSE Execution";
                 begin
-                    Error('Not implemented');
+                    ADLSEExecution.ScheduleExport();
                 end;
             }
 
