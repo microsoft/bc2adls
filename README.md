@@ -1,6 +1,6 @@
 # Project
 
-> **This tool is not a release from the product group of Dynamics 365 Business Central. To see the details of how this tool is supported, please visit [the Support page](./SUPPORT.md).**
+> **This tool is an <u>experiment</u> on Dynamics 365 Business Central with the sole purpose of discovering the possibilities of having data exported to an Azure Data Lake. To see the details of how this tool is supported, please visit [the Support page](./SUPPORT.md).**
 
 ## Introduction
 
