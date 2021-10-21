@@ -29,9 +29,7 @@ codeunit 82561 "ADLSE Execute"
             ADLSEExecution.Log('ADLSE-004', 'Registered session to export table', Verbosity::Normal, DataClassification::CustomerContent);
 
         // No changes allowed to this table & its associations while the export is running
-        // Rec.LockTable();
         Rec.Get(Rec."Table ID");
-        // ADLSETableLastTimestamp.LockTable();
         UpdatedLastTimestamp := ADLSETableLastTimestamp.GetUpdatedLastTimestamp(Rec."Table ID");
         DeletedLastEntryNo := ADLSETableLastTimestamp.GetDeletedLastEntryNo(Rec."Table ID");
 
@@ -150,14 +148,12 @@ codeunit 82561 "ADLSE Execute"
             if EmitTelemetry then
                 ADLSEExecution.Log('ADLSE-008', 'Updated records found', Verbosity::Verbose, DataClassification::CustomerContent);
             repeat
-                // UpdatedLastTimeStamp := ExportRecordUpdate(ADLSECommunication, Rec, TimeStampField.Value(), ADLSETable, true);
                 if ADLSECommunication.TryCollectAndSendRecord(Rec, TimeStampField.Value(), FlushedTimeStamp) then
                     UpdatedLastTimeStamp := FlushedTimeStamp
                 else
                     Error(GetLastErrorText() + GetLastErrorCallStack());
             until Rec.Next = 0;
 
-            // UpdatedLastTimeStamp := Finish(ADLSECommunication, ADLSETable, true);
             if ADLSECommunication.TryFinish(FlushedTimeStamp) then
                 UpdatedLastTimeStamp := FlushedTimeStamp
             else
@@ -186,14 +182,12 @@ codeunit 82561 "ADLSE Execute"
             Rec.Open(ADLSEDeletedRecord."Table ID");
             repeat
                 ADLSEUtil.CreateFakeRecordForDeletedAction(ADLSEDeletedRecord, Rec);
-                // DeletedLastEntryNo := ExportRecordUpdate(ADLSECommunication, Rec, ADLSEDeletedRecord."Entry No.", ADLSETable, false);
                 if ADLSECommunication.TryCollectAndSendRecord(Rec, ADLSEDeletedRecord."Entry No.", FlushedTimeStamp) then
                     DeletedLastEntryNo := FlushedTimeStamp
                 else
                     Error(GetLastErrorText() + GetLastErrorCallStack());
             until ADLSEDeletedRecord.Next() = 0;
 
-            // DeletedLastEntryNo := Finish(ADLSECommunication, ADLSETable, false);
             if ADLSECommunication.TryFinish(FlushedTimeStamp) then
                 DeletedLastEntryNo := FlushedTimeStamp
             else
@@ -202,48 +196,6 @@ codeunit 82561 "ADLSE Execute"
         if EmitTelemetry then
             ADLSEExecution.Log('ADLSE-011', 'Deleted records exported', Verbosity::Verbose, DataClassification::CustomerContent);
     end;
-
-    // local procedure ExportRecordUpdate(
-    //     ADLSECommunication: Codeunit "ADLSE Communication";
-    //     Rec: RecordRef;
-    //     RecordTimestamp: BigInteger;
-    //     var ADLSETable: Record "ADLSE Table";
-    //     ExportingExistingRecord: Boolean) LastFlushedTimestamp: BigInteger
-    // begin
-    //     LastFlushedTimestamp := ADLSECommunication.CollectAndSendRecord(Rec, RecordTimestamp);
-    //     UpdateLastTimeStamps(ExportingExistingRecord, LastFlushedTimestamp, ADLSETable);
-    // end;
-
-    // local procedure Finish(
-    //     ADLSECommunication: Codeunit "ADLSE Communication";
-    //     var ADLSETable: Record "ADLSE Table";
-    //     ExportingExistingRecord: Boolean) LastFlushedTimestamp: BigInteger;
-    // begin
-    //     LastFlushedTimestamp := ADLSECommunication.Finish();
-    //     UpdateLastTimeStamps(ExportingExistingRecord, LastFlushedTimestamp, ADLSETable);
-    // end;
-
-    // local procedure UpdateLastTimeStamps(ExportingExistingRecord: Boolean; LastFlushedTimestamp: BigInteger; var ADLSETable: Record "ADLSE Table")
-    // var
-    //     ADLSETableLastTimestamp: Record "ADLSE Table Last Timestamp";
-    //     NeedToUpdateTimestamp: Boolean;
-    // begin
-    //     if ExportingExistingRecord then
-    //         NeedToUpdateTimestamp := LastFlushedTimestamp > ADLSETableLastTimestamp.GetUpdatedLastTimestamp(ADLSETable."Table ID")
-    //     else
-    //         NeedToUpdateTimestamp := LastFlushedTimestamp > ADLSETableLastTimestamp.GetDeletedLastEntryNo(ADLSETable."Table ID");
-
-    //     if NeedToUpdateTimestamp then begin
-    //         if ExportingExistingRecord then
-    //             ADLSETableLastTimestamp.SaveUpdatedLastTimestamp(ADLSETable."Table ID", LastFlushedTimestamp)
-    //         else
-    //             ADLSETableLastTimestamp.SaveDeletedLastEntryNo(ADLSETable."Table ID", LastFlushedTimestamp);
-    //         ADLSETable.Modify();
-
-    //         Commit(); // to persist the timestamp value in case of a subsequent error
-    //         AcquireLock(ADLSETable);
-    //     end;
-    // end;
 
     local procedure CreateFieldListForTable(TableID: Integer) FieldIdList: List of [Integer]
     var
@@ -259,24 +211,22 @@ codeunit 82561 "ADLSE Execute"
         ADLSEUtil.AddSystemFields(FieldIdList);
     end;
 
-    // local procedure AcquireLock(var ADLSETable: Record "ADLSE Table")
-    // begin
-    //     ADLSETable.LockTable(true);
-    //     ADLSETable.Get(ADLSETable."Table ID");
-    // end;
-
     local procedure SetErrorState(var ADLSETable: Record "ADLSE Table")
     var
         ADLSEExecution: Codeunit "ADLSE Execution";
         CustomDimension: Dictionary of [Text, Text];
+        LastErrorMessage: Text;
+        LastErrorStack: Text;
     begin
         ADLSETable.State := "ADLSE State"::Error;
-        if ADLSETable.LastError = '' then
-            ADLSETable.LastError := CopyStr(GetLastErrorText() + GetLastErrorCallStack(), 1, 2048); // 2048 is the max size of the field 
+        LastErrorMessage := GetLastErrorText();
+        LastErrorStack := GetLastErrorCallStack();
+        if ADLSETable.LastError = '' then // do not overwrite an existing error
+            ADLSETable.LastError := CopyStr(LastErrorMessage + LastErrorStack, 1, 2048); // 2048 is the max size of the field 
         ADLSETable.Modify();
         if EmitTelemetry then begin
-            CustomDimension.Add('Error text', GetLastErrorText());
-            CustomDimension.Add('Error stack', GetLastErrorCallStack());
+            CustomDimension.Add('Error text', LastErrorMessage);
+            CustomDimension.Add('Error stack', LastErrorStack);
             ADLSEExecution.Log('ADLSE-008', 'Error occured during execution', Verbosity::Warning, DataClassification::CustomerContent, CustomDimension);
         end;
     end;

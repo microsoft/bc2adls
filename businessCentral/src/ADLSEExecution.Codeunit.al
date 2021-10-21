@@ -40,7 +40,7 @@ codeunit 82569 "ADLSE Execution"
                 ADLSEField.SetRange("Table ID", ADLSETable."Table ID");
                 ADLSEField.SetRange(Enabled, true);
                 if not ADLSEField.IsEmpty() then
-                    // Codeunit.Run(Codeunit::"ADLSE Execute", ADLSETable) then
+                    // Codeunit.Run(Codeunit::"ADLSE Execute", ADLSETable);
                     if Session.StartSession(NewSessionID, Codeunit::"ADLSE Execute", CompanyName(), ADLSETable) then
                         Counter += 1;
             until ADLSETable.Next() = 0;

@@ -10,7 +10,6 @@ codeunit 82568 "ADLSE Gen 2 Util"
         LeaseDurationSecsTxt: Label '60', Locked = true, Comment = 'This is the maximum duration for a lock on the blobs';
         AcquireLeaseTimeoutSecondsTxt: Label '180', Locked = true, Comment = 'The number of seconds to continuously try to acquire a lock on the blob. This must be more than the value specified for AcquireLeaseSleepSecondsTxt.';
         AcquireLeaseSleepSecondsTxt: Label '10', Locked = true, Comment = 'The number of seconds to sleep for before re-trying to acquire a lock on the blob. This must be less than the value specified for AcquireLeaseTimeoutSecondsTxt.';
-        // MaxBlobSizeTxt: Label '1048576', Locked = true, Comment = 'This is the max size of CDM jsons- 1 MiB = 1024 X 1024 bytes';
         TimedOutWaitingForLockOnBlobErr: Label 'Timed out waiting to acquire lease on blob %1 after %2 seconds. %3';
         CouldNotReleaseLockOnBlobErr: Label 'Could not release lock on blob %1. %2';
 
@@ -18,20 +17,12 @@ codeunit 82568 "ADLSE Gen 2 Util"
         CoundNotCreateContainerErr: Label 'Could not create container %1. %2', Comment = '%1: container name; &2: error text';
         GetContainerMetadataSuffixTxt: Label '?restype=container&comp=metadata', Locked = true;
 
-        // AppendBlockSuffixTxt: Label '?comp=appendblock', Locked = true;
         PutBlockSuffixTxt: Label '?comp=block&blockid=%1', Locked = true, Comment = '%1 = the block id being added';
         PutLockListSuffixText: Label '?comp=blocklist', Locked = true;
         CouldNotAppendDataToBlobErr: Label 'Could not append data to %1. %2';
         CouldNotCommitBlocksToDataBlob: Label 'Could not commit blocks to %1. %2';
-        // UpdatePageBlobSuffixTxt: Label '?comp=page', Locked = true;
-        // DefaultBlockIDTxt: Label 'ABCDEF', Locked = true, Comment = 'The block id is defaulted to a fixed value as it is expected that there shall be only one block written for each json blob.';
-        // UpdateBlockBlobSuffixTxt: Label '?comp=block&blockid=%1%3D%3D', Locked = true;
-        // CommitBlockBlobSuffixTxt: Label '?comp=blocklist', Locked = true;
-        // CommitBlockBodyTxt: Label '<?xml version="1.0" encoding="utf-8"?><BlockList><Latest>%1==</Latest></BlockList>', Locked = true;
         CouldNotCreateBlobErr: Label 'Could not create blob %1. %2', Comment = '%1: blob path, %2: error text';
         CouldNotUpdateBlobErr: Label 'Could not update data on %1. %2';
-        // CouldNotDeletePathErr: Label 'Could not delete %1. %2';
-        // CouldNotCommitBlockBlobErr: Label 'Could not commit the blocks on %1. %2';
         CouldNotReadDataInBlobErr: Label 'Could not read data on %1. %2';
 
     procedure ContainerExists(ContainerPath: Text; ADLSECredentials: Codeunit "ADLSE Credentials"): Boolean
@@ -82,37 +73,6 @@ codeunit 82568 "ADLSE Gen 2 Util"
             Error(CouldNotReadDataInBlobErr, BlobPath, Response);
     end;
 
-
-    // TODO: delete this as all actions should be done with a lease
-    // procedure CreateAppendBlob(BlobPath: Text; ADLSECredentials: Codeunit "ADLSE Credentials")
-    // var
-    //     ADLSEHttp: Codeunit "ADLSE Http";
-    // begin
-    //     CreateAppendBlob(BlobPath, ADLSECredentials, '', ADLSEHttp);
-    // end;
-
-    // procedure CreateAppendBlobJson(BlobPath: Text; ADLSECredentials: Codeunit "ADLSE Credentials"; LeaseID: Text)
-    // var
-    //     ADLSEHttp: Codeunit "ADLSE Http";
-    // begin
-    //     ADLSEHttp.AddHeader('x-ms-blob-content-type', ADLSEHttp.GetContentTypeJson());
-    //     CreateAppendBlob(BlobPath, ADLSECredentials, LeaseID, ADLSEHttp);
-    // end;
-
-    // local procedure CreateAppendBlob(BlobPath: Text; ADLSECredentials: Codeunit "ADLSE Credentials"; LeaseID: Text; ADLSEHttp: Codeunit "ADLSE Http")
-    // var
-    //     Response: Text;
-    // begin
-    //     ADLSEHttp.SetMethod("ADLSE Http Method"::Put);
-    //     ADLSEHttp.SetUrl(BlobPath);
-    //     ADLSEHttp.SetAuthorizationCredentials(ADLSECredentials);
-    //     ADLSEHttp.AddHeader('x-ms-blob-type', 'AppendBlob');
-    //     if LeaseID <> '' then
-    //         ADLSEHttp.AddHeader('x-ms-lease-id', LeaseID);
-    //     if not ADLSEHttp.InvokeRestApi(Response) then
-    //         Error(CouldNotCreateBlobErr, BlobPath, Response);
-    // end;
-
     procedure CreateOrUpdateJsonBlob(BlobPath: Text; ADLSECredentials: Codeunit "ADLSE Credentials"; LeaseID: Text; Body: JsonObject)
     var
         BodyAsText: Text;
@@ -158,15 +118,8 @@ codeunit 82568 "ADLSE Gen 2 Util"
         ADLSEHttp.SetUrl(StrSubstNo('%1%2', BlobPath, StrSubstNo(PutBlockSuffixTxt, BlockID)));
         ADLSEHttp.SetAuthorizationCredentials(ADLSECredentials);
         ADLSEHttp.SetBody(Body);
-        // if LeaseID <> '' then
-        //     ADLSEHttp.AddHeader('x-ms-lease-id', LeaseID);
         if not ADLSEHttp.InvokeRestApi(Response) then
             Error(CouldNotAppendDataToBlobErr, BlobPath, Response);
-        // ADLSEHttp.SetMethod("ADLSE Http Method"::Put);
-        // ADLSEHttp.SetUrl(BlobPath + AppendBlockSuffixTxt);
-        // ADLSEHttp.SetAuthorizationCredentials(ADLSECredentials);
-        // ADLSEHttp.SetBody(Body);
-        // if not ADLSEHttp.InvokeRestApi(Response) then
     end;
 
     procedure CommitAllBlocksOnDataBlob(BlobPath: Text; ADLSECredentials: Codeunit "ADLSE Credentials"; BlockIDList: List of [Text])

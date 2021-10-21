@@ -16,8 +16,6 @@ codeunit 82562 "ADLSE Communication"
         NumberOfFlushes: Integer;
         EntityName: Text;
         EntityJson: JsonObject;
-        // EntityJsonNeedsUpdate: Boolean;
-        // ManifestJsonsNeedsUpdate: Boolean;
         DefaultContainerName: Text;
         MaxSizeOfPayloadMiB: Integer;
         EmitTelemetry: Boolean;
@@ -58,15 +56,9 @@ codeunit 82562 "ADLSE Communication"
     begin
         TableID := TableIDValue;
         FieldIdList := FieldIdListValue;
-        // DataBlobPath := '';
-        // Clear(DataBlobBlockIDs);
-        // LastRecordOnPayloadTimeStamp := 0;
-        // Clear(Payload);
-        // NumberOfFlushes := 0;
 
         ADLSECredentials.Init();
         EntityName := ADLSEUtil.GetDataLakeCompliantTableName(TableID);
-        // Clear(EntityJson);
 
         LastFlushedTimeStamp := LastFlushedTimeStampValue;
         ADLSESetup.Get();
@@ -119,10 +111,8 @@ codeunit 82562 "ADLSE Communication"
             // already created blob
             exit;
         FileIdentifer := CreateGuid();
-        // AppendBlobDataPath := StrSubstNo('/deltas/%1/%2/%3.csv', EntityName, ADLSEUtil.GetDataLakeCompliantName(CompanyName()), ADLSEUtil.ToText(FileIdentifer));
         DataBlobPath := StrSubstNo('/deltas/%1/%2.csv', EntityName, ADLSEUtil.ToText(FileIdentifer));
         ADLSEGen2Util.CreateDataBlob(GetBaseUrl() + DataBlobPath, ADLSECredentials);
-        //.CreateAppendBlob(GetBaseUrl() + AppendBlobDataPath, ADLSECredentials);
         if EmitTelemetry then begin
             CustomDimension.Add('Path', DataBlobPath);
             ADLSEExecution.Log('ADLSE-012', 'Created new blob to hold the data to be exported', Verbosity::Normal, DataClassification::SystemMetadata, CustomDimension);
@@ -169,9 +159,6 @@ codeunit 82562 "ADLSE Communication"
         FlushPayload();
 
         LastTimestampExported := LastFlushedTimeStamp;
-
-        // if NumberOfFlushes > 0 then
-        //     UpdateCdmJsons();
     end;
 
     local procedure MaxPayloadSize(): Integer

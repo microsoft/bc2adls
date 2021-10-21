@@ -13,7 +13,6 @@ codeunit 82563 "ADLSE Http"
         AdditionalRequestHeaders: Dictionary of [Text, Text];
         ResponseHeaders: HttpHeaders;
         AzureStorageServiceVersion: Label '2020-10-02', Locked = true; // Latest version from https://docs.microsoft.com/en-us/rest/api/storageservices/versioning-for-the-azure-storage-services
-                                                                       // '2017-11-09'
         ContentTypeApplicationJson: Label 'application/json', Locked = true;
         ContentTypePlainText: Label 'text/plain; charset=utf-8', Locked = true;
         UnsupportedMethodErr: Label 'Unsupported method: %1';
@@ -77,7 +76,6 @@ codeunit 82563 "ADLSE Http"
             Result.Add(Values[Counter]);
     end;
 
-    // TODO: Remove
     procedure InvokeRestApi(var Response: Text) Success: Boolean
     var
         StatusCode: Integer;
@@ -85,7 +83,7 @@ codeunit 82563 "ADLSE Http"
         Success := InvokeRestApi(Response, StatusCode);
     end;
 
-    // TODO [NonDebuggable]
+    [NonDebuggable]
     procedure InvokeRestApi(var Response: Text; var StatusCode: Integer) Success: Boolean
     var
         Client: HttpClient;
@@ -211,55 +209,6 @@ codeunit 82563 "ADLSE Http"
 
         Json.ReadFrom(ResponseBody);
         AccessToken := ADSEUtil.GetTextValueForKeyInJson(Json, 'access_token');
-        // Json.Get('access_token', AccessTokenJson);
-        // AccessTokenJson.WriteTo(AccessToken);
-        // AccessToken := AccessToken.TrimStart('"').TrimEnd('"');
-
         // TODO: Store access token in cache, and use it based on expiry date.
     end;
-
-    // [NonDebuggable]
-    // local procedure AcquireTokenOAuth2V2(var AuthError: Text) AccessToken: Text
-    // var
-    //     OAuth2: Codeunit OAuth2;
-    //     Scopes: List of [Text];
-    //     IdToken: Text;
-    // begin
-    //     Scopes.Add('https://storage.azure.com/user_impersonation');
-
-    //     OAuth2.AcquireAuthorizationCodeTokenFromCache(ClientID, ClientSecret, RedirectUrl, OAuthV2AuthorityUrlAuthCodeTxt, Scopes, AccessToken);
-    //     if AccessToken <> '' then
-    //         exit;
-
-    //     OAuth2.AcquireTokensByAuthorizationCode(ClientID, ClientSecret,
-    //         'https://login.microsoftonline.com/<tenant-id>/oauth2/v2.0/authorize',
-    //         RedirectUrl, Scopes,
-    //         "Prompt Interaction"::Consent,
-    //         AccessToken, IdToken, AuthError);
-    // end;
-
-    // [NonDebuggable]
-    // local procedure AcquireTokenOAuth2V1(var AuthError: Text) AccessToken: Text
-    // var
-    //     OAuth2: Codeunit OAuth2;
-    //     ResourceUrl: Text;
-    //     IdToken: Text;
-    // begin
-    //     ResourceUrl := 'https://storage.azure.com/';
-
-    //     OAuth2.AcquireAuthorizationCodeTokenFromCache(ClientID, ClientSecret, RedirectUrl, ResourceUrl, AccessToken);
-    //     if AccessToken <> '' then
-    //         exit;
-
-    //     OAuth2.AcquireTokenByAuthorizationCode(
-    //         ClientID,
-    //         ClientSecret,
-    //         'https://login.microsoftonline.com/<tenant-id>/oauth2/authorize',
-    //         RedirectURL,
-    //         ResourceUrl,
-    //         "Prompt Interaction"::Consent,
-    //         AccessToken,
-    //         AuthError);
-    // end;
-
 }

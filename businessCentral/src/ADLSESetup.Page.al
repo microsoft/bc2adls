@@ -133,7 +133,6 @@ page 82560 "ADLSE Setup"
                 PromotedCategory = Process;
                 PromotedOnly = true;
                 Image = Stop;
-                // Enabled = ExportInProgress;
 
                 trigger OnAction()
                 var

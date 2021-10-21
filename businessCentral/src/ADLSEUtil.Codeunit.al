@@ -389,24 +389,17 @@ codeunit 82564 "ADLSE Util"
         TimestampField: FieldRef;
         SystemIdField: FieldRef;
         SystemDateField: FieldRef;
-    // DummyDateTime: DateTime;
     begin
         TimestampField := Rec.Field(0);
         TimestampField.Value(ADLSEDeletedRecord."Deletion Timestamp");
         SystemIdField := Rec.Field(Rec.SystemIdNo());
         SystemIdField.Value(ADLSEDeletedRecord."System ID");
 
-        // DummyDateTime := GetZeroDateTime(); // a non default date time
         SystemDateField := Rec.Field(Rec.SystemCreatedAtNo());
         SystemDateField.Value(0DT);
         SystemDateField := Rec.Field(Rec.SystemModifiedAtNo());
         SystemDateField.Value(0DT);
     end;
-
-    // local procedure GetZeroDateTime(): DateTime
-    // begin
-    //     exit(CreateDateTime(DMY2Date(3, 1, 1753), 0T)); // an arbitrary old date- this will at least be very close to the earliest date allowed in BC, i.e., 01 Jan 1753.
-    // end;
 
     procedure GetTextValueForKeyInJson(Object: JsonObject; "Key": Text): Text
     var
