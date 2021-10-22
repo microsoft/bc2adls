@@ -3,7 +3,7 @@
 table 82563 "ADLSE Deleted Record"
 {
     Access = Internal;
-    DataClassification = CustomerContent;
+    DataClassification = SystemMetadata;
 
     fields
     {
@@ -11,6 +11,7 @@ table 82563 "ADLSE Deleted Record"
         {
             Editable = false;
             Caption = 'Entry No.';
+            AutoIncrement = true;
         }
         field(2; "Table ID"; Integer)
         {
@@ -40,33 +41,17 @@ table 82563 "ADLSE Deleted Record"
         }
     }
 
+    procedure TrackDeletedRecord(RecRef: RecordRef)
     var
-        InvalidVariantPassedErr: Label 'The variant passed has to be of the Record or RecordRef type.';
-
-    procedure TrackDeletedRecord(RecordVariant: Variant; EntryNo: Integer) NextEntryNo: Integer
-    var
-        ADLSEDeletedRecord: Record "ADLSE Deleted Record";
-        RecRef: RecordRef;
         SystemIdField: FieldRef;
         TimestampField: FieldRef;
     begin
-        if RecordVariant.IsRecord() then
-            RecRef.GetTable(RecordVariant)
-        else
-            if RecordVariant.IsRecordRef() then
-                RecRef := RecordVariant
-            else
-                Error(InvalidVariantPassedErr);
-
-        NextEntryNo := EntryNo;
         if RecRef.IsTemporary() then
             exit;
 
         SystemIdField := RecRef.Field(RecRef.SystemIdNo());
         if IsNullGuid(SystemIdField.Value()) then
             exit;
-
-        // TODO: If table is in the list of tables to be exported, do not track.
 
         // Do not log a deletion if its for a record that is created after the last sync
         // TODO: This requires tracking the SystemModifiedAt of the last time stamp 
@@ -76,20 +61,11 @@ table 82563 "ADLSE Deleted Record"
         // in the next run.   
 
         Init();
-        if EntryNo = 0 then begin
-            ADLSEDeletedRecord.SetLoadFields("Entry No.");
-            if ADLSEDeletedRecord.FindLast() then
-                EntryNo := ADLSEDeletedRecord."Entry No."
-            else
-                EntryNo := 1;
-        end;
-        "Entry No." := EntryNo;
         "Table ID" := RecRef.Number;
         "System ID" := SystemIdField.Value();
         TimestampField := RecRef.Field(0);
         "Deletion Timestamp" := TimestampField.Value();
         "Deletion Timestamp" += 1; // to mark an update that is greater than the last time stamp on this record
         Insert();
-        NextEntryNo := "Entry No." + 1;
     end;
 }

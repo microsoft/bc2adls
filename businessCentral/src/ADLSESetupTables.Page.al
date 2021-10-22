@@ -186,27 +186,6 @@ page 82561 "ADLSE Setup Tables"
                     CurrPage.Update();
                 end;
             }
-
-            group(Snippets)
-            {
-                Caption = 'Code snippets';
-                ToolTip = 'Get code snippets to deploy in a new extension to achieve specific goals.';
-                Image = CodesList;
-
-                action(TrackRecordDelete)
-                {
-                    ApplicationArea = All;
-                    Caption = 'Track record deletes';
-                    ToolTip = 'Shows the AL event subscriber that tracks deletions of records. The call to the subscriber is needed to let the tool be aware of the deletions of records for the added tables. Add this code to a codeunit in a new extension.';
-
-                    trigger OnAction()
-                    var
-                        ADLSEUtil: Codeunit "ADLSE Util";
-                    begin
-                        ADLSEUtil.ShowSubsriberToTrackTableDeletion(Rec);
-                    end;
-                }
-            }
         }
     }
 

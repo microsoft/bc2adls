@@ -2,6 +2,11 @@
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 table 82564 "ADLSE Table Last Timestamp"
 {
+    /// <summary>
+    /// Keeps track of the last exported timestamps of different tables.
+    /// <remarks>This table is not per company table as some of the tables it represents may not be data per company. Company name field has been added to differentiate them.</remarks>
+    /// </summary>
+
     Access = Internal;
     DataClassification = CustomerContent;
     DataPerCompany = false;
@@ -40,9 +45,14 @@ table 82564 "ADLSE Table Last Timestamp"
         }
     }
 
+    procedure ExistsUpdatedLastTimestamp(TableID: Integer): Boolean
+    begin
+        exit(Rec.Get(GetCompanyNameToLookFor(TableID), TableID));
+    end;
+
     procedure GetUpdatedLastTimestamp(TableID: Integer): BigInteger
     begin
-        if Rec.Get(GetCompanyNameToLookFor(TableID), TableID) then
+        if ExistsUpdatedLastTimestamp(TableID) then
             exit(Rec."Updated Last Timestamp");
     end;
 

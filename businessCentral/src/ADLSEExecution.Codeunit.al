@@ -136,4 +136,30 @@ codeunit 82569 "ADLSE Execution"
         Session.LogMessage(EventId, Message, Verbosity, DataClassification, TelemetryScope::ExtensionPublisher, CustomDimensions);
     end;
 
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::GlobalTriggerManagement, 'OnAfterGetDatabaseTableTriggerSetup', '', false, false)]
+    local procedure GetDatabaseTableTriggerSetup(TableId: Integer; var OnDatabaseInsert: Boolean; var OnDatabaseModify: Boolean; var OnDatabaseDelete: Boolean; var OnDatabaseRename: Boolean)
+    var
+        ADLSETableLastTimestamp: Record "ADLSE Table Last Timestamp";
+    begin
+        if CompanyName() = '' then
+            exit;
+
+        // track deletes only if at least one export has been made for that table
+        if ADLSETableLastTimestamp.ExistsUpdatedLastTimestamp(TableId) then
+            OnDatabaseDelete := true;
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::GlobalTriggerManagement, 'OnAfterOnDatabaseDelete', '', false, false)]
+    local procedure OnAfterOnDatabaseDelete(RecRef: RecordRef)
+    var
+        ADLSETableLastTimestamp: Record "ADLSE Table Last Timestamp";
+        ADLSEDeletedRecord: Record "ADLSE Deleted Record";
+    begin
+        // check if table is to be tracked.
+        if not ADLSETableLastTimestamp.ExistsUpdatedLastTimestamp(RecRef.Number) then
+            exit;
+
+        ADLSEDeletedRecord.TrackDeletedRecord(RecRef);
+    end;
+
 }
