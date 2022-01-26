@@ -17,10 +17,10 @@ Now you must configure the above storage account to allow changes by the credent
 ![Sample storage account](/.assets/storageAccount.png)
 
 ## Configuring the Dynamics 365 Business Central
-In order to export the data from inside BC to the data lake, you will need to add a configuration to make BC aware of the location in the data lake.
+Install the extension into BC using the code given in the [businessCentral](/businessCentral) folder using the general guidance for [developing extensions in Visual Studio code](https://docs.microsoft.com/en-us/dynamics365/business-central/dev-itpro/developer/devenv-dev-overview#developing-extensions-in-visual-studio-code). Once you have the `Azure Data Lake Storage Export` extension deployed, open the `Page 82560 - Export to Azure data lake Storage`. In order to export the data from inside BC to the data lake, you will need to add a configuration to make BC aware of the location in the data lake.
 
 ### Step 4. Enter the BC settings
-Let us take a look at the settings show in the sample screenshot of the main `Page 82560 - Export to Azure data lake Storage` below,
+Let us take a look at the settings show in the sample screenshot below,
 - **a)** The container name (defaulted to `business-central`) inside the storage account where the data shall be exported as block blobs. The export process creates this location if it does not already exist. Please ensure that the name corresponds to the requirements as outlined at [Naming and Referencing Containers, Blobs, and Metadata - Azure Storage | Microsoft Docs](https://docs.microsoft.com/en-us/rest/api/storageservices/Naming-and-Referencing-Containers--Blobs--and-Metadata).
 - **b)** The tenant id at which the app registration created above resides (refer to **b)** in the picture at [Step 1](/.assets/Setup.md#step-1-create-an-azure-service-principal))
 - **c)** The name of the storage account that you created in [Step 2](/.assets/Setup.md#step-2-configure-an-azure-data-lake-gen2).
