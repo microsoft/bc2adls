@@ -155,11 +155,15 @@ codeunit 82569 "ADLSE Execution"
         ADLSETableLastTimestamp: Record "ADLSE Table Last Timestamp";
         ADLSEDeletedRecord: Record "ADLSE Deleted Record";
     begin
+        // exit function for tables that you do not wish to sync deletes for
+        // you should also consider not registering for deletes for the table in the function GetDatabaseTableTriggerSetup above.
+        // if RecRef.Number = Database::"G/L Entry" then
+        //     exit;
+
         // check if table is to be tracked.
         if not ADLSETableLastTimestamp.ExistsUpdatedLastTimestamp(RecRef.Number) then
             exit;
 
         ADLSEDeletedRecord.TrackDeletedRecord(RecRef);
     end;
-
 }
