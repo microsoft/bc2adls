@@ -70,6 +70,36 @@ page 82562 "ADLSE Setup Fields"
     {
         area(Processing)
         {
+            action(SelectAll)
+            {
+                Caption = 'Select All';
+                ApplicationArea = All;
+                ToolTip = 'Selects all normal fields of the table.';
+                Image = Apply;
+
+                trigger OnAction()
+                var
+                    ADLSEField: Record "ADLSE Field";
+                    Fld: Record Field;
+                    ADLSEUtil: Codeunit "ADLSE Util";
+                begin
+                    Fld.Reset;
+                    Fld.SetRange(TableNo, rec."Table ID");
+                    Fld.SetFilter("No.", '<%1', 2000000000); // no system fields
+                    Fld.SetRange(Class, FieldClassName::Normal);
+                    if Fld.FindSet then
+                        repeat
+                            if ADLSEUtil.CheckFieldTypeForExport(Fld) then begin
+                                ADLSEField.Get(Fld.TableNo, Fld."No.");
+                                ADLSEField.Validate(Enabled, true);
+                                ADLSEField.Modify(true);
+                            end;
+                        until Fld.Next = 0;
+
+
+                    CurrPage.Update();
+                end;
+            }
         }
     }
 
