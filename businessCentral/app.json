@@ -11,13 +11,12 @@
     "url":  "https://go.microsoft.com/fwlink/?LinkId=724011",
     "contextSensitiveHelpUrl":  "https://docs.microsoft.com/dynamics365/business-central/",
     "dependencies": [
-        {"id": "63ca2fa4-4f03-4f2b-a480-172fef340d3f", "name": "System Application", "publisher": "Microsoft", "version": "18.0.0.0"},
-        {"id": "437dbf0e-84ff-417a-965d-ed2bb9650972", "name": "Base Application", "publisher": "Microsoft", "version": "18.0.0.0"}
     ],
     "screenshots":  [
 
                     ],
-    "platform":  "18.0.0.0",
+    "platform":  "20.0.0.0",
+    "application": "20.0.0.0",
     "showMyCode": true,
     "idRanges": [
       {

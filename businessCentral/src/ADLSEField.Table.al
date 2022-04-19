@@ -32,6 +32,7 @@ table 82562 "ADLSE Field"
                 if Enabled then begin
                     ADLSEUtil.CheckFieldTypeForExport(Fld);
                     ADLSESetup.CheckFieldClassCanBeExported(Fld);
+                    CheckFieldToBeEnabled();
                 end;
             end;
         }
@@ -82,4 +83,20 @@ table 82562 "ADLSE Field"
             until Fld.Next() = 0;
     end;
 
+    procedure CheckFieldToBeEnabled()
+    var
+        Fld: Record Field;
+        ADLSESetup: Codeunit "ADLSE Setup";
+        ADLSEUtil: Codeunit "ADLSE Util";
+    begin
+        Fld.Get(Rec."Table ID", Rec."Field ID");
+        ADLSEUtil.CheckFieldTypeForExport(Fld);
+        ADLSESetup.CheckFieldClassCanBeExported(Fld);
+    end;
+
+    [TryFunction]
+    procedure CanFieldBeEnabled()
+    begin
+        CheckFieldToBeEnabled();
+    end;
 }

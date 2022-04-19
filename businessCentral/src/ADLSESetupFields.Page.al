@@ -72,32 +72,22 @@ page 82562 "ADLSE Setup Fields"
         {
             action(SelectAll)
             {
-                Caption = 'Select All';
+                Caption = 'Enable all valid fields';
                 ApplicationArea = All;
-                ToolTip = 'Selects all normal fields of the table.';
+                ToolTip = 'Enables all fields of the table that can be enabled.';
                 Image = Apply;
 
                 trigger OnAction()
-                var
-                    ADLSEField: Record "ADLSE Field";
-                    Fld: Record Field;
-                    ADLSEUtil: Codeunit "ADLSE Util";
                 begin
-                    Fld.Reset;
-                    Fld.SetRange(TableNo, rec."Table ID");
-                    Fld.SetFilter("No.", '<%1', 2000000000); // no system fields
-                    Fld.SetRange(Class, FieldClassName::Normal);
-                    if Fld.FindSet then
+                    Rec.SetFilter(Enabled, '<>%1', true);
+                    if Rec.FindSet() then
                         repeat
-                            if ADLSEUtil.CheckFieldTypeForExport(Fld) then begin
-                                ADLSEField.Get(Fld.TableNo, Fld."No.");
-                                ADLSEField.Validate(Enabled, true);
-                                ADLSEField.Modify(true);
+                            if Rec.CanFieldBeEnabled() then begin
+                                Rec.Validate(Enabled, true);
+                                Rec.Modify(true);
                             end;
-                        until Fld.Next = 0;
-
-
-                    CurrPage.Update();
+                        until Rec.Next() = 0;
+                    Rec.SetRange(Enabled);
                 end;
             }
         }
