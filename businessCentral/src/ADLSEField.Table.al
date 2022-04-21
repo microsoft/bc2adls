@@ -23,12 +23,8 @@ table 82562 "ADLSE Field"
             Caption = 'Enabled';
 
             trigger OnValidate()
-            var
-                Fld: Record Field;
-                ADLSESetup: Codeunit "ADLSE Setup";
-                ADLSEUtil: Codeunit "ADLSE Util";
             begin
-                rec.CheckFieldToBeEnabled();
+                Rec.CheckFieldToBeEnabled();
             end;
         }
         field(100; FieldCaption; Text[80])
