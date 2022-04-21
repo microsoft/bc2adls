@@ -23,16 +23,8 @@ table 82562 "ADLSE Field"
             Caption = 'Enabled';
 
             trigger OnValidate()
-            var
-                Fld: Record Field;
-                ADLSESetup: Codeunit "ADLSE Setup";
-                ADLSEUtil: Codeunit "ADLSE Util";
             begin
-                Fld.Get(Rec."Table ID", Rec."Field ID");
-                if Enabled then begin
-                    ADLSEUtil.CheckFieldTypeForExport(Fld);
-                    ADLSESetup.CheckFieldClassCanBeExported(Fld);
-                end;
+                Rec.CheckFieldToBeEnabled();
             end;
         }
         field(100; FieldCaption; Text[80])
@@ -82,4 +74,20 @@ table 82562 "ADLSE Field"
             until Fld.Next() = 0;
     end;
 
+    procedure CheckFieldToBeEnabled()
+    var
+        Fld: Record Field;
+        ADLSESetup: Codeunit "ADLSE Setup";
+        ADLSEUtil: Codeunit "ADLSE Util";
+    begin
+        Fld.Get(Rec."Table ID", Rec."Field ID");
+        ADLSEUtil.CheckFieldTypeForExport(Fld);
+        ADLSESetup.CheckFieldClassCanBeExported(Fld);
+    end;
+
+    [TryFunction]
+    procedure CanFieldBeEnabled()
+    begin
+        CheckFieldToBeEnabled();
+    end;
 }
