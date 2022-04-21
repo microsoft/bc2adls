@@ -78,6 +78,8 @@ page 82562 "ADLSE Setup Fields"
                 Image = Apply;
 
                 trigger OnAction()
+                var
+                    SomeFieldsCouldNotBeEnabled: Boolean;
                 begin
                     Rec.SetFilter(Enabled, '<>%1', true);
                     if Rec.FindSet() then
@@ -85,9 +87,12 @@ page 82562 "ADLSE Setup Fields"
                             if Rec.CanFieldBeEnabled() then begin
                                 Rec.Validate(Enabled, true);
                                 Rec.Modify(true);
-                            end;
+                            end else
+                                SomeFieldsCouldNotBeEnabled := true;
                         until Rec.Next() = 0;
                     Rec.SetRange(Enabled);
+                    if SomeFieldsCouldNotBeEnabled then
+                        Message(SomeFieldsCouldNotBeEnabledMsg);
                 end;
             }
         }
@@ -108,5 +113,6 @@ page 82562 "ADLSE Setup Fields"
         ADLSFieldName: Text;
         FieldClassName: Option Normal,FlowField,FlowFilter;
         FieldTypeName: Text[30];
+        SomeFieldsCouldNotBeEnabledMsg: Label 'One or more fields could not be enabled.';
 
 }

@@ -28,12 +28,7 @@ table 82562 "ADLSE Field"
                 ADLSESetup: Codeunit "ADLSE Setup";
                 ADLSEUtil: Codeunit "ADLSE Util";
             begin
-                Fld.Get(Rec."Table ID", Rec."Field ID");
-                if Enabled then begin
-                    ADLSEUtil.CheckFieldTypeForExport(Fld);
-                    ADLSESetup.CheckFieldClassCanBeExported(Fld);
-                    CheckFieldToBeEnabled();
-                end;
+                rec.CheckFieldToBeEnabled();
             end;
         }
         field(100; FieldCaption; Text[80])
