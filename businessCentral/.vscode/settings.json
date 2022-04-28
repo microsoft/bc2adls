@@ -1,0 +1,20 @@
+{
+    "editor.formatOnSave": true,
+    "git.autofetch": true,
+    "git.enableSmartCommit": true,
+    "git.autoStash": true,
+    "al.codeAnalyzers": [
+        "${CodeCop}",
+        "${PerTenantExtensionCop}"
+    ],
+    "al.enableCodeAnalysis": true,
+    "al.ruleSetPath": "RSM.ruleset.json",
+    "al.backgroundCodeAnalysis": true,
+    "al.packageCachePath": "./.alpackages",
+    "al.enableCodeActions": true,
+    "CRS.ObjectNamePrefix": "",
+    "CRS.OnSaveAlFileAction": "Rename",
+    "CRS.FileNamePattern": "<ObjectNameShort>.<ObjectTypeShortPascalCase>.al",
+    "CRS.FileNamePatternExtensions": "<ObjectNameShort>.<ObjectTypeShortPascalCase>.al",
+    "CRS.FileNamePatternPageCustomizations": "<ObjectNameShort>.<ObjectTypeShortPascalCase>.al",
+}

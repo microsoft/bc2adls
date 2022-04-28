@@ -1,0 +1,37 @@
+{
+    "name": "RSM Ruleset",
+    "description": "Custom rules for RSM development",
+    "generalAction": "Hidden",
+    "rules": [
+        {
+          "id": "AA0215",
+          "action": "Hidden",
+          "justification": "We have a different naming convention"
+        },
+        {
+            "id": "AA0214",
+            "action": "Hidden",
+            "justification": "Not possible to solve"
+        },
+        {
+            "id": "AA0005",
+            "action": "Hidden",
+            "justification": "We prefer including begin..end"
+        },
+        {
+            "id": "AA0210",
+            "action": "Hidden",
+            "justification": "Set ranges on base tables needs to be done with out adding indexes"
+        },
+        {
+            "id": "AA0218",
+            "action": "Hidden",
+            "justification": "Reduce clutter"
+        },
+        {
+            "id": "AA0072",
+            "action": "Hidden",
+            "justification": "We have a different naming convention"
+        }
+    ]
+}
