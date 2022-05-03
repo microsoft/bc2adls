@@ -17,9 +17,9 @@ The following diagram illustrates the flow of data through a usage scenario- the
 	
 ![Architecture](/.assets/architecture.jpg "Flow of data")
 
-Learn more,
+More details:
 - [Installation and configuration](/.assets/Setup.md)
-- [Running the analytics](/.assets/RunningAnalytics.md)
+- [Executing the export and pipeline](/.assets/Execution.md)
 
 ## Latest notable changes
 
