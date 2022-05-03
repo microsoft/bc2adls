@@ -25,7 +25,7 @@ Learn more,
 
 Date | Changes
 --------------- | ---
-3rd May, 2022 | The [Consolidation_CheckForDeltas](/synapse/pipeline/Consolidation_CheckForDeltas.json) pipeline now contains a fail activity that is triggered when no directory is found in `/deltas/` for an entity listed in the `deltas.manifest.cdm.json`. This may occur when no new deltas have been exported since the last execution of the consolidation pipeline. Other parallel pipelin runs are not affected.
+3rd May, 2022 | The [Consolidation_CheckForDeltas](/synapse/pipeline/Consolidation_CheckForDeltas.json) pipeline now contains a fail activity that is triggered when no directory is found in `/deltas/` for an entity listed in the `deltas.manifest.cdm.json`. This may occur when no new deltas have been exported since the last execution of the consolidation pipeline. Other parallel pipeline runs are not affected.
 
 ## Contributing
 
