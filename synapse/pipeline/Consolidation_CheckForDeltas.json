@@ -59,6 +59,22 @@
                         "value": "@activity('CheckEntityExistence').output.exists",
                         "type": "Expression"
                     },
+                    "ifFalseActivities": [
+                        {
+                            "name": "FailIfEntityNotFound",
+                            "description": "Fails the current iteration over the entities in the deltas manifest if no directory is found for the current entity",
+                            "type": "Fail",
+                            "dependsOn": [],
+                            "userProperties": [],
+                            "typeProperties": {
+                                "message": {
+                                    "value": "@concat('Entity with name ', pipeline().parameters.entityName, ' was found in the deltas.manifest.cdm.json but no directory with that name was found in ', pipeline().parameters.containerName, '/deltas/. This may be the case if no new deltas have been exported.')",
+                                    "type": "Expression"
+                                },
+                                "errorCode": "404"
+                            }
+                        }
+                    ],
                     "ifTrueActivities": [
                         {
                             "name": "ConsolidateEntity",
