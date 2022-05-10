@@ -42,7 +42,7 @@ codeunit 82560 "ADLSE Setup"
     begin
         if Fld.Class <> Fld.Class::Normal then
             Error(FieldClassNotSupportedErr, Fld.FieldName, Fld.Class);
-        if Fld.ObsoleteState <> Fld.ObsoleteState::No then
+        if Fld.ObsoleteState = Fld.ObsoleteState::Removed then
             Error(FieldObsoleteNotSupportedErr, Fld.FieldName);
     end;
 
