@@ -62,6 +62,15 @@ page 82562 "ADLSE Setup Fields"
                     Editable = false;
                     Visible = false;
                 }
+
+                field("Obsolete State"; FieldObsoleteState)
+                {
+                    ApplicationArea = All;
+                    Caption = 'Obsolete State';
+                    Tooltip = 'Specifies the Obsolete State of the field';
+                    Editable = false;
+                    Visible = false;
+                }
             }
         }
     }
@@ -107,6 +116,7 @@ page 82562 "ADLSE Setup Fields"
         ADLSFieldName := ADLSEUtil.GetDataLakeCompliantFieldName(Fld.FieldName, Fld."No.");
         FieldClassName := Fld.Class;
         FieldTypeName := Fld."Type Name";
+        FieldObsoleteState := Fld.ObsoleteState;
     end;
 
     var
@@ -114,5 +124,5 @@ page 82562 "ADLSE Setup Fields"
         FieldClassName: Option Normal,FlowField,FlowFilter;
         FieldTypeName: Text[30];
         SomeFieldsCouldNotBeEnabledMsg: Label 'One or more fields could not be enabled.';
-
+        FieldObsoleteState: option No,Pending,Removed;
 }
