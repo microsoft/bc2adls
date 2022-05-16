@@ -25,6 +25,7 @@ codeunit 82561 "ADLSE Execute"
 
         // Register session started
         ADLSECurrentSession.Start(Rec."Table ID");
+        Commit(); // to release locks on the "ADLSE Current Session" record thus allowing other sessions to check for it being active when they are nearing the last step.
         if EmitTelemetry then
             ADLSEExecution.Log('ADLSE-004', 'Registered session to export table', Verbosity::Normal, DataClassification::CustomerContent);
 
