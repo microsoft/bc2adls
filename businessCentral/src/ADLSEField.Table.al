@@ -82,7 +82,7 @@ table 82562 "ADLSE Field"
     begin
         Fld.Get(Rec."Table ID", Rec."Field ID");
         ADLSEUtil.CheckFieldTypeForExport(Fld);
-        ADLSESetup.CheckFieldClassCanBeExported(Fld);
+        ADLSESetup.CheckFieldCanBeExported(Fld);
     end;
 
     [TryFunction]

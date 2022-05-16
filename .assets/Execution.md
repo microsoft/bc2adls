@@ -3,7 +3,7 @@ Now that the steps to setup the tool are complete, let's look at how to run it. 
 # Exporting data from BC
 The export process makes incremental updates to the data lake, based on the amount of changes (adds/ modifies/ deletes) made in BC since the last run. Open the `Page 82560 - Export to Azure Data Lake Storage` and add some tables that should be exported at the bottom grid of [the page](/.assets/bcAdlsePage.png). Do not forget to explicitly (and judiciously) select the fields in the table that should be exported.
 
-> **<em>Note</em>** BLOB fields, FlowFields and FilterFields are not supported currently.
+> **<em>Note</em>** BLOB, Flow and Filter fields as well as the fields that have been Obsoleted are not supported.
 
 Ensure that the `State` columns for the table rows are set to Ready. Click now on the `Export` action at the top of the page. This spawns multiple sessions that export each table in parallel and uploads only the incremental updates to the data since the last export. 
 

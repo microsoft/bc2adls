@@ -8,6 +8,7 @@ codeunit 82560 "ADLSE Setup"
         FieldClassNotSupportedErr: Label 'The field %1 of class %2 is not supported.', Comment = '%1 = field name, %2 = field class';
         ExportDataInProgressErr: Label 'An export data process is already running. Please wait for it to finish.';
         SelectTableLbl: Label 'Select the tables to be exported';
+        FieldObsoleteNotSupportedErr: Label 'The field %1 is obsolete', Comment = '%1 = field name';
 
     procedure AddTableToExport()
     var
@@ -37,10 +38,12 @@ codeunit 82560 "ADLSE Setup"
         Page.RunModal(Page::"ADLSE Setup Fields", ADLSEField, ADLSEField.Enabled);
     end;
 
-    procedure CheckFieldClassCanBeExported(Fld: Record Field)
+    procedure CheckFieldCanBeExported(Fld: Record Field)
     begin
         if Fld.Class <> Fld.Class::Normal then
             Error(FieldClassNotSupportedErr, Fld.FieldName, Fld.Class);
+        if Fld.ObsoleteState = Fld.ObsoleteState::Removed then
+            Error(FieldObsoleteNotSupportedErr, Fld.FieldName);
     end;
 
     procedure CheckSetup(var ADLSESetup: Record "ADLSE Setup")
