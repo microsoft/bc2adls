@@ -21,13 +21,14 @@ Install the extension into BC using the code given in the [businessCentral](/bus
 
 ### Step 4. Enter the BC settings
 Let us take a look at the settings show in the sample screenshot below,
-- **a)** The container name (defaulted to `business-central`) inside the storage account where the data shall be exported as block blobs. The export process creates this location if it does not already exist. Please ensure that the name corresponds to the requirements as outlined at [Naming and Referencing Containers, Blobs, and Metadata - Azure Storage | Microsoft Docs](https://docs.microsoft.com/en-us/rest/api/storageservices/Naming-and-Referencing-Containers--Blobs--and-Metadata).
-- **b)** The tenant id at which the app registration created above resides (refer to **b)** in the picture at [Step 1](/.assets/Setup.md#step-1-create-an-azure-service-principal))
-- **c)** The name of the storage account that you created in [Step 2](/.assets/Setup.md#step-2-configure-an-azure-data-lake-gen2).
-- **d)** The Application (client) ID from the App registration (refer to **a)** in the picture at [Step 1](/.assets/Setup.md#step-1-create-an-azure-service-principal))
-- **e)** The client credential key you had defined (refer to **c)** in the in the picture at [Step 1](/.assets/Setup.md#step-1-create-an-azure-service-principal))
-- **f)** The size of the individual data payload that constitutes a single REST Api upload operation to the data lake. A bigger size will surely mean less number of uploads but might consume too much memory on the BC side. Note that each upload creates a new block within the blob in the data lake. So the size of such blocks are constrained as described at [Put Block (REST API) - Azure Storage | Microsoft Docs](https://docs.microsoft.com/en-us/rest/api/storageservices/put-block#remarks).
-- **g)** The flag to enable or disable operational telemetry from this extension. It is set to True by default. 
+- **Container** The container name (defaulted to `business-central`) inside the storage account where the data shall be exported as block blobs. The export process creates this location if it does not already exist. Please ensure that the name corresponds to the requirements as outlined at [Naming and Referencing Containers, Blobs, and Metadata - Azure Storage | Microsoft Docs](https://docs.microsoft.com/en-us/rest/api/storageservices/Naming-and-Referencing-Containers--Blobs--and-Metadata).
+- **Tenant ID** The tenant id at which the app registration created above resides (refer to **b)** in the picture at [Step 1](/.assets/Setup.md#step-1-create-an-azure-service-principal))
+- **Account name** The name of the storage account that you created in [Step 2](/.assets/Setup.md#step-2-configure-an-azure-data-lake-gen2).
+- **Client ID** The Application (client) ID from the App registration (refer to **a)** in the picture at [Step 1](/.assets/Setup.md#step-1-create-an-azure-service-principal))
+- **Client secret** The client credential key you had defined (refer to **c)** in the in the picture at [Step 1](/.assets/Setup.md#step-1-create-an-azure-service-principal))
+- **Max payload size (MiBs)** The size of the individual data payload that constitutes a single REST Api upload operation to the data lake. A bigger size will surely mean less number of uploads but might consume too much memory on the BC side. Note that each upload creates a new block within the blob in the data lake. The size of such blocks are constrained as described at [Put Block (REST API) - Azure Storage | Microsoft Docs](https://docs.microsoft.com/en-us/rest/api/storageservices/put-block#remarks).
+- **CDM data format** The format in which the exported data is stored on the data lake. Recommended format is Parquet, which is better at handling special characters in the BC text fields.
+- **Emit telemetry** The flag to enable or disable operational telemetry from this extension. It is set to True by default. 
 
 ![The Export to Azure Data Lake Storage page](/.assets/bcAdlsePage.png)
 

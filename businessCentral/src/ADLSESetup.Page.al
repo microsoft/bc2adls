@@ -62,7 +62,7 @@ page 82560 "ADLSE Setup"
                             ADLSECredentials.SetClientID(ClientID);
                         end;
                     }
-                    field("Client Secret"; ClientSecret)
+                    field("Client secret"; ClientSecret)
                     {
                         ApplicationArea = All;
                         ExtendedDatatype = Masked;
@@ -83,11 +83,18 @@ page 82560 "ADLSE Setup"
                         Tooltip = 'Specifies the maximum size of the upload for each block of data in MiBs. A large value will reduce the number of iterations to upload the data but may interfear with the performance of other processes running on this environment.';
                     }
 
+                    field("CDM data format"; Rec.DataFormat)
+                    {
+                        ApplicationArea = All;
+                        ToolTip = 'Specifies the format of the CDM folder to store the exported data. The Parquet format is recommended for storing the data with the best fidelity.';
+                    }
+
                     field("Emit telemetry"; Rec."Emit telemetry")
                     {
                         ApplicationArea = All;
                         Tooltip = 'Specifies if operational telemetry will be emitted to this extension publisher''s telemetry pipeline. You will have to configure a telemetry account for this extension first.';
                     }
+
                 }
             }
             part(Tables; "ADLSE Setup Tables")

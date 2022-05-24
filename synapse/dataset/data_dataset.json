@@ -1,38 +1,35 @@
 {
 	"name": "data_dataset",
-	"properties": {
-		"linkedServiceName": {
-			"referenceName": "AzureDataLakeStorage",
-			"type": "LinkedServiceReference"
-		},
-		"parameters": {
-			"containerName": {
-				"type": "string"
-			},
-			"entityName": {
-				"type": "string"
-			}
-		},
-		"annotations": [],
-		"type": "DelimitedText",
-		"typeProperties": {
-			"location": {
-				"type": "AzureBlobFSLocation",
-				"folderPath": {
-					"value": "@concat('data/', dataset().entityName)",
-					"type": "Expression"
-				},
-				"fileSystem": {
-					"value": "@dataset().containerName",
-					"type": "Expression"
-				}
-			},
-			"columnDelimiter": ",",
-			"escapeChar": "\\",
-			"firstRowAsHeader": true,
-			"quoteChar": "\""
-		},
-		"schema": []
-	},
-	"type": "Microsoft.Synapse/workspaces/datasets"
+    "properties": {
+        "linkedServiceName": {
+            "referenceName": "AzureDataLakeStorage",
+            "type": "LinkedServiceReference"
+        },
+        "parameters": {
+            "containerName": {
+                "type": "string"
+            },
+            "entityName": {
+                "type": "string"
+            }
+        },
+        "annotations": [],
+        "type": "Parquet",
+        "typeProperties": {
+            "location": {
+                "type": "AzureBlobFSLocation",
+                "folderPath": {
+                    "value": "@concat('data/', dataset().entityName)",
+                    "type": "Expression"
+                },
+                "fileSystem": {
+                    "value": "@dataset().containerName",
+                    "type": "Expression"
+                }
+            },
+            "compressionCodec": "snappy"
+        },
+        "schema": []
+    },
+    "type": "Microsoft.Synapse/workspaces/datasets"
 }

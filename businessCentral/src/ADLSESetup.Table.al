@@ -40,6 +40,12 @@ table 82560 "ADLSE Setup"
             MinValue = 1;
         }
 
+        field(4; DataFormat; Enum "ADLSE CDM Format")
+        {
+            Caption = 'CDM data format';
+            InitValue = Parquet;
+        }
+
         field(10; Running; Boolean)
         {
             Caption = 'Exporting data';

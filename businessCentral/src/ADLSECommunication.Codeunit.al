@@ -66,7 +66,7 @@ codeunit 82562 "ADLSE Communication"
         EmitTelemetry := EmitTelemetryValue;
     end;
 
-    procedure CheckEntity(var EntityJsonNeedsUpdate: Boolean; var ManifestJsonsNeedsUpdate: Boolean)
+    procedure CheckEntity(CdmDataFormat: Enum "ADLSE CDM Format"; var EntityJsonNeedsUpdate: Boolean; var ManifestJsonsNeedsUpdate: Boolean)
     var
         ADLSECdmUtil: Codeunit "ADLSE CDM Util";
         ADLSEGen2Util: Codeunit "ADLSE Gen 2 Util";
@@ -85,7 +85,7 @@ codeunit 82562 "ADLSE Communication"
 
         // check manifest. Assume that if the data manifest needs change, the delta manifest will also need be updated
         OldJson := ADLSEGen2Util.GetBlobContent(GetBaseUrl() + StrSubstNo(CorpusJsonPathTxt, DataCdmManifestNameTxt), ADLSECredentials, BlobExists);
-        NewJson := ADLSECdmUtil.UpdateDefaultManifestContent(OldJson, TableID, 'data');
+        NewJson := ADLSECdmUtil.UpdateDefaultManifestContent(OldJson, TableID, 'data', CdmDataFormat);
         ManifestJsonsNeedsUpdate := JsonsDifferent(OldJson, NewJson);
     end;
 
@@ -242,13 +242,13 @@ codeunit 82562 "ADLSE Communication"
             // Expected that multiple sessions that export data from different tables will be competing for writing to manifest. Semaphore applied.
             ADLSEExecute.AcquireLockonADLSESetup(ADLSESetup);
 
-            UpdateManifest(GetBaseUrl() + StrSubstNo(CorpusJsonPathTxt, DataCdmManifestNameTxt), 'data');
-            UpdateManifest(GetBaseUrl() + StrSubstNo(CorpusJsonPathTxt, DeltaCdmManifestNameTxt), 'deltas');
+            UpdateManifest(GetBaseUrl() + StrSubstNo(CorpusJsonPathTxt, DataCdmManifestNameTxt), 'data', ADLSESetup.DataFormat);
+            UpdateManifest(GetBaseUrl() + StrSubstNo(CorpusJsonPathTxt, DeltaCdmManifestNameTxt), 'deltas', "ADLSE CDM Format"::Csv);
             Commit(); // to release the lock above
         end;
     end;
 
-    local procedure UpdateManifest(BlobPath: Text; Folder: Text)
+    local procedure UpdateManifest(BlobPath: Text; Folder: Text; ADLSECdmFormat: Enum "ADLSE CDM Format")
     var
         ADLSECdmUtil: Codeunit "ADLSE CDM Util";
         ADLSEGen2Util: Codeunit "ADLSE Gen 2 Util";
@@ -259,7 +259,7 @@ codeunit 82562 "ADLSE Communication"
         LeaseID := ADLSEGen2Util.AcquireLease(BlobPath, ADLSECredentials, BlobExists);
         if BlobExists then
             ManifestJson := ADLSEGen2Util.GetBlobContent(BlobPath, ADLSECredentials, BlobExists);
-        ManifestJson := ADLSECdmUtil.UpdateDefaultManifestContent(ManifestJson, TableID, Folder);
+        ManifestJson := ADLSECdmUtil.UpdateDefaultManifestContent(ManifestJson, TableID, Folder, ADLSECdmFormat);
         ADLSEGen2Util.CreateOrUpdateJsonBlob(BlobPath, ADLSECredentials, LeaseID, ManifestJson);
         ADLSEGen2Util.ReleaseBlob(BlobPath, ADLSECredentials, LeaseID);
     end;

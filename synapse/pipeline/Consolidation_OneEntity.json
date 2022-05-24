@@ -1,364 +1,358 @@
 {
 	"name": "Consolidation_OneEntity",
-	"properties": {
-		"activities": [
-			{
-				"name": "ConsolidationDF_staging",
-				"type": "ExecuteDataFlow",
-				"dependsOn": [
-					{
-						"activity": "DeleteStagedJustInCase",
-						"dependencyConditions": [
-							"Succeeded"
-						]
-					}
-				],
-				"policy": {
-					"timeout": "1.00:00:00",
-					"retry": 0,
-					"retryIntervalInSeconds": 30,
-					"secureOutput": false,
-					"secureInput": false
-				},
-				"userProperties": [],
-				"typeProperties": {
-					"dataflow": {
-						"referenceName": "Consolidation_flow",
-						"type": "DataFlowReference",
-						"parameters": {
-							"containerName": {
-								"value": "'@{pipeline().parameters.containerName}'",
-								"type": "Expression"
-							},
-							"entityName": {
-								"value": "'@{pipeline().parameters.entityName}'",
-								"type": "Expression"
-							}
-						}
-					},
-					"compute": {
-						"coreCount": 8,
-						"computeType": "General"
-					},
-					"traceLevel": "Fine"
-				}
-			},
-			{
-				"name": "DeleteData",
-				"type": "Delete",
-				"dependsOn": [
-					{
-						"activity": "ConsolidationDF_staging",
-						"dependencyConditions": [
-							"Succeeded"
-						]
-					}
-				],
-				"policy": {
-					"timeout": "7.00:00:00",
-					"retry": 0,
-					"retryIntervalInSeconds": 30,
-					"secureOutput": false,
-					"secureInput": false
-				},
-				"userProperties": [],
-				"typeProperties": {
-					"dataset": {
-						"referenceName": "data_dataset",
-						"type": "DatasetReference",
-						"parameters": {
-							"containerName": {
-								"value": "@pipeline().parameters.containerName",
-								"type": "Expression"
-							},
-							"entityName": {
-								"value": "@pipeline().parameters.entityName",
-								"type": "Expression"
-							}
-						}
-					},
-					"enableLogging": false,
-					"storeSettings": {
-						"type": "AzureBlobFSReadSettings",
-						"recursive": true,
-						"enablePartitionDiscovery": false
-					}
-				}
-			},
-			{
-				"name": "CopyStagedToData",
-				"type": "Copy",
-				"dependsOn": [
-					{
-						"activity": "DeleteData",
-						"dependencyConditions": [
-							"Succeeded"
-						]
-					}
-				],
-				"policy": {
-					"timeout": "7.00:00:00",
-					"retry": 0,
-					"retryIntervalInSeconds": 30,
-					"secureOutput": false,
-					"secureInput": false
-				},
-				"userProperties": [],
-				"typeProperties": {
-					"source": {
-						"type": "DelimitedTextSource",
-						"storeSettings": {
-							"type": "AzureBlobFSReadSettings",
-							"recursive": true,
-							"wildcardFileName": "*.csv",
-							"enablePartitionDiscovery": false
-						},
-						"formatSettings": {
-							"type": "DelimitedTextReadSettings"
-						}
-					},
-					"sink": {
-						"type": "DelimitedTextSink",
-						"storeSettings": {
-							"type": "AzureBlobFSWriteSettings"
-						},
-						"formatSettings": {
-							"type": "DelimitedTextWriteSettings",
-							"quoteAllText": true,
-							"fileExtension": ""
-						}
-					},
-					"enableStaging": false,
-					"translator": {
-						"type": "TabularTranslator",
-						"typeConversion": true,
-						"typeConversionSettings": {
-							"allowDataTruncation": true,
-							"treatBooleanAsNumber": false
-						}
-					}
-				},
-				"inputs": [
-					{
-						"referenceName": "staging_dataset",
-						"type": "DatasetReference",
-						"parameters": {
-							"containerName": {
-								"value": "@pipeline().parameters.containerName",
-								"type": "Expression"
-							},
-							"entityName": {
-								"value": "@pipeline().parameters.entityName",
-								"type": "Expression"
-							}
-						}
-					}
-				],
-				"outputs": [
-					{
-						"referenceName": "data_dataset",
-						"type": "DatasetReference",
-						"parameters": {
-							"containerName": {
-								"value": "@pipeline().parameters.containerName",
-								"type": "Expression"
-							},
-							"entityName": {
-								"value": "@pipeline().parameters.entityName",
-								"type": "Expression"
-							}
-						}
-					}
-				]
-			},
-			{
-				"name": "DeleteStaged",
-				"type": "Delete",
-				"dependsOn": [
-					{
-						"activity": "CopyStagedToData",
-						"dependencyConditions": [
-							"Succeeded"
-						]
-					}
-				],
-				"policy": {
-					"timeout": "7.00:00:00",
-					"retry": 0,
-					"retryIntervalInSeconds": 30,
-					"secureOutput": false,
-					"secureInput": false
-				},
-				"userProperties": [],
-				"typeProperties": {
-					"dataset": {
-						"referenceName": "staging_dataset",
-						"type": "DatasetReference",
-						"parameters": {
-							"containerName": {
-								"value": "@pipeline().parameters.containerName",
-								"type": "Expression"
-							},
-							"entityName": {
-								"value": "@pipeline().parameters.entityName",
-								"type": "Expression"
-							}
-						}
-					},
-					"enableLogging": false,
-					"storeSettings": {
-						"type": "AzureBlobFSReadSettings",
-						"recursive": true,
-						"enablePartitionDiscovery": false
-					}
-				}
-			},
-			{
-				"name": "DeleteStagedJustInCase",
-				"type": "Delete",
-				"dependsOn": [],
-				"policy": {
-					"timeout": "7.00:00:00",
-					"retry": 0,
-					"retryIntervalInSeconds": 30,
-					"secureOutput": false,
-					"secureInput": false
-				},
-				"userProperties": [],
-				"typeProperties": {
-					"dataset": {
-						"referenceName": "staging_dataset",
-						"type": "DatasetReference",
-						"parameters": {
-							"containerName": {
-								"value": "@pipeline().parameters.containerName",
-								"type": "Expression"
-							},
-							"entityName": {
-								"value": "@pipeline().parameters.entityName",
-								"type": "Expression"
-							}
-						}
-					},
-					"enableLogging": false,
-					"storeSettings": {
-						"type": "AzureBlobFSReadSettings",
-						"recursive": true,
-						"enablePartitionDiscovery": false
-					}
-				}
-			},
-			{
-				"name": "IfDeleteDeltas",
-				"type": "IfCondition",
-				"dependsOn": [
-					{
-						"activity": "CopyStagedToData",
-						"dependencyConditions": [
-							"Succeeded"
-						]
-					}
-				],
-				"userProperties": [],
-				"typeProperties": {
-					"expression": {
-						"value": "@pipeline().parameters.deleteDeltas",
-						"type": "Expression"
-					},
-					"ifTrueActivities": [
-						{
-							"name": "DeleteDeltas",
-							"type": "Delete",
-							"dependsOn": [],
-							"policy": {
-								"timeout": "7.00:00:00",
-								"retry": 0,
-								"retryIntervalInSeconds": 30,
-								"secureOutput": false,
-								"secureInput": false
-							},
-							"userProperties": [],
-							"typeProperties": {
-								"dataset": {
-									"referenceName": "deltas_dataset",
-									"type": "DatasetReference",
-									"parameters": {
-										"containerName": {
-											"value": "@pipeline().parameters.containerName",
-											"type": "Expression"
-										},
-										"entityName": {
-											"value": "@pipeline().parameters.entityName",
-											"type": "Expression"
-										}
-									}
-								},
-								"enableLogging": false,
-								"storeSettings": {
-									"type": "AzureBlobFSReadSettings",
-									"recursive": true,
-									"enablePartitionDiscovery": false
-								}
-							}
-						}
-					]
-				}
-			},
-			{
-				"name": "DeleteStagingManifest",
-				"type": "Delete",
-				"dependsOn": [
-					{
-						"activity": "DeleteStaged",
-						"dependencyConditions": [
-							"Succeeded"
-						]
-					}
-				],
-				"policy": {
-					"timeout": "7.00:00:00",
-					"retry": 0,
-					"retryIntervalInSeconds": 30,
-					"secureOutput": false,
-					"secureInput": false
-				},
-				"userProperties": [],
-				"typeProperties": {
-					"dataset": {
-						"referenceName": "stagingManifest_dataset",
-						"type": "DatasetReference",
-						"parameters": {
-							"containerName": {
-								"value": "@pipeline().parameters.containerName",
-								"type": "Expression"
-							}
-						}
-					},
-					"enableLogging": false,
-					"storeSettings": {
-						"type": "AzureBlobFSReadSettings",
-						"recursive": true,
-						"enablePartitionDiscovery": false
-					}
-				}
-			}
-		],
-		"concurrency": 1,
-		"parameters": {
-			"containerName": {
-				"type": "string",
-				"defaultValue": "business-central"
-			},
-			"entityName": {
-				"type": "string"
-			},
-			"deleteDeltas": {
-				"type": "bool",
-				"defaultValue": false
-			}
-		},
-		"annotations": [],
-		"lastPublishTime": "2021-10-06T16:12:59Z"
+    "properties": {
+        "activities": [
+            {
+                "name": "ConsolidationDF_staging",
+                "type": "ExecuteDataFlow",
+                "dependsOn": [
+                    {
+                        "activity": "DeleteStagedJustInCase",
+                        "dependencyConditions": [
+                            "Succeeded"
+                        ]
+                    }
+                ],
+                "policy": {
+                    "timeout": "1.00:00:00",
+                    "retry": 0,
+                    "retryIntervalInSeconds": 30,
+                    "secureOutput": false,
+                    "secureInput": false
+                },
+                "userProperties": [],
+                "typeProperties": {
+                    "dataflow": {
+                        "referenceName": "Consolidation_flow",
+                        "type": "DataFlowReference",
+                        "parameters": {
+                            "containerName": {
+                                "value": "'@{pipeline().parameters.containerName}'",
+                                "type": "Expression"
+                            },
+                            "entityName": {
+                                "value": "'@{pipeline().parameters.entityName}'",
+                                "type": "Expression"
+                            }
+                        }
+                    },
+                    "compute": {
+                        "coreCount": 8,
+                        "computeType": "General"
+                    },
+                    "traceLevel": "Fine"
+                }
+            },
+            {
+                "name": "DeleteData",
+                "type": "Delete",
+                "dependsOn": [
+                    {
+                        "activity": "ConsolidationDF_staging",
+                        "dependencyConditions": [
+                            "Succeeded"
+                        ]
+                    }
+                ],
+                "policy": {
+                    "timeout": "7.00:00:00",
+                    "retry": 0,
+                    "retryIntervalInSeconds": 30,
+                    "secureOutput": false,
+                    "secureInput": false
+                },
+                "userProperties": [],
+                "typeProperties": {
+                    "dataset": {
+                        "referenceName": "data_dataset",
+                        "type": "DatasetReference",
+                        "parameters": {
+                            "containerName": {
+                                "value": "@pipeline().parameters.containerName",
+                                "type": "Expression"
+                            },
+                            "entityName": {
+                                "value": "@pipeline().parameters.entityName",
+                                "type": "Expression"
+                            }
+                        }
+                    },
+                    "enableLogging": false,
+                    "storeSettings": {
+                        "type": "AzureBlobFSReadSettings",
+                        "recursive": true,
+                        "enablePartitionDiscovery": false
+                    }
+                }
+            },
+            {
+                "name": "CopyStagedToData",
+                "type": "Copy",
+                "dependsOn": [
+                    {
+                        "activity": "DeleteData",
+                        "dependencyConditions": [
+                            "Succeeded"
+                        ]
+                    }
+                ],
+                "policy": {
+                    "timeout": "7.00:00:00",
+                    "retry": 0,
+                    "retryIntervalInSeconds": 30,
+                    "secureOutput": false,
+                    "secureInput": false
+                },
+                "userProperties": [],
+                "typeProperties": {
+                    "source": {
+                        "type": "ParquetSource",
+                        "storeSettings": {
+                            "type": "AzureBlobFSReadSettings",
+                            "recursive": true,
+                            "wildcardFileName": "*.parquet",
+                            "enablePartitionDiscovery": false
+                        }
+                    },
+                    "sink": {
+                        "type": "ParquetSink",
+                        "storeSettings": {
+                            "type": "AzureBlobFSWriteSettings"
+                        },
+                        "formatSettings": {
+                            "type": "ParquetWriteSettings"
+                        }
+                    },
+                    "enableStaging": false,
+                    "translator": {
+                        "type": "TabularTranslator",
+                        "typeConversion": true,
+                        "typeConversionSettings": {
+                            "allowDataTruncation": true,
+                            "treatBooleanAsNumber": false
+                        }
+                    }
+                },
+                "inputs": [
+                    {
+                        "referenceName": "staging_dataset",
+                        "type": "DatasetReference",
+                        "parameters": {
+                            "containerName": {
+                                "value": "@pipeline().parameters.containerName",
+                                "type": "Expression"
+                            },
+                            "entityName": {
+                                "value": "@pipeline().parameters.entityName",
+                                "type": "Expression"
+                            }
+                        }
+                    }
+                ],
+                "outputs": [
+                    {
+                        "referenceName": "data_dataset",
+                        "type": "DatasetReference",
+                        "parameters": {
+                            "containerName": {
+                                "value": "@pipeline().parameters.containerName",
+                                "type": "Expression"
+                            },
+                            "entityName": {
+                                "value": "@pipeline().parameters.entityName",
+                                "type": "Expression"
+                            }
+                        }
+                    }
+                ]
+            },
+            {
+                "name": "DeleteStaged",
+                "type": "Delete",
+                "dependsOn": [
+                    {
+                        "activity": "CopyStagedToData",
+                        "dependencyConditions": [
+                            "Succeeded"
+                        ]
+                    }
+                ],
+                "policy": {
+                    "timeout": "7.00:00:00",
+                    "retry": 0,
+                    "retryIntervalInSeconds": 30,
+                    "secureOutput": false,
+                    "secureInput": false
+                },
+                "userProperties": [],
+                "typeProperties": {
+                    "dataset": {
+                        "referenceName": "staging_dataset",
+                        "type": "DatasetReference",
+                        "parameters": {
+                            "containerName": {
+                                "value": "@pipeline().parameters.containerName",
+                                "type": "Expression"
+                            },
+                            "entityName": {
+                                "value": "@pipeline().parameters.entityName",
+                                "type": "Expression"
+                            }
+                        }
+                    },
+                    "enableLogging": false,
+                    "storeSettings": {
+                        "type": "AzureBlobFSReadSettings",
+                        "recursive": true,
+                        "enablePartitionDiscovery": false
+                    }
+                }
+            },
+            {
+                "name": "DeleteStagedJustInCase",
+                "type": "Delete",
+                "dependsOn": [],
+                "policy": {
+                    "timeout": "7.00:00:00",
+                    "retry": 0,
+                    "retryIntervalInSeconds": 30,
+                    "secureOutput": false,
+                    "secureInput": false
+                },
+                "userProperties": [],
+                "typeProperties": {
+                    "dataset": {
+                        "referenceName": "staging_dataset",
+                        "type": "DatasetReference",
+                        "parameters": {
+                            "containerName": {
+                                "value": "@pipeline().parameters.containerName",
+                                "type": "Expression"
+                            },
+                            "entityName": {
+                                "value": "@pipeline().parameters.entityName",
+                                "type": "Expression"
+                            }
+                        }
+                    },
+                    "enableLogging": false,
+                    "storeSettings": {
+                        "type": "AzureBlobFSReadSettings",
+                        "recursive": true,
+                        "enablePartitionDiscovery": false
+                    }
+                }
+            },
+            {
+                "name": "IfDeleteDeltas",
+                "type": "IfCondition",
+                "dependsOn": [
+                    {
+                        "activity": "CopyStagedToData",
+                        "dependencyConditions": [
+                            "Succeeded"
+                        ]
+                    }
+                ],
+                "userProperties": [],
+                "typeProperties": {
+                    "expression": {
+                        "value": "@pipeline().parameters.deleteDeltas",
+                        "type": "Expression"
+                    },
+                    "ifTrueActivities": [
+                        {
+                            "name": "DeleteDeltas",
+                            "type": "Delete",
+                            "dependsOn": [],
+                            "policy": {
+                                "timeout": "7.00:00:00",
+                                "retry": 0,
+                                "retryIntervalInSeconds": 30,
+                                "secureOutput": false,
+                                "secureInput": false
+                            },
+                            "userProperties": [],
+                            "typeProperties": {
+                                "dataset": {
+                                    "referenceName": "deltas_dataset",
+                                    "type": "DatasetReference",
+                                    "parameters": {
+                                        "containerName": {
+                                            "value": "@pipeline().parameters.containerName",
+                                            "type": "Expression"
+                                        },
+                                        "entityName": {
+                                            "value": "@pipeline().parameters.entityName",
+                                            "type": "Expression"
+                                        }
+                                    }
+                                },
+                                "enableLogging": false,
+                                "storeSettings": {
+                                    "type": "AzureBlobFSReadSettings",
+                                    "recursive": true,
+                                    "enablePartitionDiscovery": false
+                                }
+                            }
+                        }
+                    ]
+                }
+            },
+            {
+                "name": "DeleteStagingManifest",
+                "type": "Delete",
+                "dependsOn": [
+                    {
+                        "activity": "DeleteStaged",
+                        "dependencyConditions": [
+                            "Succeeded"
+                        ]
+                    }
+                ],
+                "policy": {
+                    "timeout": "7.00:00:00",
+                    "retry": 0,
+                    "retryIntervalInSeconds": 30,
+                    "secureOutput": false,
+                    "secureInput": false
+                },
+                "userProperties": [],
+                "typeProperties": {
+                    "dataset": {
+                        "referenceName": "stagingManifest_dataset",
+                        "type": "DatasetReference",
+                        "parameters": {
+                            "containerName": {
+                                "value": "@pipeline().parameters.containerName",
+                                "type": "Expression"
+                            }
+                        }
+                    },
+                    "enableLogging": false,
+                    "storeSettings": {
+                        "type": "AzureBlobFSReadSettings",
+                        "recursive": true,
+                        "enablePartitionDiscovery": false
+                    }
+                }
+            }
+        ],
+        "concurrency": 1,
+        "parameters": {
+            "containerName": {
+                "type": "string",
+                "defaultValue": "business-central"
+            },
+            "entityName": {
+                "type": "string"
+            },
+            "deleteDeltas": {
+                "type": "bool",
+                "defaultValue": false
+            }
+        },
+        "annotations": []
 	},
 	"type": "Microsoft.Synapse/workspaces/pipelines"
 }

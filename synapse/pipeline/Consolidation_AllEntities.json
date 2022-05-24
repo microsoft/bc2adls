@@ -99,6 +99,7 @@
                 "defaultValue": false
             }
         },
-        "annotations": []
+        "annotations": [],
+        "type": "Microsoft.Synapse/workspaces/pipelines"
     }
 }
