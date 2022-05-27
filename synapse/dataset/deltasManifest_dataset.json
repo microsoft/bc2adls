@@ -1,28 +1,28 @@
 {
-	"name": "deltasManifest_dataset",
-	"properties": {
-		"linkedServiceName": {
-			"referenceName": "AzureDataLakeStorage",
-			"type": "LinkedServiceReference"
-		},
-		"parameters": {
-			"containerName": {
-				"type": "string"
-			}
-		},
-		"annotations": [],
-		"type": "Json",
-		"typeProperties": {
-			"location": {
-				"type": "AzureBlobFSLocation",
-				"fileName": "deltas.manifest.cdm.json",
-				"fileSystem": {
-					"value": "@dataset().containerName",
-					"type": "Expression"
-				}
-			}
-		},
-		"schema": {}
-	},
-	"type": "Microsoft.Synapse/workspaces/datasets"
+    "name": "deltasManifest_dataset",
+    "properties": {
+        "linkedServiceName": {
+            "referenceName": "AzureDataLakeStorage",
+            "type": "LinkedServiceReference"
+        },
+        "parameters": {
+            "containerName": {
+                "type": "string"
+            }
+        },
+        "annotations": [],
+        "type": "Json",
+        "typeProperties": {
+            "location": {
+                "type": "AzureBlobFSLocation",
+                "fileName": "deltas.manifest.cdm.json",
+                "fileSystem": {
+                    "value": "@dataset().containerName",
+                    "type": "Expression"
+                }
+            }
+        },
+        "schema": {}
+    },
+    "type": "Microsoft.Synapse/workspaces/datasets"
 }

@@ -1,5 +1,5 @@
 {
-	"name": "data_dataset",
+    "name": "data_dataset",
     "properties": {
         "linkedServiceName": {
             "referenceName": "AzureDataLakeStorage",

@@ -120,5 +120,6 @@
         },
         "annotations": [],
         "type": "Microsoft.Synapse/workspaces/pipelines"
-    }
+    },
+    "type": "Microsoft.Synapse/workspaces/pipelines"
 }

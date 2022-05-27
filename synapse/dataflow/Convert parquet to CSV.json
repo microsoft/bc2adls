@@ -1,0 +1,72 @@
+{
+    "name": "Convert parquet to CSV",
+    "properties": {
+        "type": "MappingDataFlow",
+        "typeProperties": {
+            "sources": [
+                {
+                    "linkedService": {
+                        "referenceName": "AzureDataLakeStorage",
+                        "type": "LinkedServiceReference"
+                    },
+                    "name": "StagingSource"
+                }
+            ],
+            "sinks": [
+                {
+                    "linkedService": {
+                        "referenceName": "AzureDataLakeStorage",
+                        "type": "LinkedServiceReference"
+                    },
+                    "schemaLinkedService": {
+                        "referenceName": "AzureDataLakeStorage",
+                        "type": "LinkedServiceReference"
+                    },
+                    "name": "StagingDestination"
+                }
+            ],
+            "transformations": [],
+            "scriptLines": [
+                "parameters{",
+                "     containerName as string,",
+                "     entityName as string",
+                "}",
+                "source(allowSchemaDrift: true,",
+                "     validateSchema: false,",
+                "     ignoreNoFilesFound: false,",
+                "     entity: ($entityName),",
+                "     format: 'cdm',",
+                "     manifestType: 'manifest',",
+                "     manifestName: 'staging',",
+                "     local: true,",
+                "     folderPath: '',",
+                "     fileSystem: ($containerName)) ~> StagingSource",
+                "StagingSource sink(allowSchemaDrift: true,",
+                "     validateSchema: false,",
+                "     entity: (\"{$entityName}.cdm.json/{$entityName}\"),",
+                "     format: 'cdm',",
+                "     manifestType: 'manifest',",
+                "     manifestName: 'stagingCsv',",
+                "     partitionPath: (\"stagingCsv/{$entityName}\"),",
+                "     folderPath: '',",
+                "     fileSystem: ($containerName),",
+                "     columnNamesAsHeader: true,",
+                "     columnDelimiter: ',',",
+                "     quoteChar: '\\\"',",
+                "     escapeChar: '\\\\',",
+                "     corpusPath: '/',",
+                "     corpusStore: 'adlsgen2',",
+                "     adlsgen2_fileSystem: ($containerName),",
+                "     truncate: false,",
+                "     umask: 0022,",
+                "     preCommands: [],",
+                "     postCommands: [],",
+                "     skipDuplicateMapInputs: true,",
+                "     skipDuplicateMapOutputs: true,",
+                "     mapColumn(",
+                "          each(match(true()))",
+                "     )) ~> StagingDestination"
+            ]
+        }
+    }
+}
