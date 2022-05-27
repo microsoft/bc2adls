@@ -7,6 +7,12 @@
                 "type": "ExecuteDataFlow",
                 "dependsOn": [
                     {
+                        "activity": "Check data format valid",
+                        "dependencyConditions": [
+                            "Succeeded"
+                        ]
+                    },
+                    {
                         "activity": "DeleteStagedJustInCase",
                         "dependencyConditions": [
                             "Succeeded"
@@ -33,6 +39,10 @@
                             "entityName": {
                                 "value": "'@{pipeline().parameters.entityName}'",
                                 "type": "Expression"
+                            },
+                            "dataFormat": {
+                                "value": "'@{variables('dataFormat')}'",
+                                "type": "Expression"
                             }
                         }
                     },
@@ -48,7 +58,7 @@
                 "type": "Delete",
                 "dependsOn": [
                     {
-                        "activity": "If CSV format",
+                        "activity": "ConsolidationDF_staging",
                         "dependencyConditions": [
                             "Succeeded"
                         ]
@@ -86,46 +96,11 @@
                 }
             },
             {
-                "name": "DeleteStagedJustInCase",
-                "type": "Delete",
-                "dependsOn": [],
-                "policy": {
-                    "timeout": "7.00:00:00",
-                    "retry": 0,
-                    "retryIntervalInSeconds": 30,
-                    "secureOutput": false,
-                    "secureInput": false
-                },
-                "userProperties": [],
-                "typeProperties": {
-                    "dataset": {
-                        "referenceName": "staging_dataset",
-                        "type": "DatasetReference",
-                        "parameters": {
-                            "containerName": {
-                                "value": "@pipeline().parameters.containerName",
-                                "type": "Expression"
-                            },
-                            "entityName": {
-                                "value": "@pipeline().parameters.entityName",
-                                "type": "Expression"
-                            }
-                        }
-                    },
-                    "enableLogging": false,
-                    "storeSettings": {
-                        "type": "AzureBlobFSReadSettings",
-                        "recursive": true,
-                        "enablePartitionDiscovery": false
-                    }
-                }
-            },
-            {
                 "name": "IfDeleteDeltas",
                 "type": "IfCondition",
                 "dependsOn": [
                     {
-                        "activity": "Copy staged to data",
+                        "activity": "Copy staging to data",
                         "dependencyConditions": [
                             "Succeeded"
                         ]
@@ -263,18 +238,18 @@
                                     "value": "@concat('Entity ', pipeline().parameters.entityName, ' not found in the data manifest.')",
                                     "type": "Expression"
                                 },
-                                "errorCode": "10"
+                                "errorCode": "400"
                             }
                         }
                     ],
                     "ifTrueActivities": [
                         {
-                            "name": "Set entity format",
+                            "name": "Set trait reference",
                             "type": "SetVariable",
                             "dependsOn": [],
                             "userProperties": [],
                             "typeProperties": {
-                                "variableName": "dataFormat",
+                                "variableName": "traitReference",
                                 "value": {
                                     "value": "@string(activity('Filtered on entity').output.value[0].dataPartitionPatterns[0].exhibitsTraits[0].traitReference)\n",
                                     "type": "Expression"
@@ -298,7 +273,7 @@
                 "userProperties": [],
                 "typeProperties": {
                     "expression": {
-                        "value": "@or(equals(variables('dataFormat'), 'is.partition.format.parquet'), equals(variables('dataFormat'), 'is.partition.format.CSV'))",
+                        "value": "@startswith(variables('traitReference'), variables('traitReferencePrefix'))",
                         "type": "Expression"
                     },
                     "ifFalseActivities": [
@@ -312,118 +287,68 @@
                                     "value": "@concat('Entity ', pipeline().parameters.entityName, ' does not have a valid trait reference in the data manifest.')",
                                     "type": "Expression"
                                 },
-                                "errorCode": "13"
+                                "errorCode": "400"
+                            }
+                        }
+                    ],
+                    "ifTrueActivities": [
+                        {
+                            "name": "Set data format",
+                            "type": "SetVariable",
+                            "dependsOn": [],
+                            "userProperties": [],
+                            "typeProperties": {
+                                "variableName": "dataFormat",
+                                "value": {
+                                    "value": "@substring(\n    variables('traitReference'), \n    length(variables('traitReferencePrefix')),\n    sub(\n       length(variables('traitReference')),\n       length(variables('traitReferencePrefix'))\n    )\n)",
+                                    "type": "Expression"
+                                }
                             }
                         }
                     ]
                 }
             },
             {
-                "name": "If CSV format",
-                "type": "IfCondition",
+                "name": "DeleteStagingManifest",
+                "type": "Delete",
                 "dependsOn": [
                     {
-                        "activity": "Check data format valid",
-                        "dependencyConditions": [
-                            "Succeeded"
-                        ]
-                    },
-                    {
-                        "activity": "ConsolidationDF_staging",
+                        "activity": "Copy staging to data",
                         "dependencyConditions": [
                             "Succeeded"
                         ]
                     }
                 ],
+                "policy": {
+                    "timeout": "7.00:00:00",
+                    "retry": 0,
+                    "retryIntervalInSeconds": 30,
+                    "secureOutput": false,
+                    "secureInput": false
+                },
                 "userProperties": [],
                 "typeProperties": {
-                    "expression": {
-                        "value": "@equals(variables('dataFormat'), 'is.partition.format.CSV')",
-                        "type": "Expression"
-                    },
-                    "ifTrueActivities": [
-                        {
-                            "name": "Convert parquet to CSV format",
-                            "type": "ExecuteDataFlow",
-                            "dependsOn": [
-                                {
-                                    "activity": "Delete StagingCsv",
-                                    "dependencyConditions": [
-                                        "Succeeded"
-                                    ]
-                                }
-                            ],
-                            "policy": {
-                                "timeout": "1.00:00:00",
-                                "retry": 0,
-                                "retryIntervalInSeconds": 30,
-                                "secureOutput": false,
-                                "secureInput": false
-                            },
-                            "userProperties": [],
-                            "typeProperties": {
-                                "dataflow": {
-                                    "referenceName": "Convert parquet to CSV",
-                                    "type": "DataFlowReference",
-                                    "parameters": {
-                                        "containerName": {
-                                            "value": "'@{pipeline().parameters.containerName}'",
-                                            "type": "Expression"
-                                        },
-                                        "entityName": {
-                                            "value": "'@{pipeline().parameters.entityName}'",
-                                            "type": "Expression"
-                                        }
-                                    }
-                                },
-                                "compute": {
-                                    "coreCount": 8,
-                                    "computeType": "General"
-                                },
-                                "traceLevel": "Fine"
-                            }
-                        },
-                        {
-                            "name": "Delete StagingCsv",
-                            "type": "Delete",
-                            "dependsOn": [],
-                            "policy": {
-                                "timeout": "7.00:00:00",
-                                "retry": 0,
-                                "retryIntervalInSeconds": 30,
-                                "secureOutput": false,
-                                "secureInput": false
-                            },
-                            "userProperties": [],
-                            "typeProperties": {
-                                "dataset": {
-                                    "referenceName": "stagingCsv_dataset",
-                                    "type": "DatasetReference",
-                                    "parameters": {
-                                        "containerName": {
-                                            "value": "@pipeline().parameters.containerName",
-                                            "type": "Expression"
-                                        },
-                                        "entityName": {
-                                            "value": "@pipeline().parameters.entityName",
-                                            "type": "Expression"
-                                        }
-                                    }
-                                },
-                                "enableLogging": false,
-                                "storeSettings": {
-                                    "type": "AzureBlobFSReadSettings",
-                                    "recursive": true,
-                                    "enablePartitionDiscovery": false
-                                }
+                    "dataset": {
+                        "referenceName": "stagingManifest_dataset",
+                        "type": "DatasetReference",
+                        "parameters": {
+                            "containerName": {
+                                "value": "@pipeline().parameters.containerName",
+                                "type": "Expression"
                             }
                         }
-                    ]
+                    },
+                    "enableLogging": false,
+                    "storeSettings": {
+                        "type": "AzureBlobFSReadSettings",
+                        "recursive": true,
+                        "enablePartitionDiscovery": false
+                    }
                 }
             },
             {
-                "name": "Copy staged to data",
-                "type": "IfCondition",
+                "name": "Copy staging to data",
+                "type": "Switch",
                 "dependsOn": [
                     {
                         "activity": "DeleteData",
@@ -434,255 +359,238 @@
                 ],
                 "userProperties": [],
                 "typeProperties": {
-                    "expression": {
-                        "value": "@equals(variables('dataFormat'), 'is.partition.format.CSV')",
+                    "on": {
+                        "value": "@variables('dataFormat')",
                         "type": "Expression"
                     },
-                    "ifFalseActivities": [
+                    "cases": [
                         {
-                            "name": "Copy data",
-                            "type": "Copy",
-                            "dependsOn": [],
-                            "policy": {
-                                "timeout": "7.00:00:00",
-                                "retry": 0,
-                                "retryIntervalInSeconds": 30,
-                                "secureOutput": false,
-                                "secureInput": false
-                            },
-                            "userProperties": [],
-                            "typeProperties": {
-                                "source": {
-                                    "type": "ParquetSource",
-                                    "storeSettings": {
-                                        "type": "AzureBlobFSReadSettings",
-                                        "recursive": true,
-                                        "wildcardFileName": "*.parquet",
-                                        "enablePartitionDiscovery": false
-                                    }
-                                },
-                                "sink": {
-                                    "type": "ParquetSink",
-                                    "storeSettings": {
-                                        "type": "AzureBlobFSWriteSettings"
+                            "value": "CSV",
+                            "activities": [
+                                {
+                                    "name": "Copy CSV",
+                                    "type": "Copy",
+                                    "dependsOn": [],
+                                    "policy": {
+                                        "timeout": "7.00:00:00",
+                                        "retry": 0,
+                                        "retryIntervalInSeconds": 30,
+                                        "secureOutput": false,
+                                        "secureInput": false
                                     },
-                                    "formatSettings": {
-                                        "type": "ParquetWriteSettings"
-                                    }
-                                },
-                                "enableStaging": false,
-                                "translator": {
-                                    "type": "TabularTranslator",
-                                    "typeConversion": true,
-                                    "typeConversionSettings": {
-                                        "allowDataTruncation": true,
-                                        "treatBooleanAsNumber": false
-                                    }
-                                }
-                            },
-                            "inputs": [
-                                {
-                                    "referenceName": "staging_dataset",
-                                    "type": "DatasetReference",
-                                    "parameters": {
-                                        "containerName": {
-                                            "value": "@pipeline().parameters.containerName",
-                                            "type": "Expression"
+                                    "userProperties": [],
+                                    "typeProperties": {
+                                        "source": {
+                                            "type": "DelimitedTextSource",
+                                            "storeSettings": {
+                                                "type": "AzureBlobFSReadSettings",
+                                                "recursive": true,
+                                                "wildcardFileName": "*.csv",
+                                                "enablePartitionDiscovery": false
+                                            },
+                                            "formatSettings": {
+                                                "type": "DelimitedTextReadSettings"
+                                            }
                                         },
-                                        "entityName": {
-                                            "value": "@pipeline().parameters.entityName",
-                                            "type": "Expression"
-                                        }
-                                    }
-                                }
-                            ],
-                            "outputs": [
-                                {
-                                    "referenceName": "data_dataset",
-                                    "type": "DatasetReference",
-                                    "parameters": {
-                                        "containerName": {
-                                            "value": "@pipeline().parameters.containerName",
-                                            "type": "Expression"
+                                        "sink": {
+                                            "type": "DelimitedTextSink",
+                                            "storeSettings": {
+                                                "type": "AzureBlobFSWriteSettings"
+                                            },
+                                            "formatSettings": {
+                                                "type": "DelimitedTextWriteSettings",
+                                                "quoteAllText": true,
+                                                "fileExtension": ".txt"
+                                            }
                                         },
-                                        "entityName": {
-                                            "value": "@pipeline().parameters.entityName",
-                                            "type": "Expression"
+                                        "enableStaging": false,
+                                        "translator": {
+                                            "type": "TabularTranslator",
+                                            "typeConversion": true,
+                                            "typeConversionSettings": {
+                                                "allowDataTruncation": true,
+                                                "treatBooleanAsNumber": false
+                                            }
                                         }
-                                    }
+                                    },
+                                    "inputs": [
+                                        {
+                                            "referenceName": "staging_dataset",
+                                            "type": "DatasetReference",
+                                            "parameters": {
+                                                "containerName": {
+                                                    "value": "@pipeline().parameters.containerName",
+                                                    "type": "Expression"
+                                                },
+                                                "entityName": {
+                                                    "value": "@pipeline().parameters.entityName",
+                                                    "type": "Expression"
+                                                }
+                                            }
+                                        }
+                                    ],
+                                    "outputs": [
+                                        {
+                                            "referenceName": "data_dataset",
+                                            "type": "DatasetReference",
+                                            "parameters": {
+                                                "containerName": {
+                                                    "value": "@pipeline().parameters.containerName",
+                                                    "type": "Expression"
+                                                },
+                                                "entityName": {
+                                                    "value": "@pipeline().parameters.entityName",
+                                                    "type": "Expression"
+                                                }
+                                            }
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            "value": "parquet",
+                            "activities": [
+                                {
+                                    "name": "Copy parquet",
+                                    "type": "Copy",
+                                    "dependsOn": [],
+                                    "policy": {
+                                        "timeout": "7.00:00:00",
+                                        "retry": 0,
+                                        "retryIntervalInSeconds": 30,
+                                        "secureOutput": false,
+                                        "secureInput": false
+                                    },
+                                    "userProperties": [],
+                                    "typeProperties": {
+                                        "source": {
+                                            "type": "DelimitedTextSource",
+                                            "storeSettings": {
+                                                "type": "AzureBlobFSReadSettings",
+                                                "recursive": true,
+                                                "wildcardFileName": "*.parquet",
+                                                "enablePartitionDiscovery": false
+                                            },
+                                            "formatSettings": {
+                                                "type": "DelimitedTextReadSettings"
+                                            }
+                                        },
+                                        "sink": {
+                                            "type": "DelimitedTextSink",
+                                            "storeSettings": {
+                                                "type": "AzureBlobFSWriteSettings"
+                                            },
+                                            "formatSettings": {
+                                                "type": "DelimitedTextWriteSettings",
+                                                "quoteAllText": true,
+                                                "fileExtension": ".txt"
+                                            }
+                                        },
+                                        "enableStaging": false,
+                                        "translator": {
+                                            "type": "TabularTranslator",
+                                            "typeConversion": true,
+                                            "typeConversionSettings": {
+                                                "allowDataTruncation": true,
+                                                "treatBooleanAsNumber": false
+                                            }
+                                        }
+                                    },
+                                    "inputs": [
+                                        {
+                                            "referenceName": "staging_dataset",
+                                            "type": "DatasetReference",
+                                            "parameters": {
+                                                "containerName": {
+                                                    "value": "@pipeline().parameters.containerName",
+                                                    "type": "Expression"
+                                                },
+                                                "entityName": {
+                                                    "value": "@pipeline().parameters.entityName",
+                                                    "type": "Expression"
+                                                }
+                                            }
+                                        }
+                                    ],
+                                    "outputs": [
+                                        {
+                                            "referenceName": "data_dataset",
+                                            "type": "DatasetReference",
+                                            "parameters": {
+                                                "containerName": {
+                                                    "value": "@pipeline().parameters.containerName",
+                                                    "type": "Expression"
+                                                },
+                                                "entityName": {
+                                                    "value": "@pipeline().parameters.entityName",
+                                                    "type": "Expression"
+                                                }
+                                            }
+                                        }
+                                    ]
                                 }
                             ]
                         }
                     ],
-                    "ifTrueActivities": [
+                    "defaultActivities": [
                         {
-                            "name": "Copy data csv",
-                            "type": "Copy",
+                            "name": "Trait reference not supported",
+                            "type": "Fail",
                             "dependsOn": [],
-                            "policy": {
-                                "timeout": "7.00:00:00",
-                                "retry": 0,
-                                "retryIntervalInSeconds": 30,
-                                "secureOutput": false,
-                                "secureInput": false
-                            },
                             "userProperties": [],
                             "typeProperties": {
-                                "source": {
-                                    "type": "DelimitedTextSource",
-                                    "storeSettings": {
-                                        "type": "AzureBlobFSReadSettings",
-                                        "recursive": true,
-                                        "wildcardFileName": "*.csv",
-                                        "enablePartitionDiscovery": false
-                                    },
-                                    "formatSettings": {
-                                        "type": "DelimitedTextReadSettings"
-                                    }
+                                "message": {
+                                    "value": "@concat(\n    'Trait reference ',\n    variables('traitReference'),\n    ' for entity ',\n    pipeline().parameters.entityName,\n    ' not supported.'\n)",
+                                    "type": "Expression"
                                 },
-                                "sink": {
-                                    "type": "DelimitedTextSink",
-                                    "storeSettings": {
-                                        "type": "AzureBlobFSWriteSettings"
-                                    },
-                                    "formatSettings": {
-                                        "type": "DelimitedTextWriteSettings",
-                                        "quoteAllText": true,
-                                        "fileExtension": ".txt"
-                                    }
-                                },
-                                "enableStaging": false,
-                                "translator": {
-                                    "type": "TabularTranslator",
-                                    "typeConversion": true,
-                                    "typeConversionSettings": {
-                                        "allowDataTruncation": true,
-                                        "treatBooleanAsNumber": false
-                                    }
-                                }
-                            },
-                            "inputs": [
-                                {
-                                    "referenceName": "stagingCsv_dataset",
-                                    "type": "DatasetReference",
-                                    "parameters": {
-                                        "containerName": {
-                                            "value": "@pipeline().parameters.containerName",
-                                            "type": "Expression"
-                                        },
-                                        "entityName": {
-                                            "value": "@pipeline().parameters.entityName",
-                                            "type": "Expression"
-                                        }
-                                    }
-                                }
-                            ],
-                            "outputs": [
-                                {
-                                    "referenceName": "dataCsv_dataset",
-                                    "type": "DatasetReference",
-                                    "parameters": {
-                                        "containerName": {
-                                            "value": "@pipeline().parameters.containerName",
-                                            "type": "Expression"
-                                        },
-                                        "entityName": {
-                                            "value": "@pipeline().parameters.entityName",
-                                            "type": "Expression"
-                                        }
-                                    }
-                                }
-                            ]
-                        },
-                        {
-                            "name": "Delete staged csv",
-                            "type": "Delete",
-                            "dependsOn": [
-                                {
-                                    "activity": "Copy data csv",
-                                    "dependencyConditions": [
-                                        "Succeeded"
-                                    ]
-                                }
-                            ],
-                            "policy": {
-                                "timeout": "7.00:00:00",
-                                "retry": 0,
-                                "retryIntervalInSeconds": 30,
-                                "secureOutput": false,
-                                "secureInput": false
-                            },
-                            "userProperties": [],
-                            "typeProperties": {
-                                "dataset": {
-                                    "referenceName": "stagingCsv_dataset",
-                                    "type": "DatasetReference",
-                                    "parameters": {
-                                        "containerName": {
-                                            "value": "@pipeline().parameters.containerName",
-                                            "type": "Expression"
-                                        },
-                                        "entityName": {
-                                            "value": "@pipeline().parameters.entityName",
-                                            "type": "Expression"
-                                        }
-                                    }
-                                },
-                                "enableLogging": false,
-                                "storeSettings": {
-                                    "type": "AzureBlobFSReadSettings",
-                                    "recursive": true,
-                                    "enablePartitionDiscovery": false
-                                }
-                            }
-                        },
-                        {
-                            "name": "Delete staging csv manifest",
-                            "type": "Delete",
-                            "dependsOn": [
-                                {
-                                    "activity": "Copy data csv",
-                                    "dependencyConditions": [
-                                        "Succeeded"
-                                    ]
-                                }
-                            ],
-                            "policy": {
-                                "timeout": "7.00:00:00",
-                                "retry": 0,
-                                "retryIntervalInSeconds": 30,
-                                "secureOutput": false,
-                                "secureInput": false
-                            },
-                            "userProperties": [],
-                            "typeProperties": {
-                                "dataset": {
-                                    "referenceName": "stagingCsvManifest_dataset",
-                                    "type": "DatasetReference",
-                                    "parameters": {
-                                        "containerName": {
-                                            "value": "@pipeline().parameters.containerName",
-                                            "type": "Expression"
-                                        }
-                                    }
-                                },
-                                "enableLogging": false,
-                                "storeSettings": {
-                                    "type": "AzureBlobFSReadSettings",
-                                    "recursive": true,
-                                    "enablePartitionDiscovery": false
-                                }
+                                "errorCode": "400"
                             }
                         }
                     ]
                 }
             },
             {
-                "name": "DeleteStaging",
+                "name": "DeleteStagedJustInCase",
+                "type": "Delete",
+                "dependsOn": [],
+                "policy": {
+                    "timeout": "7.00:00:00",
+                    "retry": 0,
+                    "retryIntervalInSeconds": 30,
+                    "secureOutput": false,
+                    "secureInput": false
+                },
+                "userProperties": [],
+                "typeProperties": {
+                    "dataset": {
+                        "referenceName": "staging_dataset",
+                        "type": "DatasetReference",
+                        "parameters": {
+                            "containerName": {
+                                "value": "@pipeline().parameters.containerName",
+                                "type": "Expression"
+                            },
+                            "entityName": {
+                                "value": "@pipeline().parameters.entityName",
+                                "type": "Expression"
+                            }
+                        }
+                    },
+                    "enableLogging": false,
+                    "storeSettings": {
+                        "type": "AzureBlobFSReadSettings",
+                        "recursive": true,
+                        "enablePartitionDiscovery": false
+                    }
+                }
+            },
+            {
+                "name": "Delete staging",
                 "type": "Delete",
                 "dependsOn": [
                     {
-                        "activity": "Copy staged to data",
+                        "activity": "Copy staging to data",
                         "dependencyConditions": [
                             "Succeeded"
                         ]
@@ -718,44 +626,6 @@
                         "enablePartitionDiscovery": false
                     }
                 }
-            },
-            {
-                "name": "DeleteStagingManifest",
-                "type": "Delete",
-                "dependsOn": [
-                    {
-                        "activity": "Copy staged to data",
-                        "dependencyConditions": [
-                            "Succeeded"
-                        ]
-                    }
-                ],
-                "policy": {
-                    "timeout": "7.00:00:00",
-                    "retry": 0,
-                    "retryIntervalInSeconds": 30,
-                    "secureOutput": false,
-                    "secureInput": false
-                },
-                "userProperties": [],
-                "typeProperties": {
-                    "dataset": {
-                        "referenceName": "stagingManifest_dataset",
-                        "type": "DatasetReference",
-                        "parameters": {
-                            "containerName": {
-                                "value": "@pipeline().parameters.containerName",
-                                "type": "Expression"
-                            }
-                        }
-                    },
-                    "enableLogging": false,
-                    "storeSettings": {
-                        "type": "AzureBlobFSReadSettings",
-                        "recursive": true,
-                        "enablePartitionDiscovery": false
-                    }
-                }
             }
         ],
         "concurrency": 1,
@@ -773,6 +643,13 @@
         },
         "variables": {
             "dataFormat": {
+                "type": "String"
+            },
+            "traitReferencePrefix": {
+                "type": "String",
+                "defaultValue": "is.partition.format."
+            },
+            "traitReference": {
                 "type": "String"
             }
         },

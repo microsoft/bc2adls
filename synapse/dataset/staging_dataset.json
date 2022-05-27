@@ -14,7 +14,7 @@
             }
         },
         "annotations": [],
-        "type": "Parquet",
+        "type": "DelimitedText",
         "typeProperties": {
             "location": {
                 "type": "AzureBlobFSLocation",
@@ -27,7 +27,10 @@
                     "type": "Expression"
                 }
             },
-            "compressionCodec": "snappy"
+            "columnDelimiter": ",",
+            "escapeChar": "\\",
+            "firstRowAsHeader": true,
+            "quoteChar": "\""
         },
         "schema": []
     },

@@ -74,19 +74,16 @@ This is the step that would create the analytics pipelines in the above workspac
 | Sequence # | Name & Url | Tab | Menu to invoke under the `+` sign | 
 | ---------- | ---- | --- | ----------------------------------| 
 |1|[`data_dataset`](/synapse/dataset/data_dataset.json)|`Data`|`Integration dataset`|
-|2|[`dataCsv_dataset`](/synapse/dataset/dataCsv_dataset.json)|`Data`|`Integration dataset`|
-|3|[`dataManifest_dataset`](/synapse/dataset/dataManifest_dataset.json)|`Data`|`Integration dataset`|
+|2|[`dataManifest_dataset`](/synapse/dataset/dataManifest_dataset.json)|`Data`|`Integration dataset`|
+|3|[`deltas_dataset`](/synapse/dataset/deltas_dataset.json)|`Data`|`Integration dataset`|
 |4|[`deltasManifest_dataset`](/synapse/dataset/deltasManifest_dataset.json)|`Data`|`Integration dataset`|
-|5|[`deltas_dataset`](/synapse/dataset/deltas_dataset.json)|`Data`|`Integration dataset`|
-|6|[`stagingManifest_dataset`](/synapse/dataset/stagingManifest_dataset.json)|`Data`|`Integration dataset`|
-|7|[`staging_dataset`](/synapse/dataset/staging_dataset.json)|`Data`|`Integration dataset`|
-|8|[`stagingCsvManifest_dataset`](/synapse/dataset/stagingCsvManifest_dataset.json)|`Data`|`Integration dataset`|
-|9|[`stagingCsv_dataset`](/synapse/dataset/stagingCsv_dataset.json)|`Data`|`Integration dataset`|
-|10|[`Consolidation_flow`](/synapse/dataflow/Consolidation_flow.json)|`Develop`|`Data flow`|
-|11|[`Convert parquet to CSV`](/synapse/dataflow/Convert parquet to CSV.json)|`Develop`|`Data flow`|
-|12|[`Consolidation_OneEntity`](/synapse/pipeline/Consolidation_OneEntity.json)|`Integrate`|`Pipeline`|
-|13|[`Consolidation_CheckForDeltas`](/synapse/pipeline/Consolidation_CheckForDeltas.json)|`Integrate`|`Pipeline`|
-|14|[`Consolidation_AllEntities`](/synapse/pipeline/Consolidation_AllEntities.json)|`Integrate`|`Pipeline`|
+|5|[`staging_dataset`](/synapse/dataset/staging_dataset.json)|`Data`|`Integration dataset`|
+|6|[`staging_folder`](/synapse/dataset/staging_folder.json)|`Data`|`Integration dataset`|
+|7|[`stagingManifest_dataset`](/synapse/dataset/stagingManifest_dataset.json)|`Data`|`Integration dataset`|
+|8|[`Consolidation_flow`](/synapse/dataflow/Consolidation_flow.json)|`Develop`|`Data flow`|
+|9|[`Consolidation_OneEntity`](/synapse/pipeline/Consolidation_OneEntity.json)|`Integrate`|`Pipeline`|
+|10|[`Consolidation_CheckForDeltas`](/synapse/pipeline/Consolidation_CheckForDeltas.json)|`Integrate`|`Pipeline`|
+|11|[`Consolidation_AllEntities`](/synapse/pipeline/Consolidation_AllEntities.json)|`Integrate`|`Pipeline`|
 
 6. At the toolbar of the **Synapse Studio** at the top, you may now click on **Validate all** and if there are no errors, click on **Publish all**.
 
