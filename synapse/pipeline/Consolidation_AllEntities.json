@@ -87,44 +87,6 @@
                         }
                     ]
                 }
-            },
-            {
-                "name": "Delete staging folder",
-                "type": "Delete",
-                "dependsOn": [
-                    {
-                        "activity": "For each entity",
-                        "dependencyConditions": [
-                            "Succeeded"
-                        ]
-                    }
-                ],
-                "policy": {
-                    "timeout": "7.00:00:00",
-                    "retry": 0,
-                    "retryIntervalInSeconds": 30,
-                    "secureOutput": false,
-                    "secureInput": false
-                },
-                "userProperties": [],
-                "typeProperties": {
-                    "dataset": {
-                        "referenceName": "staging_folder",
-                        "type": "DatasetReference",
-                        "parameters": {
-                            "containerName": {
-                                "value": "@pipeline().parameters.containerName",
-                                "type": "Expression"
-                            }
-                        }
-                    },
-                    "enableLogging": false,
-                    "storeSettings": {
-                        "type": "AzureBlobFSReadSettings",
-                        "recursive": true,
-                        "enablePartitionDiscovery": false
-                    }
-                }
             }
         ],
         "parameters": {

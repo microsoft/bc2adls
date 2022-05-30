@@ -184,7 +184,8 @@
                                 "type": "Expression"
                             }
                         }
-                    }
+                    },
+                    "firstRowOnly": false
                 }
             },
             {
@@ -201,7 +202,7 @@
                 "userProperties": [],
                 "typeProperties": {
                     "items": {
-                        "value": "@activity('Lookup data manifest').output.firstRow.entities",
+                        "value": "@activity('Lookup data manifest').output.value[0].entities",
                         "type": "Expression"
                     },
                     "condition": {
@@ -224,7 +225,7 @@
                 "userProperties": [],
                 "typeProperties": {
                     "expression": {
-                        "value": "@greater(activity('Filtered on entity').output.FilteredItemsCount, 0)",
+                        "value": "@equals(\n    activity('Filtered on entity').output.FilteredItemsCount, \n    1\n)",
                         "type": "Expression"
                     },
                     "ifFalseActivities": [
@@ -235,7 +236,7 @@
                             "userProperties": [],
                             "typeProperties": {
                                 "message": {
-                                    "value": "@concat('Entity ', pipeline().parameters.entityName, ' not found in the data manifest.')",
+                                    "value": "@concat(\n    'Entity ', \n    pipeline().parameters.entityName, \n    ' either duplicated or not found in the data manifest.'\n)",
                                     "type": "Expression"
                                 },
                                 "errorCode": "400"
@@ -300,7 +301,7 @@
                             "typeProperties": {
                                 "variableName": "dataFormat",
                                 "value": {
-                                    "value": "@substring(\n    variables('traitReference'), \n    length(variables('traitReferencePrefix')),\n    sub(\n       length(variables('traitReference')),\n       length(variables('traitReferencePrefix'))\n    )\n)",
+                                    "value": "@replace(\n    variables('traitReference'), \n    variables('traitReferencePrefix'),\n    ''\n)",
                                     "type": "Expression"
                                 }
                             }
