@@ -23,9 +23,12 @@ More details:
 
 ## Latest notable changes
 
-Date | Changes
+Pull request | Changes
 --------------- | ---
-3rd May, 2022 | The [Consolidation_CheckForDeltas](/synapse/pipeline/Consolidation_CheckForDeltas.json) pipeline now contains a fail activity that is triggered when no directory is found in `/deltas/` for an entity listed in the `deltas.manifest.cdm.json`. This may occur when no new deltas have been exported since the last execution of the consolidation pipeline. Other parallel pipeline runs are not affected.
+[20](https://github.com/microsoft/bc2adls/pull/20) | Data on the lake can be chosen to be stored on the [Parquet](https://docs.microsoft.com/en-us/azure/data-factory/format-parquet) format, thus improving its fidelity to its original in Business Central.
+[16](https://github.com/microsoft/bc2adls/pull/16) | The [Consolidation_CheckForDeltas](/synapse/pipeline/Consolidation_CheckForDeltas.json) pipeline now contains a fail activity that is triggered when no directory is found in `/deltas/` for an entity listed in the `deltas.manifest.cdm.json`. This may occur when no new deltas have been exported since the last execution of the consolidation pipeline. Other parallel pipeline runs are not affected.
+[14](https://github.com/microsoft/bc2adls/pull/14) | It is possible now to select all fields in a table for export. Those fields that are not allowed to be exported, say flow fields, are not selected.
+[13](https://github.com/microsoft/bc2adls/pull/13) | A template is inserted in the `OnAfterOnDatabaseDelete` procedure, so that deletions of archive table records, are not synchronized to the data lake. This helps in selected tables in the data lake continuing to hold on to records that may be removed from the BC database, for house-keeping purposes. This is especialy relevant for ledger entry tables.
 
 ## Contributing
 

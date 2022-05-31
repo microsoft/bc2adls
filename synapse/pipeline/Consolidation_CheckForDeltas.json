@@ -118,6 +118,8 @@
                 "type": "bool"
             }
         },
-        "annotations": []
-    }
+        "annotations": [],
+        "type": "Microsoft.Synapse/workspaces/pipelines"
+    },
+    "type": "Microsoft.Synapse/workspaces/pipelines"
 }
