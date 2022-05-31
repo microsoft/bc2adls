@@ -1,5 +1,5 @@
 {
-    "name": "staging_dataset",
+    "name": "dataManifest_dataset",
     "properties": {
         "linkedServiceName": {
             "referenceName": "AzureDataLakeStorage",
@@ -8,31 +8,21 @@
         "parameters": {
             "containerName": {
                 "type": "string"
-            },
-            "entityName": {
-                "type": "string"
             }
         },
         "annotations": [],
-        "type": "DelimitedText",
+        "type": "Json",
         "typeProperties": {
             "location": {
                 "type": "AzureBlobFSLocation",
-                "folderPath": {
-                    "value": "@concat('staging/', dataset().entityName)",
-                    "type": "Expression"
-                },
+                "fileName": "data.manifest.cdm.json",
                 "fileSystem": {
                     "value": "@dataset().containerName",
                     "type": "Expression"
                 }
-            },
-            "columnDelimiter": ",",
-            "escapeChar": "\\",
-            "firstRowAsHeader": true,
-            "quoteChar": "\""
+            }
         },
-        "schema": []
+        "schema": {}
     },
     "type": "Microsoft.Synapse/workspaces/datasets"
 }

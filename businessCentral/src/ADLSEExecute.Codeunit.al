@@ -21,7 +21,9 @@ codeunit 82561 "ADLSE Execute"
         EntityJsonNeedsUpdate: Boolean;
         ManifestJsonsNeedsUpdate: Boolean;
     begin
+        ADLSESetup.Get(0);
         EmitTelemetry := ADLSESetup."Emit telemetry";
+        CDMDataFormat := ADLSESetup.DataFormat;
 
         // Register session started
         ADLSECurrentSession.Start(Rec."Table ID");
@@ -102,6 +104,7 @@ codeunit 82561 "ADLSE Execute"
         TimestampAscendingSortViewTxt: Label 'Sorting(Timestamp) Order(Ascending)', Locked = true;
         InsufficientReadPermErr: Label 'You do not have sufficient permissions to read from the table.';
         EmitTelemetry: Boolean;
+        CDMDataFormat: Enum "ADLSE CDM Format";
 
     [TryFunction]
     local procedure TryExportTableData(TableID: Integer; var ADLSECommunication: Codeunit "ADLSE Communication";
@@ -115,7 +118,7 @@ codeunit 82561 "ADLSE Execute"
 
         // first export the upserts
         ADLSECommunication.Init(TableID, FieldIdList, UpdatedLastTimeStamp, EmitTelemetry);
-        ADLSECommunication.CheckEntity(EntityJsonNeedsUpdate, ManifestJsonsNeedsUpdate);
+        ADLSECommunication.CheckEntity(CDMDataFormat, EntityJsonNeedsUpdate, ManifestJsonsNeedsUpdate);
         ExportTableUpdates(TableID, FieldIdList, ADLSECommunication, UpdatedLastTimeStamp);
 
         // then export the deletes

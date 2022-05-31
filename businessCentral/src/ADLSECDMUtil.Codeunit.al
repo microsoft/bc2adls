@@ -33,7 +33,7 @@ codeunit 82566 "ADLSE CDM Util" // Refer Common Data Model https://docs.microsof
         Content.Add('definitions', Definitions);
     end;
 
-    procedure UpdateDefaultManifestContent(ExistingContent: JsonObject; TableID: Integer; Folder: Text) Content: JsonObject
+    procedure UpdateDefaultManifestContent(ExistingContent: JsonObject; TableID: Integer; Folder: Text; ADLSECdmFormat: Enum "ADLSE CDM Format") Content: JsonObject
     var
         ADLSEUtil: Codeunit "ADLSE Util";
         Entities: JsonArray;
@@ -64,17 +64,28 @@ codeunit 82566 "ADLSE CDM Util" // Refer Common Data Model https://docs.microsof
 
             DataPartitionPattern.Add('name', EntityName);
             DataPartitionPattern.Add('rootLocation', StrSubstNo('%1/%2/', Folder, EntityName));
-            DataPartitionPattern.Add('globPattern', '*.csv');
-
-            ExhibitsTrait.Add('traitReference', 'is.partition.format.CSV');
-            AddNameValue(ExhibitsTraitArgs, 'columnHeaders', 'true');
-            AddNameValue(ExhibitsTraitArgs, 'delimiter', ',');
-            AddNameValue(ExhibitsTraitArgs, 'escape', '\');
-            AddNameValue(ExhibitsTraitArgs, 'encoding', 'utf-8');
-            AddNameValue(ExhibitsTraitArgs, 'quote', '"');
-            ExhibitsTrait.Add('arguments', ExhibitsTraitArgs);
-            ExhibitsTraits.Add(ExhibitsTrait);
-            DataPartitionPattern.Add('exhibitsTraits', ExhibitsTraits);
+            case ADLSECdmFormat of
+                "ADLSE CDM Format"::Csv:
+                    begin
+                        DataPartitionPattern.Add('globPattern', '*.csv');
+                        ExhibitsTrait.Add('traitReference', 'is.partition.format.CSV');
+                        AddNameValue(ExhibitsTraitArgs, 'columnHeaders', 'true');
+                        AddNameValue(ExhibitsTraitArgs, 'delimiter', ',');
+                        AddNameValue(ExhibitsTraitArgs, 'escape', '\');
+                        AddNameValue(ExhibitsTraitArgs, 'encoding', 'utf-8');
+                        AddNameValue(ExhibitsTraitArgs, 'quote', '"');
+                        ExhibitsTrait.Add('arguments', ExhibitsTraitArgs);
+                        ExhibitsTraits.Add(ExhibitsTrait);
+                        DataPartitionPattern.Add('exhibitsTraits', ExhibitsTraits);
+                    end;
+                ADLSECdmFormat::Parquet:
+                    begin
+                        DataPartitionPattern.Add('globPattern', '*.parquet');
+                        ExhibitsTrait.Add('traitReference', 'is.partition.format.parquet');
+                        ExhibitsTraits.Add(ExhibitsTrait);
+                        DataPartitionPattern.Add('exhibitsTraits', ExhibitsTraits);
+                    end;
+            end;
 
             DataPartitionPatterns.Add(DataPartitionPattern);
             Entity.Add('dataPartitionPatterns', DataPartitionPatterns);

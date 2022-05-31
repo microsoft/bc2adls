@@ -212,6 +212,8 @@ codeunit 82564 "ADLSE Util"
 
     local procedure ConvertStringToText(Val: Text): Text
     begin
+        Val := Val.Replace('\', '\\'); // escape the escape character
+        Val := Val.Replace('"', '\"'); // escape the quote character
         exit(StrSubstNo('"%1"', Val));
     end;
 

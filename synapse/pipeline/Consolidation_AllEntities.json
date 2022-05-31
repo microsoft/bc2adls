@@ -91,14 +91,15 @@
         ],
         "parameters": {
             "containerName": {
-                "type": "string",
-                "defaultValue": "business-central"
+                "type": "string"
             },
             "deleteDeltas": {
                 "type": "bool",
                 "defaultValue": false
             }
         },
-        "annotations": []
-    }
+        "annotations": [],
+        "type": "Microsoft.Synapse/workspaces/pipelines"
+    },
+    "type": "Microsoft.Synapse/workspaces/pipelines"
 }
