@@ -21,7 +21,7 @@ Install the extension into BC using the code given in the [businessCentral](/bus
 
 ### Step 4. Enter the BC settings
 Let us take a look at the settings show in the sample screenshot below,
-- **Container** The container name (defaulted to `business-central`) inside the storage account where the data shall be exported as block blobs. The export process creates this location if it does not already exist. Please ensure that the name corresponds to the requirements as outlined at [Naming and Referencing Containers, Blobs, and Metadata - Azure Storage | Microsoft Docs](https://docs.microsoft.com/en-us/rest/api/storageservices/Naming-and-Referencing-Containers--Blobs--and-Metadata).
+- **Container** The container name inside the storage account where the data shall be exported as block blobs. The export process creates this location if it does not already exist. Please ensure that the name corresponds to the requirements as outlined at [Naming and Referencing Containers, Blobs, and Metadata - Azure Storage | Microsoft Docs](https://docs.microsoft.com/en-us/rest/api/storageservices/Naming-and-Referencing-Containers--Blobs--and-Metadata).
 - **Tenant ID** The tenant id at which the app registration created above resides (refer to **b)** in the picture at [Step 1](/.assets/Setup.md#step-1-create-an-azure-service-principal))
 - **Account name** The name of the storage account that you created in [Step 2](/.assets/Setup.md#step-2-configure-an-azure-data-lake-gen2).
 - **Client ID** The Application (client) ID from the App registration (refer to **a)** in the picture at [Step 1](/.assets/Setup.md#step-1-create-an-azure-service-principal))
