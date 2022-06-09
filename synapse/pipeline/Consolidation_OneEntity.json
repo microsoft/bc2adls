@@ -629,6 +629,7 @@
                 }
             }
         ],
+        "concurrency": 1,
         "parameters": {
             "containerName": {
                 "type": "string"
