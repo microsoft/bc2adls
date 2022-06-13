@@ -25,7 +25,7 @@ More details:
 
 Pull request | Changes
 --------------- | ---
-[23](https://github.com/microsoft/bc2adls/pull/21) | The setting in [Consolidation_OneEntity](/synapse/pipeline/Consolidation_OneEntity.json) that limited concurrent execution of the pipeline to one instance has been removed. Now, an infinite number of pipeline instances is allowed to run concurrently. 
+[23](https://github.com/microsoft/bc2adls/pull/23) | The setting in [Consolidation_OneEntity](/synapse/pipeline/Consolidation_OneEntity.json) that limited concurrent execution of the pipeline to one instance has been removed. Now, an infinite number of pipeline instances is allowed to run concurrently. 
 [20](https://github.com/microsoft/bc2adls/pull/20) | Data on the lake can be chosen to be stored on the [Parquet](https://docs.microsoft.com/en-us/azure/data-factory/format-parquet) format, thus improving its fidelity to its original in Business Central.
 [16](https://github.com/microsoft/bc2adls/pull/16) | The [Consolidation_CheckForDeltas](/synapse/pipeline/Consolidation_CheckForDeltas.json) pipeline now contains a fail activity that is triggered when no directory is found in `/deltas/` for an entity listed in the `deltas.manifest.cdm.json`. This may occur when no new deltas have been exported since the last execution of the consolidation pipeline. Other parallel pipeline runs are not affected.
 [14](https://github.com/microsoft/bc2adls/pull/14) | It is possible now to select all fields in a table for export. Those fields that are not allowed to be exported, say flow fields, are not selected.
