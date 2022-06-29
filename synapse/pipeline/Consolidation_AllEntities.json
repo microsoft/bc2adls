@@ -57,6 +57,7 @@
                         "type": "Expression"
                     },
                     "isSequential": false,
+                    "batchCount": 50,
                     "activities": [
                         {
                             "name": "ConsolidateNewDeltas",
