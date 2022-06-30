@@ -21,18 +21,20 @@ codeunit 82565 "ADLSE Credentials"
 
         Initialized: Boolean;
         ValueNotFoundErr: Label 'No value found for %1.', Comment = '%1 = name of the key';
-        TenantIdKeyNameTok: Label 'adlse-tenant-id', Locked = true;
-        StorageAccountKeyNameTok: Label 'adlse-storage-account', Locked = true;
-        ClientIdKeyNameTok: Label 'adlse-client-id', Locked = true;
-        ClientSecretKeyNameTok: Label 'adlse-client-secret', Locked = true;
+        TenantIdKeyName: Label 'adlse-tenant-id', Locked = true;
+        StorageAccountKeyName: Label 'adlse-storage-account', Locked = true;
+        ClientIdKeyName: Label 'adlse-client-id', Locked = true;
+        ClientSecretKeyName: Label 'adlse-client-secret', Locked = true;
 
     [NonDebuggable]
     procedure Init()
+    var
+        ADLSEUtil: Codeunit "ADLSE Util";
     begin
-        StorageTenantID := GetSecret(TenantIdKeyNameTok);
-        StorageAccount := GetSecret(StorageAccountKeyNameTok);
-        ClientID := GetSecret(ClientIdKeyNameTok);
-        ClientSecret := GetSecret(ClientSecretKeyNameTok);
+        StorageTenantID := GetSecret(TenantIdKeyName);
+        StorageAccount := GetSecret(StorageAccountKeyName);
+        ClientID := GetSecret(ClientIdKeyName);
+        ClientSecret := GetSecret(ClientSecretKeyName);
 
         Initialized := true;
     end;
@@ -45,10 +47,10 @@ codeunit 82565 "ADLSE Credentials"
     procedure Check()
     begin
         Init();
-        CheckValueExists(TenantIdKeyNameTok, StorageTenantID);
-        CheckValueExists(StorageAccountKeyNameTok, StorageAccount);
-        CheckValueExists(ClientIdKeyNameTok, ClientID);
-        CheckValueExists(ClientSecretKeyNameTok, ClientSecret);
+        CheckValueExists(TenantIdKeyName, StorageTenantID);
+        CheckValueExists(StorageAccountKeyName, StorageAccount);
+        CheckValueExists(ClientIdKeyName, ClientID);
+        CheckValueExists(ClientSecretKeyName, ClientSecret);
     end;
 
     [NonDebuggable]
@@ -61,7 +63,7 @@ codeunit 82565 "ADLSE Credentials"
     procedure SetTenantID(NewTenantIdValue: Text): Text
     begin
         StorageTenantID := NewTenantIdValue;
-        SetSecret(TenantIdKeyNameTok, NewTenantIdValue);
+        SetSecret(TenantIdKeyName, NewTenantIdValue);
     end;
 
     [NonDebuggable]
@@ -74,7 +76,7 @@ codeunit 82565 "ADLSE Credentials"
     procedure SetStorageAccount(NewStorageAccountValue: Text): Text
     begin
         StorageAccount := NewStorageAccountValue;
-        SetSecret(StorageAccountKeyNameTok, NewStorageAccountValue);
+        SetSecret(StorageAccountKeyName, NewStorageAccountValue);
     end;
 
     [NonDebuggable]
@@ -87,7 +89,7 @@ codeunit 82565 "ADLSE Credentials"
     procedure SetClientID(NewClientIDValue: Text): Text
     begin
         ClientID := NewClientIDValue;
-        SetSecret(ClientIdKeyNameTok, NewClientIDValue);
+        SetSecret(ClientIdKeyName, NewClientIDValue);
     end;
 
     [NonDebuggable]
@@ -100,7 +102,7 @@ codeunit 82565 "ADLSE Credentials"
     procedure SetClientSecret(NewClientSecretValue: Text): Text
     begin
         ClientSecret := NewClientSecretValue;
-        SetSecret(ClientSecretKeyNameTok, NewClientSecretValue);
+        SetSecret(ClientSecretKeyName, NewClientSecretValue);
     end;
 
     [NonDebuggable]

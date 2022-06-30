@@ -35,7 +35,7 @@ codeunit 82569 "ADLSE Execution"
 
         ADLSESetupRec.Running := true;
         ADLSESetupRec.Modify();
-        Commit();
+        Commit;
 
         ADLSETable.SetRange(State, "ADLSE State"::Ready);
         if ADLSETable.FindSet(true) then

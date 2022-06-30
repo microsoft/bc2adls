@@ -63,8 +63,8 @@ table 82561 "ADLSE Table"
     end;
 
     var
-        TableNotNormalErr: Label 'Table %1 is not a normal table.', Comment = '%1: caption of table';
-        TableExportingDataErr: Label 'Data is being executed for table %1. Please wait for the export to finish before making changes.', Comment = '%1: table caption';
+        TableNotNormalErr: Label 'Table %1 is not a normal table.';
+        TableExportingDataErr: Label 'Data is being executed for table %1. Please wait for the export to finish before making changes.';
 
     procedure FieldsChosen(): Integer
     var

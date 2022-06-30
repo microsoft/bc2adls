@@ -19,6 +19,8 @@ table 82560 "ADLSE Setup"
             Caption = 'Container';
 
             trigger OnValidate()
+            var
+                ADLSEExecution: Codeunit "ADLSE Execution";
             begin
                 // Name constraints based on https://docs.microsoft.com/en-us/rest/api/storageservices/naming-and-referencing-containers--blobs--and-metadata
                 if (StrLen(Container) < 3) or (StrLen(Container) > 63) // between 6 and 63 characters long
