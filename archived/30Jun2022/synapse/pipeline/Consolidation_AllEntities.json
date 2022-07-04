@@ -1,0 +1,106 @@
+{
+    "name": "Consolidation_AllEntities",
+    "properties": {
+        "activities": [
+            {
+                "name": "Entities",
+                "type": "Lookup",
+                "dependsOn": [],
+                "policy": {
+                    "timeout": "7.00:00:00",
+                    "retry": 0,
+                    "retryIntervalInSeconds": 30,
+                    "secureOutput": false,
+                    "secureInput": false
+                },
+                "userProperties": [],
+                "typeProperties": {
+                    "source": {
+                        "type": "JsonSource",
+                        "storeSettings": {
+                            "type": "AzureBlobFSReadSettings",
+                            "recursive": true,
+                            "enablePartitionDiscovery": false
+                        },
+                        "formatSettings": {
+                            "type": "JsonReadSettings"
+                        }
+                    },
+                    "dataset": {
+                        "referenceName": "deltasManifest_dataset",
+                        "type": "DatasetReference",
+                        "parameters": {
+                            "containerName": {
+                                "value": "@pipeline().parameters.containerName",
+                                "type": "Expression"
+                            }
+                        }
+                    },
+                    "firstRowOnly": false
+                }
+            },
+            {
+                "name": "For each entity",
+                "type": "ForEach",
+                "dependsOn": [
+                    {
+                        "activity": "Entities",
+                        "dependencyConditions": [
+                            "Succeeded"
+                        ]
+                    }
+                ],
+                "userProperties": [],
+                "typeProperties": {
+                    "items": {
+                        "value": "@activity('Entities').output.value[0].entities",
+                        "type": "Expression"
+                    },
+                    "isSequential": false,
+                    "batchCount": 50,
+                    "activities": [
+                        {
+                            "name": "ConsolidateNewDeltas",
+                            "type": "ExecutePipeline",
+                            "dependsOn": [],
+                            "userProperties": [],
+                            "typeProperties": {
+                                "pipeline": {
+                                    "referenceName": "Consolidation_CheckForDeltas",
+                                    "type": "PipelineReference"
+                                },
+                                "waitOnCompletion": true,
+                                "parameters": {
+                                    "containerName": {
+                                        "value": "@pipeline().parameters.containerName",
+                                        "type": "Expression"
+                                    },
+                                    "entityName": {
+                                        "value": "@item().entityName",
+                                        "type": "Expression"
+                                    },
+                                    "deleteDeltas": {
+                                        "value": "@pipeline().parameters.deleteDeltas",
+                                        "type": "Expression"
+                                    }
+                                }
+                            }
+                        }
+                    ]
+                }
+            }
+        ],
+        "parameters": {
+            "containerName": {
+                "type": "string"
+            },
+            "deleteDeltas": {
+                "type": "bool",
+                "defaultValue": false
+            }
+        },
+        "annotations": [],
+        "type": "Microsoft.Synapse/workspaces/pipelines"
+    },
+    "type": "Microsoft.Synapse/workspaces/pipelines"
+}

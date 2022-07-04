@@ -9,12 +9,6 @@ codeunit 82564 "ADLSE Util"
         AlphabetsUpperTxt: Label 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
         NumeralsTxt: Label '1234567890';
         FieldTypeNotSupportedErr: Label 'The field %1 of type %2 is not supported.', Comment = '%1 = field name, %2 = field type';
-        ConcatNameIdTok: Label '%1-%2', Comment = '%1: Name, %2: ID';
-        DateTimeExpandedFormatTok: Label '%1, %2 %3 %4 %5:%6:%7 GMT', Comment = '%1: weekday, %2: day, %3: month, %4: year, %5: hour, %6: minute, %7: second';
-        QuotedTextTok: Label '"%1"', Comment = '%1: text to be double- quoted';
-        CommaPrefixedTok: Label ',%1', Comment = '%1: text to be prefixed';
-        WholeSecondsTok: Label ':%1Z', Comment = '%1: seconds';
-        FractionSecondsTok: Label ':%1.%2Z', Comment = '%1: seconds, %2: milliseconds';
 
     procedure ToText(GuidValue: Guid): Text
     begin
@@ -41,7 +35,7 @@ codeunit 82564 "ADLSE Util"
         HourPart := Parts.Get(4);
         MinutePart := Parts.Get(5);
         SecondPart := Parts.Get(6);
-        exit(StrSubstNo(DateTimeExpandedFormatTok,
+        exit(StrSubstNo('%1, %2 %3 %4 %5:%6:%7 GMT',
             GetDayOfWeek(YearPart, MonthPart, DayPart),
             DayPart,
             Get3LetterMonth(MonthPart),
@@ -127,12 +121,12 @@ codeunit 82564 "ADLSE Util"
     begin
         OrigTableName := GetTableName(TableID);
         TableName := GetDataLakeCompliantName(OrigTableName);
-        exit(StrSubstNo(ConcatNameIdTok, TableName, TableID));
+        exit(StrSubstNo('%1-%2', TableName, TableID));
     end;
 
     procedure GetDataLakeCompliantFieldName(FieldName: Text; FieldID: Integer): Text
     begin
-        exit(StrSubstNo(ConcatNameIdTok, GetDataLakeCompliantName(FieldName), FieldID));
+        exit(StrSubstNo('%1-%2', GetDataLakeCompliantName(FieldName), FieldID));
     end;
 
     procedure GetTableName(TableID: Integer) TableName: Text
@@ -181,7 +175,7 @@ codeunit 82564 "ADLSE Util"
             Fld.Type::Time:
                 exit;
         end;
-        Error(FieldTypeNotSupportedErr, Fld."Field Caption", Fld.Type);
+        Error(FieldTypeNotSupportedErr, Fld.FieldName, Fld.Type);
     end;
 
     procedure ConvertFieldToText(Fld: FieldRef): Text
@@ -220,7 +214,7 @@ codeunit 82564 "ADLSE Util"
     begin
         Val := Val.Replace('\', '\\'); // escape the escape character
         Val := Val.Replace('"', '\"'); // escape the quote character
-        exit(StrSubstNo(QuotedTextTok, Val));
+        exit(StrSubstNo('"%1"', Val));
     end;
 
     procedure ConvertNumberToText(Val: Integer): Text
@@ -255,7 +249,7 @@ codeunit 82564 "ADLSE Util"
             MillisecondsText := PadStr(MillisecondsText, 3, '0');
             WholeSecondsText := SecondsText;
         end;
-        Result := Result.Replace(StrSubstNo(WholeSecondsTok, SecondsText), StrSubstNo(FractionSecondsTok, WholeSecondsText, MillisecondsText));
+        Result := Result.Replace(StrSubstNo(':%1Z', SecondsText), StrSubstNo(':%1.%2Z', WholeSecondsText, MillisecondsText));
     end;
 
     procedure GetCDMAttributeDetails(Type: FieldType; var DataFormat: Text; var AppliedTraits: JsonArray)
@@ -264,6 +258,7 @@ codeunit 82564 "ADLSE Util"
         Clear(AppliedTraits);
 
         DataFormat := GetCDMDataFormat(Type);
+        AppliedTraits := GetCDMAppliedTraits(Type);
     end;
 
     local procedure GetCDMDataFormat(Type: FieldType): Text
@@ -300,6 +295,27 @@ codeunit 82564 "ADLSE Util"
         end;
     end;
 
+    local procedure GetCDMAppliedTraits(Type: FieldType) AppliedTraits: JsonArray
+    begin
+        Clear(AppliedTraits);
+        // case Type of
+        //     FieldType::DateTime:
+        //         AppliedTraits.Add(GetDateTimeTrait());
+        // end;
+    end;
+
+    // local procedure GetDateTimeTrait() Trait: JsonObject
+    // var
+    //     Arg: JsonObject;
+    //     Args: JsonArray;
+    // begin
+    //     Trait.Add('traitReference', 'is.formatted.dateTime');
+    //     Arg.Add('name', 'format');
+    //     Arg.Add('value', 'yyyy-MM-ddTHH:mm:ss.fffK');
+    //     Args.Add(Arg);
+    //     Trait.Add('arguments', Args);
+    // end;
+
     local procedure GetCDMDataFormat_String(): Text
     begin
         exit('String');
@@ -319,6 +335,7 @@ codeunit 82564 "ADLSE Util"
 
     procedure CreateCsvPayload(Rec: RecordRef; FieldIdList: List of [Integer]; AddHeaders: Boolean) RecordPayload: Text
     var
+        TableMetadata: Record "Table Metadata";
         ADLSECDMUtil: Codeunit "ADLSE CDM Util";
         Field: FieldRef;
         FieldID: Integer;
@@ -326,7 +343,6 @@ codeunit 82564 "ADLSE Util"
         FieldTextValue: Text;
         Payload: TextBuilder;
     begin
-        FieldsAdded := 0;
         if AddHeaders then begin
             foreach FieldID in FieldIdList do begin
                 Field := Rec.Field(FieldID);
@@ -335,11 +351,11 @@ codeunit 82564 "ADLSE Util"
                 if FieldsAdded = 0 then
                     Payload.Append(FieldTextValue)
                 else
-                    Payload.Append(StrSubstNo(CommaPrefixedTok, FieldTextValue));
+                    Payload.Append(StrSubstNo(',%1', FieldTextValue));
                 FieldsAdded += 1;
             end;
             if IsTablePerCompany(Rec.Number) then
-                Payload.Append(StrSubstNo(CommaPrefixedTok, ADLSECDMUtil.GetCompanyFieldName()));
+                Payload.Append(StrSubstNo(',%1', ADLSECDMUtil.GetCompanyFieldName()));
             Payload.AppendLine();
         end;
 
@@ -351,11 +367,11 @@ codeunit 82564 "ADLSE Util"
             if FieldsAdded = 0 then
                 Payload.Append(FieldTextValue)
             else
-                Payload.Append(StrSubstNo(CommaPrefixedTok, FieldTextValue));
+                Payload.Append(StrSubstNo(',%1', FieldTextValue));
             FieldsAdded += 1;
         end;
         if IsTablePerCompany(Rec.Number) then
-            Payload.Append(StrSubstNo(CommaPrefixedTok, ConvertStringToText(CompanyName())));
+            Payload.Append(StrSubstNo(',%1', ConvertStringToText(CompanyName())));
         Payload.AppendLine();
 
         RecordPayload := Payload.ToText();

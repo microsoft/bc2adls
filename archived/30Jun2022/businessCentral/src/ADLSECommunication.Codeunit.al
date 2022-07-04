@@ -22,11 +22,11 @@ codeunit 82562 "ADLSE Communication"
         DeltaCdmManifestNameTxt: Label 'deltas.manifest.cdm.json', Locked = true;
         DataCdmManifestNameTxt: Label 'data.manifest.cdm.json', Locked = true;
         EntityManifestNameTemplateTxt: Label '%1.cdm.json', Locked = true, Comment = '%1 = Entity name';
-        ContainerUrlTxt: Label 'https://%1.blob.core.windows.net/%2', Comment = '%1: Account name, %2: Container Name';
+        ContainerUrl: Label 'https://%1.blob.core.windows.net/%2', Comment = '%1: Account name, %2: Container Name';
         CorpusJsonPathTxt: Label '/%1', Comment = '%1 = name of the blob', Locked = true;
         CannotAddedMoreBlocksErr: Label 'The number of blocks that can be added to the blob has reached its maximum limit.';
         SingleRecordTooLargeErr: Label 'A single record payload exceeded the max payload size. Please adjust the payload size or reduce the fields to be exported for the record.';
-        DeltasFileCsvTok: Label '/deltas/%1/%2.csv', Comment = '%1: Entity, %2: File identifier guid';
+
 
     procedure SetupBlobStorage()
     var
@@ -46,7 +46,7 @@ codeunit 82562 "ADLSE Communication"
             ADLSESetup.Get();
             DefaultContainerName := ADLSESetup.Container;
         end;
-        exit(StrSubstNo(ContainerUrlTxt, ADLSECredentials.GetStorageAccount(), DefaultContainerName));
+        exit(StrSubstNo(ContainerUrl, ADLSECredentials.GetStorageAccount(), DefaultContainerName));
     end;
 
     procedure Init(TableIDValue: Integer; FieldIdListValue: List of [Integer]; LastFlushedTimeStampValue: BigInteger; EmitTelemetryValue: Boolean)
@@ -111,7 +111,7 @@ codeunit 82562 "ADLSE Communication"
             // already created blob
             exit;
         FileIdentifer := CreateGuid();
-        DataBlobPath := StrSubstNo(DeltasFileCsvTok, EntityName, ADLSEUtil.ToText(FileIdentifer));
+        DataBlobPath := StrSubstNo('/deltas/%1/%2.csv', EntityName, ADLSEUtil.ToText(FileIdentifer));
         ADLSEGen2Util.CreateDataBlob(GetBaseUrl() + DataBlobPath, ADLSECredentials);
         if EmitTelemetry then begin
             CustomDimension.Add('Path', DataBlobPath);
@@ -222,6 +222,7 @@ codeunit 82562 "ADLSE Communication"
     local procedure UpdateCdmJsons(EntityJsonNeedsUpdate: Boolean; ManifestJsonsNeedsUpdate: Boolean)
     var
         ADLSESetup: Record "ADLSE Setup";
+        ADLSECdmUtil: Codeunit "ADLSE CDM Util";
         ADLSEGen2Util: Codeunit "ADLSE Gen 2 Util";
         ADLSEExecute: Codeunit "ADLSE Execute";
         LeaseID: Text;

@@ -44,7 +44,7 @@ table 82565 "ADLSE Current Session"
 
         Rec.Init();
         Rec."Table ID" := ADLSETableID;
-        Rec."Session ID" := SessionId();
+        Rec."Session ID" := SessionId;
         Rec."Session Unique ID" := ActiveSession."Session Unique ID";
         Rec.Insert();
     end;
@@ -81,7 +81,7 @@ table 82565 "ADLSE Current Session"
     end;
 
     [TryFunction]
-    procedure CancelAll(ADLSETableErrorText: Text[2048])
+    procedure CancelAll(ADLSETableErrorText: Text)
     var
         ADLSETable: Record "ADLSE Table";
         ADLSEUtil: Codeunit "ADLSE Util";

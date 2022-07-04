@@ -6,12 +6,9 @@ codeunit 82566 "ADLSE CDM Util" // Refer Common Data Model https://docs.microsof
 
     var
         BlankArray: JsonArray;
-        CompanyFieldNameLbl: Label '$Company';
+        CompanyFieldName: Label '$Company';
         ExitingFieldCannotBeRemovedErr: Label 'The field %1 in the entity %2 is already present in the data lake and cannot be removed.', Comment = '%1: field name, %2: entity name';
         FieldDataTypeCannotBeChangedErr: Label 'The data type for the field %1 in the entity %2 cannot be changed.', Comment = '%1: field name, %2: entity name';
-        RepresentsTableTxt: Label 'Represents the table %1', Comment = '%1: table caption';
-        ManifestNameTxt: Label '%1-manifest', Comment = '%1: name of manifest';
-        EntityPathTok: Label '%1.cdm.json/%1', Comment = '%1: Entity';
 
     procedure CreateEntityContent(TableID: Integer; FieldIdList: List of [Integer]) Content: JsonObject
     var
@@ -30,7 +27,7 @@ codeunit 82566 "ADLSE CDM Util" // Refer Common Data Model https://docs.microsof
         Definition.Add('entityName', EntityName);
         Definition.Add('exhibitsTraits', BlankArray);
         Definition.Add('displayName', ADLSEUtil.GetTableName(TableID));
-        Definition.Add('description', StrSubstNo(RepresentsTableTxt, ADLSEUtil.GetTableName(TableID)));
+        Definition.Add('description', StrSubstNo('Represents the table %1', ADLSEUtil.GetTableName(TableID)));
         Definition.Add('hasAttributes', CreateAttributes(TableID, FieldIdList));
         Definitions.Add(Definition);
         Content.Add('definitions', Definitions);
@@ -45,13 +42,14 @@ codeunit 82566 "ADLSE CDM Util" // Refer Common Data Model https://docs.microsof
         DataPartitionPattern: JsonObject;
         ExhibitsTrait: JsonObject;
         DataPartitionPatterns: JsonArray;
+        Parameters: JsonArray;
         ExhibitsTraits: JsonArray;
         ExhibitsTraitArgs: JsonArray;
         EntityName: Text;
     begin
         Content.Add('jsonSchemaSemanticVersion', '1.0.0');
         Content.Add('imports', BlankArray);
-        Content.Add('manifestName', StrSubstNo(ManifestNameTxt, Folder));
+        Content.Add('manifestName', StrSubstNo('%1-manifest', Folder));
         Content.Add('explanation', 'Data exported from the Business Central to the Azure Data Lake Storage');
 
         EntityName := ADLSEUtil.GetDataLakeCompliantTableName(TableID);
@@ -62,10 +60,10 @@ codeunit 82566 "ADLSE CDM Util" // Refer Common Data Model https://docs.microsof
         if not ADLSEUtil.JsonTokenExistsWithValueInArray(Entities, 'entityName', EntityName) then begin
             Entity.Add('type', 'LocalEntity');
             Entity.Add('entityName', EntityName);
-            Entity.Add('entityPath', StrSubstNo(EntityPathTok, EntityName));
+            Entity.Add('entityPath', StrSubstNo('%1.cdm.json/%1', EntityName));
 
             DataPartitionPattern.Add('name', EntityName);
-            DataPartitionPattern.Add('rootLocation', Folder + '/' + EntityName + '/');
+            DataPartitionPattern.Add('rootLocation', StrSubstNo('%1/%2/', Folder, EntityName));
             case ADLSECdmFormat of
                 "ADLSE CDM Format"::Csv:
                     begin
@@ -137,10 +135,12 @@ codeunit 82566 "ADLSE CDM Util" // Refer Common Data Model https://docs.microsof
 
     procedure GetCompanyFieldName(): Text
     begin
-        exit(CompanyFieldNameLbl);
+        exit(CompanyFieldName);
     end;
 
     local procedure CreateAttributeJson(Name: Text; DataFormat: Text; DisplayName: Text; AppliedTraits: JsonArray) Attribute: JsonObject
+    var
+        Arr: JsonArray;
     begin
         Attribute.Add('name', Name);
         Attribute.Add('dataFormat', DataFormat);

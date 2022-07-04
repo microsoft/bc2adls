@@ -53,7 +53,6 @@ page 82560 "ADLSE Setup"
                     Caption = 'App registration';
                     field("Client ID"; ClientID)
                     {
-                        Caption = 'Client ID';
                         ApplicationArea = All;
                         ExtendedDatatype = Masked;
                         Tooltip = 'Specifies the application client ID for the Azure App Registration that accesses the storage account.';
@@ -65,7 +64,6 @@ page 82560 "ADLSE Setup"
                     }
                     field("Client secret"; ClientSecret)
                     {
-                        Caption = 'Client secret';
                         ApplicationArea = All;
                         ExtendedDatatype = Masked;
                         Tooltip = 'Specifies the client secret for the Azure App Registration that accesses the storage account.';
@@ -198,6 +196,7 @@ page 82560 "ADLSE Setup"
     var
         ADLSEDeletedRecord: Record "ADLSE Deleted Record";
         ADLSESetup: Record "ADLSE Setup";
+        ADLSEExecute: Codeunit "ADLSE Execute";
     begin
         if not ADLSESetup.Get(0) then
             ADLSESetup.Insert();
@@ -213,7 +212,6 @@ page 82560 "ADLSE Setup"
     end;
 
     var
-        ADLSECredentials: Codeunit "ADLSE Credentials";
         TrackedDeletedRecordsExist: Boolean;
         ExportInProgress: Boolean;
         [NonDebuggable]
@@ -224,4 +222,5 @@ page 82560 "ADLSE Setup"
         ClientID: Text;
         [NonDebuggable]
         ClientSecret: Text;
+        ADLSECredentials: Codeunit "ADLSE Credentials";
 }

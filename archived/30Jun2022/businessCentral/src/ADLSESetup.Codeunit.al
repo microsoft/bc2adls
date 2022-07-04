@@ -41,9 +41,9 @@ codeunit 82560 "ADLSE Setup"
     procedure CheckFieldCanBeExported(Fld: Record Field)
     begin
         if Fld.Class <> Fld.Class::Normal then
-            Error(FieldClassNotSupportedErr, Fld."Field Caption", Fld.Class);
+            Error(FieldClassNotSupportedErr, Fld.FieldName, Fld.Class);
         if Fld.ObsoleteState = Fld.ObsoleteState::Removed then
-            Error(FieldObsoleteNotSupportedErr, Fld."Field Caption");
+            Error(FieldObsoleteNotSupportedErr, Fld.FieldName);
     end;
 
     procedure CheckSetup(var ADLSESetup: Record "ADLSE Setup")
