@@ -65,6 +65,7 @@ table 82561 "ADLSE Table"
     var
         TableNotNormalErr: Label 'Table %1 is not a normal table.', Comment = '%1: caption of table';
         TableExportingDataErr: Label 'Data is being executed for table %1. Please wait for the export to finish before making changes.', Comment = '%1: table caption';
+        TableCannotBeExportedErr: Label 'The table %1 cannot be exported because of the following error. \%2', Comment = '%1: Table ID, %2: error text';
 
     procedure FieldsChosen(): Integer
     var
@@ -77,10 +78,21 @@ table 82561 "ADLSE Table"
 
     procedure Add(TableID: Integer)
     begin
+        if not CheckTableCanBeExportedFrom(TableID) then
+            Error(TableCannotBeExportedErr, TableID, GetLastErrorText());
         Rec.Init();
         Rec."Table ID" := TableID;
         Rec.State := "ADLSE State"::Ready;
         Rec.Insert(true);
+    end;
+
+    [TryFunction]
+    local procedure CheckTableCanBeExportedFrom(TableID: Integer)
+    var
+        RecordRef: RecordRef;
+    begin
+        ClearLastError();
+        RecordRef.Open(TableID);
     end;
 
     local procedure CheckTableOfTypeNormal(TableID: Integer)
