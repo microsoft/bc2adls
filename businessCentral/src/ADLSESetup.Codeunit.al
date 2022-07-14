@@ -66,12 +66,15 @@ codeunit 82560 "ADLSE Setup"
         ADLSEDeletedRecord: Record "ADLSE Deleted Record";
         ADLSETableLastTimestamp: Record "ADLSE Table Last Timestamp";
     begin
-        ADLSETable.Enable();
-        ADLSETableLastTimestamp.SaveUpdatedLastTimestamp(ADLSETable."Table ID", 0);
-        ADLSETableLastTimestamp.SaveDeletedLastEntryNo(ADLSETable."Table ID", 0);
-        ADLSETable.Modify();
+        if ADLSETable.FindSet() then
+            repeat
+                ADLSETable.Enable();
+                ADLSETableLastTimestamp.SaveUpdatedLastTimestamp(ADLSETable."Table ID", 0);
+                ADLSETableLastTimestamp.SaveDeletedLastEntryNo(ADLSETable."Table ID", 0);
+                ADLSETable.Modify();
 
-        ADLSEDeletedRecord.SetRange("Table ID", ADLSETable."Table ID");
-        ADLSEDeletedRecord.DeleteAll();
+                ADLSEDeletedRecord.SetRange("Table ID", ADLSETable."Table ID");
+                ADLSEDeletedRecord.DeleteAll();
+            until ADLSETable.Next = 0;
     end;
 }

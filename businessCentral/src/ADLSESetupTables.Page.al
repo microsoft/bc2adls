@@ -171,18 +171,19 @@ page 82561 "ADLSE Setup Tables"
             {
                 ApplicationArea = All;
                 Caption = 'Reset';
-                ToolTip = 'Set the table to export all of its data again.';
+                ToolTip = 'Set the selected tables to export all of its data again.';
                 Promoted = true;
                 PromotedIsBig = true;
                 PromotedOnly = true;
                 Image = ResetStatus;
-                Enabled = HasBeenExportedPreviously;
 
                 trigger OnAction()
                 var
                     ADLSESetup: Codeunit "ADLSE Setup";
                 begin
+                    CurrPage.SetSelectionFilter(rec);
                     ADLSESetup.Reset(Rec);
+                    Rec.Reset();
                     CurrPage.Update();
                 end;
             }
@@ -214,7 +215,6 @@ page 82561 "ADLSE Setup Tables"
             Rec.State := "ADLSE State"::OnHold;
             Rec.Modify();
         end;
-        HasBeenExportedPreviously := (UpdatedLastTimestamp > 0) or (DeletedRecordLastEntryNo > 0);
     end;
 
     var
@@ -222,7 +222,6 @@ page 82561 "ADLSE Setup Tables"
         NumberFieldsChosenValue: Integer;
         CanBeDisabledValue: Boolean;
         CanBeEnabledValue: Boolean;
-        HasBeenExportedPreviously: Boolean;
         ADLSEntityName: Text;
         UpdatedLastTimestamp: BigInteger;
         DeletedRecordLastEntryNo: BigInteger;
