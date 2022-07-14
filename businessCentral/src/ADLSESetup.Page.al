@@ -88,7 +88,7 @@ page 82560 "ADLSE Setup"
                     field("CDM data format"; Rec.DataFormat)
                     {
                         ApplicationArea = All;
-                        ToolTip = 'Specifies the format of the CDM folder to store the exported data. The Parquet format is recommended for storing the data with the best fidelity.';
+                        ToolTip = 'Specifies the format in which to store the exported data in the ''data'' CDM folder. The Parquet format is recommended for storing the data with the best fidelity.';
                     }
 
                     field("Emit telemetry"; Rec."Emit telemetry")

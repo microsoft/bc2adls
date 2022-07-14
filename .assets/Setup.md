@@ -27,7 +27,7 @@ Let us take a look at the settings show in the sample screenshot below,
 - **Client ID** The Application (client) ID from the App registration (refer to **a)** in the picture at [Step 1](/.assets/Setup.md#step-1-create-an-azure-service-principal))
 - **Client secret** The client credential key you had defined (refer to **c)** in the in the picture at [Step 1](/.assets/Setup.md#step-1-create-an-azure-service-principal))
 - **Max payload size (MiBs)** The size of the individual data payload that constitutes a single REST Api upload operation to the data lake. A bigger size will surely mean less number of uploads but might consume too much memory on the BC side. Note that each upload creates a new block within the blob in the data lake. The size of such blocks are constrained as described at [Put Block (REST API) - Azure Storage | Microsoft Docs](https://docs.microsoft.com/en-us/rest/api/storageservices/put-block#remarks).
-- **CDM data format** The format in which the exported data is stored on the data lake. Recommended format is Parquet, which is better at handling special characters in the BC text fields.
+- **CDM data format** The format in which the exported data is stored on the data lake. Recommended format is Parquet, which is better at handling special characters in the BC text fields. Note that the `deltas` folder will always store files in the CSV format but the consolidated `data` folder will store files in the configured format. 
 - **Emit telemetry** The flag to enable or disable operational telemetry from this extension. It is set to True by default. 
 
 ![The Export to Azure Data Lake Storage page](/.assets/bcAdlsePage.png)
