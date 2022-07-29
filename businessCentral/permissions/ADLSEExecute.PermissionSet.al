@@ -9,10 +9,10 @@ permissionset 82561 "ADLSE - Execute"
     Assignable = true;
     Caption = 'Azure Data Lake Storage - Execute';
 
-    Permissions = tabledata "ADLSE Setup" = rm,
-                  tabledata "ADLSE Table" = rm,
-                  tabledata "ADLSE Field" = r,
-                  tabledata "ADLSE Deleted Record" = r,
-                  tabledata "ADLSE Current Session" = rimd,
-                  tabledata "ADLSE Table Last Timestamp" = rimd;
+    Permissions = tabledata "ADLSE Setup" = RM,
+                  tabledata "ADLSE Table" = RM,
+                  tabledata "ADLSE Field" = R,
+                  tabledata "ADLSE Deleted Record" = R,
+                  tabledata "ADLSE Current Session" = RIMD,
+                  tabledata "ADLSE Table Last Timestamp" = RIMD;
 }
