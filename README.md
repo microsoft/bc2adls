@@ -25,6 +25,7 @@ More details:
 
 Pull request | Changes
 --------------- | ---
+[31](https://github.com/microsoft/bc2adls/pull/31) | Permissions corrected to direct permissions.
 [28](https://github.com/microsoft/bc2adls/pull/28) | The AL app is upgraded to Dynamics 365 Business Central version 20. An archive has been created to keep the older versions at [the archived folder](/archived/).
 [23](https://github.com/microsoft/bc2adls/pull/23) | The setting in [Consolidation_OneEntity](/synapse/pipeline/Consolidation_OneEntity.json) that limited concurrent execution of the pipeline to one instance has been removed. Now, an infinite number of pipeline instances is allowed to run concurrently. 
 [20](https://github.com/microsoft/bc2adls/pull/20) | Data on the lake can be chosen to be stored on the [Parquet](https://docs.microsoft.com/en-us/azure/data-factory/format-parquet) format, thus improving its fidelity to its original in Business Central.
