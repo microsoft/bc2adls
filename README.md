@@ -25,7 +25,7 @@ More details:
 
 Pull request | Changes
 --------------- | ---
-[32](https://github.com/microsoft/bc2adls/pull/32) | Fixing issue of booleans not showing after consolidation, when exported from localization. 
+[33](https://github.com/microsoft/bc2adls/pull/33) | Fixing issue of booleans not showing after consolidation, when exported from localization. 
 [31](https://github.com/microsoft/bc2adls/pull/31) | Permissions corrected to direct permissions.
 [28](https://github.com/microsoft/bc2adls/pull/28) | The AL app is upgraded to Dynamics 365 Business Central version 20. An archive has been created to keep the older versions at [the archived folder](/archived/).
 [23](https://github.com/microsoft/bc2adls/pull/23) | The setting in [Consolidation_OneEntity](/synapse/pipeline/Consolidation_OneEntity.json) that limited concurrent execution of the pipeline to one instance has been removed. Now, an infinite number of pipeline instances is allowed to run concurrently. 
