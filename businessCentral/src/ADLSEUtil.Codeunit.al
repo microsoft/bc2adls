@@ -204,9 +204,10 @@ codeunit 82564 "ADLSE Util"
                         exit('');
                     exit(ConvertDateTimeToText(DateTimeValue));
                 end;
-            Fld.Type::Option,
+            Fld.Type::Option:
+                exit(Fld.GetEnumValueNameFromOrdinalValue(Fld.Value()));
             Fld.Type::Boolean:
-                exit(Format(Fld.Value()));
+                exit(Format(Fld.Value(), 0, 9));
             Fld.Type::Code,
             Fld.Type::Guid,
             Fld.Type::Text:
