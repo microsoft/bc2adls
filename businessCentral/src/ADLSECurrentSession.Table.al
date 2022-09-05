@@ -23,11 +23,16 @@ table 82565 "ADLSE Current Session"
             Editable = false;
             Caption = 'Session unique ID';
         }
+        field(10; "Company Name"; Text[30])
+        {
+            Editable = false;
+            Caption = 'Company name';
+        }
     }
 
     keys
     {
-        key(Key1; "Table ID")
+        key(Key1; "Table ID", "Company Name")
         {
             Clustered = true;
         }
@@ -35,6 +40,7 @@ table 82565 "ADLSE Current Session"
 
     var
         SessionTerminatedMsg: Label 'Export to data lake session for table %1 terminated by user.', Comment = '%1 is the table name corresponding to the session';
+        ExportDataInProgressErr: Label 'An export data process is already running. Please wait for it to finish.';
 
     procedure Start(ADLSETableID: Integer)
     var
@@ -46,28 +52,48 @@ table 82565 "ADLSE Current Session"
         Rec."Table ID" := ADLSETableID;
         Rec."Session ID" := SessionId();
         Rec."Session Unique ID" := ActiveSession."Session Unique ID";
+        Rec."Company Name" := CompanyName();
         Rec.Insert();
     end;
 
     procedure Stop(ADLSETableID: Integer)
     begin
-        Rec.Get(ADLSETableID);
-        Rec.Delete();
+        Rec.SetRange("Table ID", ADLSETableID);
+        Rec.SetRange("Company Name", CompanyName());
+        Rec.DeleteAll();
     end;
 
+    [Obsolete('Use the function CheckForNoActiveSessions instead', '1.2.0.0')]
     procedure CheckSessionsActive() AnyActive: Boolean
+    begin
+        AnyActive := IsAnySessionActive();
+    end;
+
+    procedure CheckForNoActiveSessions()
+    begin
+        if IsAnySessionActive() then
+            Error(ExportDataInProgressErr);
+    end;
+
+    local procedure IsAnySessionActive() AnyActive: Boolean
     var
         InactiveSessionIDs: List of [Integer];
-        TheSessionID: Integer;
     begin
         if Rec.FindSet(false) then
             repeat
-                if Rec.IsLinkedSessionActive() then
+                if IsSessionActive() then
                     AnyActive := true
                 else
                     InactiveSessionIDs.Add(Rec."Session ID");
             until Rec.Next() = 0;
 
+        CleanupInactiveSessions(InactiveSessionIDs);
+    end;
+
+    local procedure CleanupInactiveSessions(InactiveSessionIDs: List of [Integer])
+    var
+        TheSessionID: Integer;
+    begin
         foreach TheSessionID in InactiveSessionIDs do begin
             Rec.SetRange("Session ID", TheSessionID);
             Rec.DeleteAll();
@@ -88,7 +114,7 @@ table 82565 "ADLSE Current Session"
     begin
         if Rec.FindSet(false) then
             repeat
-                if Rec.IsLinkedSessionActive() then begin
+                if IsSessionActive() then begin
                     Session.StopSession(Rec."Session ID", StrSubstNo(SessionTerminatedMsg, ADLSEUtil.GetTableCaption(Rec."Table ID")));
 
                     ADLSETable.Get(Rec."Table ID");
@@ -101,7 +127,13 @@ table 82565 "ADLSE Current Session"
         Rec.DeleteAll();
     end;
 
+    [Obsolete('Converted to local procedure IsSessionActive', '1.2.0.0')]
     procedure IsLinkedSessionActive(): Boolean
+    begin
+        exit(IsSessionActive());
+    end;
+
+    local procedure IsSessionActive(): Boolean
     var
         ActiveSession: Record "Active Session";
     begin

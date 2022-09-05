@@ -21,7 +21,7 @@ codeunit 82561 "ADLSE Execute"
         EntityJsonNeedsUpdate: Boolean;
         ManifestJsonsNeedsUpdate: Boolean;
     begin
-        ADLSESetup.Get(0);
+        ADLSESetup.GetSingleton();
         EmitTelemetry := ADLSESetup."Emit telemetry";
         CDMDataFormat := ADLSESetup.DataFormat;
 
@@ -258,6 +258,6 @@ codeunit 82561 "ADLSE Execute"
     procedure AcquireLockonADLSESetup(var ADLSESetup: Record "ADLSE Setup")
     begin
         ADLSESetup.LockTable(true);
-        ADLSESetup.Get(0);
+        ADLSESetup.GetSingleton();
     end;
 }

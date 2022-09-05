@@ -43,7 +43,7 @@ codeunit 82562 "ADLSE Communication"
         ADLSESetup: Record "ADLSE Setup";
     begin
         if DefaultContainerName = '' then begin
-            ADLSESetup.Get();
+            ADLSESetup.GetSingleton();
             DefaultContainerName := ADLSESetup.Container;
         end;
         exit(StrSubstNo(ContainerUrlTxt, ADLSECredentials.GetStorageAccount(), DefaultContainerName));
@@ -61,7 +61,7 @@ codeunit 82562 "ADLSE Communication"
         EntityName := ADLSEUtil.GetDataLakeCompliantTableName(TableID);
 
         LastFlushedTimeStamp := LastFlushedTimeStampValue;
-        ADLSESetup.Get();
+        ADLSESetup.GetSingleton();
         MaxSizeOfPayloadMiB := ADLSESetup.MaxPayloadSizeMiB;
         EmitTelemetry := EmitTelemetryValue;
     end;

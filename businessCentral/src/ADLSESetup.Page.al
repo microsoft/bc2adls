@@ -97,6 +97,13 @@ page 82560 "ADLSE Setup"
                         Tooltip = 'Specifies if operational telemetry will be emitted to this extension publisher''s telemetry pipeline. You will have to configure a telemetry account for this extension first.';
                     }
 
+                    field("Allow simultaneous exports"; Rec."Allow simultaneous exports")
+                    {
+                        ApplicationArea = All;
+                        Enabled = not ExportInProgress;
+                        Tooltip = 'Specifies if simultaneous exports of data in Business Central to the lake from different companies are allowed. Beware that setting this checkmark will disallow you from making any changes to the export schema. We recommend that you set this checkmark only after the last changes in the schema have been exported to the lake.';
+                    }
+
                 }
             }
             part(Tables; "ADLSE Setup Tables")
@@ -199,8 +206,7 @@ page 82560 "ADLSE Setup"
         ADLSEDeletedRecord: Record "ADLSE Deleted Record";
         ADLSESetup: Record "ADLSE Setup";
     begin
-        if not ADLSESetup.Get(0) then
-            ADLSESetup.Insert();
+        ADLSESetup.GetOrCreate();
         ExportInProgress := ADLSESetup.Running;
 
         ADLSECredentials.Init();

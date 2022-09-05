@@ -6,7 +6,6 @@ codeunit 82560 "ADLSE Setup"
 
     var
         FieldClassNotSupportedErr: Label 'The field %1 of class %2 is not supported.', Comment = '%1 = field name, %2 = field class';
-        ExportDataInProgressErr: Label 'An export data process is already running. Please wait for it to finish.';
         SelectTableLbl: Label 'Select the tables to be exported';
         FieldObsoleteNotSupportedErr: Label 'The field %1 is obsolete', Comment = '%1 = field name';
 
@@ -51,12 +50,12 @@ codeunit 82560 "ADLSE Setup"
         ADLSECurrentSession: Record "ADLSE Current Session";
         ADLSECredentials: Codeunit "ADLSE Credentials";
     begin
-        ADLSESetup.Get(0);
+        ADLSESetup.GetSingleton();
         ADLSESetup.TestField(Container);
         if ADLSESetup.Running then
-            // are any of the sessions really active?
-            if ADLSECurrentSession.CheckSessionsActive() then
-                Error(ExportDataInProgressErr);
+            if not ADLSESetup."Allow simultaneous exports" then
+                // are any of the sessions really active?
+                ADLSECurrentSession.CheckForNoActiveSessions();
 
         ADLSECredentials.Check();
     end;

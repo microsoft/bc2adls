@@ -55,6 +55,23 @@ table 82560 "ADLSE Setup"
             Caption = 'Emit telemetry';
             InitValue = true;
         }
+
+        field(15; "Allow simultaneous exports"; Boolean)
+        {
+            Caption = 'Allow simultaneous exports';
+            InitValue = false;
+
+            trigger OnValidate()
+            var
+                ADLSECurrentSession: Record "ADLSE Current Session";
+            begin
+                if Rec."Allow simultaneous exports" = xRec."Allow simultaneous exports" then
+                    exit;
+
+                // ensure that no current export sessions running
+                ADLSECurrentSession.CheckForNoActiveSessions();
+            end;
+        }
     }
 
     keys
@@ -67,6 +84,9 @@ table 82560 "ADLSE Setup"
 
     var
         ContainerNameIncorrectFormatErr: Label 'The container name is in an incorrect format.';
+        RecordDoesNotExistErr: Label 'No record on this table exists.';
+        NoChangesAllowedErr: Label 'No changes allowed when exports have been configured to be allowed simultaneously.';
+        PrimaryKeyValue: Label '0', Locked = true;
 
     local procedure TextContainerCharactersOtherThan(String: Text; CharString: Text): Boolean
     var
@@ -78,6 +98,34 @@ table 82560 "ADLSE Setup"
             if StrPos(CharString, Letter) = 0 then
                 exit(true);
         end;
+    end;
+
+    procedure GetSingleton() ADLSESetup: Record "ADLSE Setup"
+    begin
+        if not ADLSESetup.Exists() then
+            Error(RecordDoesNotExistErr);
+    end;
+
+    procedure GetOrCreate() ADLSESetup: Record "ADLSE Setup"
+    begin
+        if ADLSESetup.Exists() then
+            exit;
+        Evaluate(ADLSESetup."Primary Key", PrimaryKeyValue, 9);
+        ADLSESetup.Insert();
+    end;
+
+    procedure Exists(): Boolean
+    var
+        PKValue: Integer;
+    begin
+        Evaluate(PKValue, PrimaryKeyValue, 9);
+        exit(Rec.Get(PKValue));
+    end;
+
+    procedure CheckNoSimultaneousExports()
+    begin
+        Rec.GetSingleton();
+        Rec.TestField("Allow simultaneous exports", false, ErrorInfo.Create(NoChangesAllowedErr));
     end;
 
 }

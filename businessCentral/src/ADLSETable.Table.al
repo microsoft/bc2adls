@@ -35,18 +35,24 @@ table 82561 "ADLSE Table"
 
     trigger OnInsert()
     var
+        ADLSESetup: Record "ADLSE Setup";
         ADLSETableField: Record "ADLSE Field";
     begin
+        ADLSESetup.CheckNoSimultaneousExports();
+
         CheckTableOfTypeNormal(Rec."Table ID");
         ADLSETableField.InsertForTable(Rec);
     end;
 
     trigger OnDelete()
     var
+        ADLSESetup: Record "ADLSE Setup";
         ADLSETableField: Record "ADLSE Field";
         ADLSETableLastTimestamp: Record "ADLSE Table Last Timestamp";
         ADLSEDeletedRecord: Record "ADLSE Deleted Record";
     begin
+        ADLSESetup.CheckNoSimultaneousExports();
+
         ADLSETableField.SetRange("Table ID", Rec."Table ID");
         ADLSETableField.DeleteAll();
 
@@ -58,7 +64,11 @@ table 82561 "ADLSE Table"
     end;
 
     trigger OnModify()
+    var
+        ADLSESetup: Record "ADLSE Setup";
     begin
+        ADLSESetup.CheckNoSimultaneousExports();
+
         CheckNotExporting();
     end;
 

@@ -59,7 +59,7 @@ codeunit 82569 "ADLSE Execution"
         ADLSETable: Record "ADLSE Table";
         ADLSECurrentSession: Record "ADLSE Current Session";
     begin
-        ADLSESetup.Get(0);
+        ADLSESetup.GetSingleton();
         if ADLSESetup."Emit telemetry" then
             Log('ADLSE-003', 'Stopping export sessions', Verbosity::Normal, DataClassification::SystemMetadata);
 
