@@ -25,6 +25,7 @@ More details:
 
 Pull request | Changes
 --------------- | ---
+[36](https://github.com/microsoft/bc2adls/pull/36) | Fix to issue of errors when multiple entities were being consolidated using the same staging CDM folders. Each entity now has its own staging CDM folder. 
 [33](https://github.com/microsoft/bc2adls/pull/33) | Fixing issue related to localizations of booleans and options/ enums. 
 [31](https://github.com/microsoft/bc2adls/pull/31) | Permissions corrected to direct permissions.
 [28](https://github.com/microsoft/bc2adls/pull/28) | The AL app is upgraded to Dynamics 365 Business Central version 20. An archive has been created to keep the older versions at [the archived folder](/archived/).

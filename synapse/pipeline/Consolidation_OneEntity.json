@@ -336,6 +336,10 @@
                             "containerName": {
                                 "value": "@pipeline().parameters.containerName",
                                 "type": "Expression"
+                            },
+                            "entityName": {
+                                "value": "@pipeline().parameters.entityName",
+                                "type": "Expression"
                             }
                         }
                     },

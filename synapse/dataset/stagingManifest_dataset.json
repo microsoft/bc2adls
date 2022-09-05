@@ -8,6 +8,9 @@
         "parameters": {
             "containerName": {
                 "type": "string"
+            },
+            "entityName": {
+                "type": "string"
             }
         },
         "annotations": [],
@@ -15,7 +18,10 @@
         "typeProperties": {
             "location": {
                 "type": "AzureBlobFSLocation",
-                "fileName": "staging.manifest.cdm.json",
+                "fileName": {
+                    "value": "staging-@{dataset().entityName}.manifest.cdm.json",
+                    "type": "Expression"
+                },
                 "fileSystem": {
                     "value": "@dataset().containerName",
                     "type": "Expression"
