@@ -56,19 +56,20 @@ table 82562 "ADLSE Field"
     var
         Fld: Record Field;
         ADLSEField: Record "ADLSE Field";
-        ADLSESetup: Codeunit "ADLSE Setup";
     begin
         Fld.SetRange(TableNo, ADLSETable."Table ID");
         Fld.SetFilter("No.", '<%1', 2000000000); // no system fields
 
         if Fld.FindSet() then
             repeat
-                if not ADLSEField.Get(ADLSETable."Table ID", Fld."No.") then begin
+                if ADLSEField.Get(ADLSETable."Table ID", Fld."No.") then
+                    Rec.TransferFields(ADLSEField)
+                else begin
                     Rec."Table ID" := Fld.TableNo;
                     Rec."Field ID" := Fld."No.";
                     Rec.Enabled := false;
-                    Rec.Insert();
                 end;
+                Rec.Insert();
             until Fld.Next() = 0;
     end;
 
