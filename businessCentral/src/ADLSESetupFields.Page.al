@@ -104,6 +104,23 @@ page 82562 "ADLSE Setup Fields"
                         Message(SomeFieldsCouldNotBeEnabledMsg);
                 end;
             }
+            action(RefreshFields)
+            {
+                Caption = 'Refresh fields';
+                ApplicationArea = All;
+                ToolTip = 'Refresh all the fields and find any new ones.';
+                Image = Refresh;
+
+                trigger OnAction()
+                var
+                    ADLSETable: Record "ADLSE Table";
+                begin
+                    if ADLSETable.Get(Rec."Table ID") then begin
+                        Rec.InsertForTable(ADLSETable);
+                        CurrPage.Update();
+                    end;
+                end;
+            }
         }
     }
 
