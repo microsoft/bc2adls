@@ -180,10 +180,10 @@ page 82561 "ADLSE Setup Tables"
                 trigger OnAction()
                 var
                     ADLSESetup: Codeunit "ADLSE Setup";
+                    SelectedADLSETable: Record "ADLSE Table";
                 begin
-                    CurrPage.SetSelectionFilter(rec);
-                    ADLSESetup.Reset(Rec);
-                    Rec.Reset();
+                    CurrPage.SetSelectionFilter(SelectedADLSETable);
+                    ADLSESetup.Reset(SelectedADLSETable);
                     CurrPage.Update();
                 end;
             }
