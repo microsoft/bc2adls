@@ -35,6 +35,7 @@ codeunit 82560 "ADLSE Setup"
         ADLSEField: Record "ADLSE Field";
     begin
         ADLSEField.SetRange("Table ID", ADLSETable."Table ID");
+        ADLSEField.InsertForTable(ADLSETable);
         Page.RunModal(Page::"ADLSE Setup Fields", ADLSEField, ADLSEField.Enabled);
     end;
 
