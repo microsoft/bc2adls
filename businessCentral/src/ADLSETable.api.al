@@ -1,12 +1,11 @@
-page 82563 ADLS
+page 82563 "ADLSE Table API"
 {
     PageType = API;
-    Caption = 'ADLS';
     APIPublisher = 'Microsoft';
     APIGroup = 'bc2adls';
     APIVersion = 'v1.0';
-    EntityName = 'adls';
-    EntitySetName = 'adls';
+    EntityName = 'adlsTable';
+    EntitySetName = 'adlsTable';
     SourceTable = "ADLSE Table";
     InsertAllowed = false;
     DeleteAllowed = false;
@@ -51,28 +50,10 @@ page 82563 ADLS
         SetActionResponse(ActionContext, rec."SystemId");
     end;
 
-    [ServiceEnabled]
-    procedure startExport(var ActionContext: WebServiceActionContext)
-    var
-        ADLSEExecution: Codeunit "ADLSE Execution";
-    begin
-        ADLSEExecution.StartExport();
-        SetActionResponse(ActionContext, rec."SystemId");
-    end;
-
-    [ServiceEnabled]
-    procedure stopExport(var ActionContext: WebServiceActionContext)
-    var
-        ADLSEExecution: Codeunit "ADLSE Execution";
-    begin
-        ADLSEExecution.StopExport();
-        SetActionResponse(ActionContext, rec."SystemId");
-    end;
-
     local procedure SetActionResponse(var ActionContext: WebServiceActionContext; AdlsId: Guid)
     var
     begin
-        SetActionResponse(ActionContext, Page::"ADLS", AdlsId);
+        SetActionResponse(ActionContext, Page::"ADLSE Table API", AdlsId);
     end;
 
     local procedure SetActionResponse(var ActionContext: WebServiceActionContext; PageId: Integer; DocumentId: Guid)
