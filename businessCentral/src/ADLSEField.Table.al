@@ -56,7 +56,6 @@ table 82562 "ADLSE Field"
     var
         Fld: Record Field;
         ADLSEField: Record "ADLSE Field";
-        ADLSESetup: Codeunit "ADLSE Setup";
     begin
         Fld.SetRange(TableNo, ADLSETable."Table ID");
         Fld.SetFilter("No.", '<%1', 2000000000); // no system fields
