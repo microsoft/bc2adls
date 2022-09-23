@@ -103,6 +103,10 @@ table 82565 "ADLSE Current Session"
     procedure IsAnySessionActiveForOtherExports(ADLSETableID: Integer): Boolean
     begin
         Rec.SetFilter("Table ID", '<>%1', ADLSETableID);
+        if (not Rec.IsEmpty()) then
+            exit(true);
+
+        Rec.SetFilter("Company Name", '<>%1', CompanyName());
         exit(not Rec.IsEmpty());
     end;
 

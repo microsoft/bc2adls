@@ -27,6 +27,9 @@ codeunit 82562 "ADLSE Communication"
         CannotAddedMoreBlocksErr: Label 'The number of blocks that can be added to the blob has reached its maximum limit.';
         SingleRecordTooLargeErr: Label 'A single record payload exceeded the max payload size. Please adjust the payload size or reduce the fields to be exported for the record.';
         DeltasFileCsvTok: Label '/deltas/%1/%2.csv', Comment = '%1: Entity, %2: File identifier guid';
+        NotAllowedOnSimultaneousExportTxt: Label 'This is not allowed when exports are configured to occur simultaneously. Please uncheck Allow simultaneous exports, export the data at least once, and try again.';
+        EntitySchemaChangedErr: Label 'The schema of the table %1 has changed. %2', Comment = '%1 = Entity name, %2 = NotAllowedOnSimultaneousExportTxt';
+        CdmSchemaChangedErr: Label 'There may have been a change in the tables to export. %1', Comment = '%1 = NotAllowedOnSimultaneousExportTxt';
 
     procedure SetupBlobStorage()
     var
@@ -68,6 +71,7 @@ codeunit 82562 "ADLSE Communication"
 
     procedure CheckEntity(CdmDataFormat: Enum "ADLSE CDM Format"; var EntityJsonNeedsUpdate: Boolean; var ManifestJsonsNeedsUpdate: Boolean)
     var
+        ADLSESetup: Record "ADLSE Setup";
         ADLSECdmUtil: Codeunit "ADLSE CDM Util";
         ADLSEGen2Util: Codeunit "ADLSE Gen 2 Util";
         OldJson: JsonObject;
@@ -87,6 +91,14 @@ codeunit 82562 "ADLSE Communication"
         OldJson := ADLSEGen2Util.GetBlobContent(GetBaseUrl() + StrSubstNo(CorpusJsonPathTxt, DataCdmManifestNameTxt), ADLSECredentials, BlobExists);
         NewJson := ADLSECdmUtil.UpdateDefaultManifestContent(OldJson, TableID, 'data', CdmDataFormat);
         ManifestJsonsNeedsUpdate := JsonsDifferent(OldJson, NewJson);
+
+        ADLSESetup.GetSingleton();
+        if ADLSESetup."Allow simultaneous exports" then begin
+            if EntityJsonNeedsUpdate then
+                Error(EntitySchemaChangedErr, EntityName, NotAllowedOnSimultaneousExportTxt);
+            if ManifestJsonsNeedsUpdate then
+                Error(CdmSchemaChangedErr, NotAllowedOnSimultaneousExportTxt);
+        end;
     end;
 
     local procedure JsonsDifferent(Json1: JsonObject; Json2: JsonObject): Boolean

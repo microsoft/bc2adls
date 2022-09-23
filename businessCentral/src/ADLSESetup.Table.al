@@ -100,32 +100,34 @@ table 82560 "ADLSE Setup"
         end;
     end;
 
-    procedure GetSingleton() ADLSESetup: Record "ADLSE Setup"
+    procedure GetSingleton()
     begin
-        if not ADLSESetup.Exists() then
+        if not Exists() then
             Error(RecordDoesNotExistErr);
     end;
 
-    procedure GetOrCreate() ADLSESetup: Record "ADLSE Setup"
+    procedure GetOrCreate()
     begin
-        if ADLSESetup.Exists() then
+        if Exists() then
             exit;
-        Evaluate(ADLSESetup."Primary Key", PrimaryKeyValue, 9);
-        ADLSESetup.Insert();
+        "Primary Key" := GetPrimaryKeyValue();
+        Insert();
     end;
 
-    procedure Exists(): Boolean
-    var
-        PKValue: Integer;
+    local procedure Exists(): Boolean
     begin
-        Evaluate(PKValue, PrimaryKeyValue, 9);
-        exit(Rec.Get(PKValue));
+        exit(Rec.Get(GetPrimaryKeyValue()));
     end;
 
     procedure CheckNoSimultaneousExports()
     begin
         Rec.GetSingleton();
         Rec.TestField("Allow simultaneous exports", false, ErrorInfo.Create(NoChangesAllowedErr));
+    end;
+
+    local procedure GetPrimaryKeyValue() PKValue: Integer
+    begin
+        Evaluate(PKValue, PrimaryKeyValue, 9);
     end;
 
 }

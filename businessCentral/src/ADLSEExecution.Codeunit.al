@@ -37,7 +37,6 @@ codeunit 82569 "ADLSE Execution"
         ADLSESetupRec.Modify();
         Commit();
 
-        ADLSETable.SetRange(State, "ADLSE State"::Ready);
         if ADLSETable.FindSet(true) then
             repeat
                 ADLSEField.SetRange("Table ID", ADLSETable."Table ID");

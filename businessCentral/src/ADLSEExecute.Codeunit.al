@@ -32,7 +32,9 @@ codeunit 82561 "ADLSE Execute"
             ADLSEExecution.Log('ADLSE-003', 'Registered session to export table', Verbosity::Normal, DataClassification::CustomerContent);
 
         // No changes allowed to this table & its associations while the export is running
-        Rec.Get(Rec."Table ID");
+        AcquireLockOnADLSETable(Rec); // exports for the same table wait while in process
+        if Rec.State <> "ADLSE State"::Ready then
+            exit;
         UpdatedLastTimestamp := ADLSETableLastTimestamp.GetUpdatedLastTimestamp(Rec."Table ID");
         DeletedLastEntryNo := ADLSETableLastTimestamp.GetDeletedLastEntryNo(Rec."Table ID");
 
@@ -259,5 +261,11 @@ codeunit 82561 "ADLSE Execute"
     begin
         ADLSESetup.LockTable(true);
         ADLSESetup.GetSingleton();
+    end;
+
+    local procedure AcquireLockOnADLSETable(var ADLSETable: Record "ADLSE Table")
+    begin
+        ADLSETable.LockTable(true);
+        ADLSETable.Get(ADLSETable."Table ID");
     end;
 }

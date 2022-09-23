@@ -54,7 +54,6 @@ codeunit 82560 "ADLSE Setup"
         ADLSESetup.TestField(Container);
         if ADLSESetup.Running then
             if not ADLSESetup."Allow simultaneous exports" then
-                // are any of the sessions really active?
                 ADLSECurrentSession.CheckForNoActiveSessions();
 
         ADLSECredentials.Check();
