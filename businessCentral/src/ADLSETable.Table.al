@@ -38,7 +38,6 @@ table 82561 "ADLSE Table"
         ADLSETableField: Record "ADLSE Field";
     begin
         CheckTableOfTypeNormal(Rec."Table ID");
-        ADLSETableField.InsertForTable(Rec);
     end;
 
     trigger OnDelete()
