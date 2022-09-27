@@ -25,6 +25,7 @@ More details:
 
 Pull request | Changes
 --------------- | ---
+[TBD]() | Intermediate staging data is no longer saved in CDM format. This eliminates potential conflicts during concurrent updates to the manifest. This does not affect the final data output, which continues to be in CDM format.
 [33](https://github.com/microsoft/bc2adls/pull/33) | Fixing issue related to localizations of booleans and options/ enums. 
 [31](https://github.com/microsoft/bc2adls/pull/31) | Permissions corrected to direct permissions.
 [28](https://github.com/microsoft/bc2adls/pull/28) | The AL app is upgraded to Dynamics 365 Business Central version 20. An archive has been created to keep the older versions at [the archived folder](/archived/).
