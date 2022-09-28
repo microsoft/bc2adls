@@ -79,14 +79,12 @@ table 82562 "ADLSE Field"
 
         if Fld.FindSet() then
             repeat
-                if ADLSEField.Get(ADLSETable."Table ID", Fld."No.") then
-                    Rec.TransferFields(ADLSEField)
-                else begin
+                if not ADLSEField.Get(ADLSETable."Table ID", Fld."No.") then begin
                     Rec."Table ID" := Fld.TableNo;
                     Rec."Field ID" := Fld."No.";
                     Rec.Enabled := false;
+                    Rec.Insert();
                 end;
-                Rec.Insert();
             until Fld.Next() = 0;
     end;
 

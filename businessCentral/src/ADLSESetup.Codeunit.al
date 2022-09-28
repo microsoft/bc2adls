@@ -34,6 +34,7 @@ codeunit 82560 "ADLSE Setup"
         ADLSEField: Record "ADLSE Field";
     begin
         ADLSEField.SetRange("Table ID", ADLSETable."Table ID");
+        ADLSEField.InsertForTable(ADLSETable);
         Page.RunModal(Page::"ADLSE Setup Fields", ADLSEField, ADLSEField.Enabled);
     end;
 
@@ -64,12 +65,15 @@ codeunit 82560 "ADLSE Setup"
         ADLSEDeletedRecord: Record "ADLSE Deleted Record";
         ADLSETableLastTimestamp: Record "ADLSE Table Last Timestamp";
     begin
-        ADLSETable.Enable();
-        ADLSETableLastTimestamp.SaveUpdatedLastTimestamp(ADLSETable."Table ID", 0);
-        ADLSETableLastTimestamp.SaveDeletedLastEntryNo(ADLSETable."Table ID", 0);
-        ADLSETable.Modify();
+        if ADLSETable.FindSet() then
+            repeat
+                ADLSETable.Enable();
+                ADLSETableLastTimestamp.SaveUpdatedLastTimestamp(ADLSETable."Table ID", 0);
+                ADLSETableLastTimestamp.SaveDeletedLastEntryNo(ADLSETable."Table ID", 0);
+                ADLSETable.Modify();
 
-        ADLSEDeletedRecord.SetRange("Table ID", ADLSETable."Table ID");
-        ADLSEDeletedRecord.DeleteAll();
+                ADLSEDeletedRecord.SetRange("Table ID", ADLSETable."Table ID");
+                ADLSEDeletedRecord.DeleteAll();
+            until ADLSETable.Next = 0;
     end;
 }
