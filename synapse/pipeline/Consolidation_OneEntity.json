@@ -13,7 +13,7 @@
                         ]
                     },
                     {
-                        "activity": "DeleteStagedJustInCase",
+                        "activity": "EnsureStagingIsEmpty",
                         "dependencyConditions": [
                             "Succeeded"
                         ]
@@ -310,44 +310,6 @@
                 }
             },
             {
-                "name": "DeleteStagingManifest",
-                "type": "Delete",
-                "dependsOn": [
-                    {
-                        "activity": "Copy staging to data",
-                        "dependencyConditions": [
-                            "Succeeded"
-                        ]
-                    }
-                ],
-                "policy": {
-                    "timeout": "7.00:00:00",
-                    "retry": 0,
-                    "retryIntervalInSeconds": 30,
-                    "secureOutput": false,
-                    "secureInput": false
-                },
-                "userProperties": [],
-                "typeProperties": {
-                    "dataset": {
-                        "referenceName": "stagingManifest_dataset",
-                        "type": "DatasetReference",
-                        "parameters": {
-                            "containerName": {
-                                "value": "@pipeline().parameters.containerName",
-                                "type": "Expression"
-                            }
-                        }
-                    },
-                    "enableLogging": false,
-                    "storeSettings": {
-                        "type": "AzureBlobFSReadSettings",
-                        "recursive": true,
-                        "enablePartitionDiscovery": false
-                    }
-                }
-            },
-            {
                 "name": "Copy staging to data",
                 "type": "Switch",
                 "dependsOn": [
@@ -552,7 +514,7 @@
                 }
             },
             {
-                "name": "DeleteStagedJustInCase",
+                "name": "EnsureStagingIsEmpty",
                 "type": "Delete",
                 "dependsOn": [],
                 "policy": {
