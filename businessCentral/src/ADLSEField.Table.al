@@ -48,7 +48,7 @@ table 82562 "ADLSE Field"
     var
         ADLSESetup: Record "ADLSE Setup";
     begin
-        ADLSESetup.CheckNoSimultaneousExports();
+        ADLSESetup.CheckNoSimultaneousExportsAllowed();
     end;
 
     trigger OnModify()
@@ -56,7 +56,7 @@ table 82562 "ADLSE Field"
         ADLSESetup: Record "ADLSE Setup";
         ADLSETable: Record "ADLSE Table";
     begin
-        ADLSESetup.CheckNoSimultaneousExports();
+        ADLSESetup.CheckNoSimultaneousExportsAllowed();
 
         ADLSETable.Get(Rec."Table ID");
         ADLSETable.CheckNotExporting();
@@ -66,7 +66,7 @@ table 82562 "ADLSE Field"
     var
         ADLSESetup: Record "ADLSE Setup";
     begin
-        ADLSESetup.CheckNoSimultaneousExports();
+        ADLSESetup.CheckNoSimultaneousExportsAllowed();
     end;
 
     procedure InsertForTable(ADLSETable: Record "ADLSE Table")

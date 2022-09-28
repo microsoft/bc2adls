@@ -38,7 +38,7 @@ table 82561 "ADLSE Table"
         ADLSESetup: Record "ADLSE Setup";
         ADLSETableField: Record "ADLSE Field";
     begin
-        ADLSESetup.CheckNoSimultaneousExports();
+        ADLSESetup.CheckNoSimultaneousExportsAllowed();
 
         CheckTableOfTypeNormal(Rec."Table ID");
     end;
@@ -50,7 +50,7 @@ table 82561 "ADLSE Table"
         ADLSETableLastTimestamp: Record "ADLSE Table Last Timestamp";
         ADLSEDeletedRecord: Record "ADLSE Deleted Record";
     begin
-        ADLSESetup.CheckNoSimultaneousExports();
+        ADLSESetup.CheckNoSimultaneousExportsAllowed();
 
         ADLSETableField.SetRange("Table ID", Rec."Table ID");
         ADLSETableField.DeleteAll();
@@ -66,7 +66,7 @@ table 82561 "ADLSE Table"
     var
         ADLSESetup: Record "ADLSE Setup";
     begin
-        ADLSESetup.CheckNoSimultaneousExports();
+        ADLSESetup.CheckNoSimultaneousExportsAllowed();
 
         CheckNotExporting();
     end;

@@ -119,7 +119,7 @@ table 82560 "ADLSE Setup"
         exit(Rec.Get(GetPrimaryKeyValue()));
     end;
 
-    procedure CheckNoSimultaneousExports()
+    procedure CheckNoSimultaneousExportsAllowed()
     begin
         Rec.GetSingleton();
         Rec.TestField("Allow simultaneous exports", false, ErrorInfo.Create(NoChangesAllowedErr));

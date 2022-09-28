@@ -36,6 +36,10 @@ table 82565 "ADLSE Current Session"
         {
             Clustered = true;
         }
+
+        key(SessionID; "Session ID")
+        {
+        }
     }
 
     var
@@ -58,9 +62,8 @@ table 82565 "ADLSE Current Session"
 
     procedure Stop(ADLSETableID: Integer)
     begin
-        Rec.SetRange("Table ID", ADLSETableID);
-        Rec.SetRange("Company Name", CompanyName());
-        Rec.DeleteAll();
+        Rec.Get(ADLSETableID, CompanyName());
+        Rec.Delete();
     end;
 
     [Obsolete('Use the function CheckForNoActiveSessions instead', '1.2.0.0')]
