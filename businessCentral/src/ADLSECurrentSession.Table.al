@@ -101,12 +101,6 @@ table 82565 "ADLSE Current Session"
         Rec.DeleteAll();
     end;
 
-    [Obsolete('Converted to local procedure IsSessionActive', '1.2.0.0')]
-    procedure IsLinkedSessionActive(): Boolean
-    begin
-        exit(IsSessionActive());
-    end;
-
     local procedure IsSessionActive(): Boolean
     var
         ActiveSession: Record "Active Session";
