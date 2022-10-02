@@ -35,7 +35,7 @@ Let us take a look at the settings show in the sample screenshot below,
 
 > **<em>Note</em>** 
 > 1. The above settings are applied for all companies inside BC. Thus, data from all companies in your BC environment will go to the same Azure Data Lake container, using the same export schema. It is recommended to use different containers for different environments.
-> 2. Data is exported in parallel through individual sessions for each table and company. There are operation limits to how many sessions can be queued up and executed - please refer to [Asynchronous task limits](https://learn.microsoft.com/en-us/dynamics365/business-central/dev-itpro/administration/operational-limits-online#Task). A table that got left out because of these limits will likely be exported in one of the next executions.
+> 2. Data is exported in parallel through individual sessions for each table and company. There are operation limits to how many sessions can be queued up and executed - please refer to [Asynchronous task limits](https://learn.microsoft.com/en-us/dynamics365/business-central/dev-itpro/administration/operational-limits-online#Task). Tables that got left out because of such limits will likely be exported in one of the next executions.
 
 ## Configuring the Azure Synapse workspace
 This section deals with consolidation of the data that was uploaded to the data lake from BC. It is assumed that you would run the exports from BC periodically and that would generate incremental changes loaded in the `deltas` CDM folder. These incremental changes will then be consolidated into the final `data` CDM folder using Azure Synapse.
