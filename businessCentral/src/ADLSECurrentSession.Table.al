@@ -47,15 +47,12 @@ table 82565 "ADLSE Current Session"
         ExportDataInProgressErr: Label 'An export data process is already running. Please wait for it to finish.';
 
     procedure Start(ADLSETableID: Integer)
-    var
-        ActiveSession: Record "Active Session";
     begin
-        ActiveSession.Get(ServiceInstanceId(), SessionId());
 
         Rec.Init();
         Rec."Table ID" := ADLSETableID;
         Rec."Session ID" := SessionId();
-        Rec."Session Unique ID" := ActiveSession."Session Unique ID";
+        Rec."Session Unique ID" := GetActiveSessionIDForSession(SessionId());
         Rec."Company Name" := CompanyName();
         Rec.Insert();
     end;
@@ -69,66 +66,44 @@ table 82565 "ADLSE Current Session"
     [Obsolete('Use the function CheckForNoActiveSessions instead', '1.2.0.0')]
     procedure CheckSessionsActive() AnyActive: Boolean
     begin
-        AnyActive := IsAnySessionActive();
+        AnyActive := AreAnySessionsActive();
     end;
 
     procedure CheckForNoActiveSessions()
     begin
-        if IsAnySessionActive() then
+        if AreAnySessionsActive() then
             Error(ExportDataInProgressErr);
     end;
 
-    local procedure IsAnySessionActive() AnyActive: Boolean
-    var
-        InactiveSessionIDs: List of [Integer];
-    begin
-        if Rec.FindSet(false) then
-            repeat
-                if IsSessionActive() then
-                    AnyActive := true
-                else
-                    InactiveSessionIDs.Add(Rec."Session ID");
-            until Rec.Next() = 0;
-
-        CleanupInactiveSessions(InactiveSessionIDs);
-    end;
-
-    local procedure CleanupInactiveSessions(InactiveSessionIDs: List of [Integer])
-    var
-        TheSessionID: Integer;
-    begin
-        foreach TheSessionID in InactiveSessionIDs do begin
-            Rec.SetRange("Session ID", TheSessionID);
-            Rec.DeleteAll();
-        end;
-    end;
-
-    procedure IsAnySessionActiveForOtherExports(ADLSETableID: Integer): Boolean
-    begin
-        Rec.SetFilter("Table ID", '<>%1', ADLSETableID);
-        if (not Rec.IsEmpty()) then
-            exit(true);
-
-        Rec.SetFilter("Company Name", '<>%1', CompanyName());
-        exit(not Rec.IsEmpty());
-    end;
-
-    [TryFunction]
-    procedure CancelAll(ADLSETableErrorText: Text[2048])
-    var
-        ADLSETable: Record "ADLSE Table";
-        ADLSEUtil: Codeunit "ADLSE Util";
+    procedure AreAnySessionsActive() AnyActive: Boolean
     begin
         if Rec.FindSet(false) then
             repeat
                 if IsSessionActive() then begin
-                    Session.StopSession(Rec."Session ID", StrSubstNo(SessionTerminatedMsg, ADLSEUtil.GetTableCaption(Rec."Table ID")));
-
-                    ADLSETable.Get(Rec."Table ID");
-                    ADLSETable.State := "ADLSE State"::Error;
-                    ADLSETable.LastError := ADLSETableErrorText;
-                    ADLSETable.Modify();
+                    AnyActive := true;
+                    exit;
                 end;
+            until Rec.Next() = 0;
+    end;
+
+    procedure CleanupInactiveSessions()
+    begin
+        Rec.SetRange("Company Name", CompanyName());
+        if Rec.FindSet(true) then begin
+            if not IsSessionActive() then
+                Rec.Delete();
+        end;
+    end;
+
+    procedure CancelAll()
+    var
+        ADLSERun: Record "ADLSE Run";
+        ADLSEUtil: Codeunit "ADLSE Util";
+    begin
+        if Rec.FindSet(false) then
+            repeat
+                if IsSessionActive() then
+                    Session.StopSession(Rec."Session ID", StrSubstNo(SessionTerminatedMsg, ADLSEUtil.GetTableCaption(Rec."Table ID")));
             until Rec.Next() = 0;
 
         Rec.DeleteAll();
@@ -148,4 +123,11 @@ table 82565 "ADLSE Current Session"
             exit(ActiveSession."Session Unique ID" = Rec."Session Unique ID");
     end;
 
+    procedure GetActiveSessionIDForSession(SessId: Integer): Guid
+    var
+        ActiveSession: Record "Active Session";
+    begin
+        ActiveSession.Get(ServiceInstanceId(), SessId);
+        exit(ActiveSession."Session Unique ID");
+    end;
 }

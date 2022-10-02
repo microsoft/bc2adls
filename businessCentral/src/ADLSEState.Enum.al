@@ -4,6 +4,9 @@ enum 82560 "ADLSE State"
 {
     Access = Internal;
     Extensible = false;
+    ObsoleteState = Pending;
+    ObsoleteReason = 'Use "ADLSE Run State" instead';
+    ObsoleteTag = '1.2.0.0';
 
     value(0; Ready)
     {

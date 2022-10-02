@@ -8,6 +8,7 @@ codeunit 82561 "ADLSE Execute"
     trigger OnRun()
     var
         ADLSESetup: Record "ADLSE Setup";
+        ADLSERun: Record "ADLSE Run";
         ADLSECurrentSession: Record "ADLSE Current Session";
         ADLSETableLastTimestamp: Record "ADLSE Table Last Timestamp";
         ADLSECommunication: Codeunit "ADLSE Communication";
@@ -24,37 +25,32 @@ codeunit 82561 "ADLSE Execute"
         ADLSESetup.GetSingleton();
         EmitTelemetry := ADLSESetup."Emit telemetry";
         CDMDataFormat := ADLSESetup.DataFormat;
+        if EmitTelemetry then begin
+            CustomDimensions.Add('Entity', ADLSEUtil.GetTableCaption(Rec."Table ID"));
+            ADLSEExecution.Log('ADLSE-017', 'Starting the export for table', Verbosity::Normal, CustomDimensions);
+        end;
 
         // Register session started
         ADLSECurrentSession.Start(Rec."Table ID");
+        ADLSERun.RegisterStarted(Rec."Table ID");
         Commit(); // to release locks on the "ADLSE Current Session" record thus allowing other sessions to check for it being active when they are nearing the last step.
         if EmitTelemetry then
-            ADLSEExecution.Log('ADLSE-003', 'Registered session to export table', Verbosity::Normal, DataClassification::CustomerContent);
+            ADLSEExecution.Log('ADLSE-018', 'Registered session to export table', Verbosity::Verbose, CustomDimensions);
 
-        // No changes allowed to this table & its associations while the export is running
-        AcquireLockOnADLSETable(Rec); // exports for the same table wait while in process
-        if Rec.State <> "ADLSE State"::Ready then
-            exit;
         UpdatedLastTimestamp := ADLSETableLastTimestamp.GetUpdatedLastTimestamp(Rec."Table ID");
         DeletedLastEntryNo := ADLSETableLastTimestamp.GetDeletedLastEntryNo(Rec."Table ID");
 
-        // Set to Exporting
-        Rec.State := "ADLSE State"::Exporting;
-        Rec.LastError := '';
-        Rec.Modify();
         if EmitTelemetry then begin
             Clear(CustomDimensions);
-            CustomDimensions.Add('Entity name', ADLSEUtil.GetDataLakeCompliantTableName(Rec."Table ID"));
             CustomDimensions.Add('Old Updated Last time stamp', Format(UpdatedLastTimestamp));
             CustomDimensions.Add('Old Deleted Last entry no.', Format(DeletedLastEntryNo));
-            ADLSEExecution.Log('ADLSE-004', 'Exporting with parameters', Verbosity::Normal, DataClassification::CustomerContent, CustomDimensions);
+            ADLSEExecution.Log('ADLSE-004', 'Exporting with parameters', Verbosity::Verbose, CustomDimensions);
         end;
 
         // Perform the export 
         OldUpdatedLastTimestamp := UpdatedLastTimestamp;
         OldDeletedLastEntryNo := DeletedLastEntryNo;
         if not TryExportTableData(Rec."Table ID", ADLSECommunication, UpdatedLastTimestamp, DeletedLastEntryNo, EntityJsonNeedsUpdate, ManifestJsonsNeedsUpdate) then begin
-            SetErrorState(Rec);
             SetStateFinished(Rec);
             exit;
         end;
@@ -64,42 +60,37 @@ codeunit 82561 "ADLSE Execute"
             CustomDimensions.Add('Deleted Last entry no.', Format(DeletedLastEntryNo));
             CustomDimensions.Add('Entity Json needs update', Format(EntityJsonNeedsUpdate));
             CustomDimensions.Add('Manifest Json needs update', Format(ManifestJsonsNeedsUpdate));
-            ADLSEExecution.Log('ADLSE-017', 'Exported to deltas CDM folder', Verbosity::Normal, DataClassification::CustomerContent, CustomDimensions);
+            ADLSEExecution.Log('ADLSE-020', 'Exported to deltas CDM folder', Verbosity::Verbose, CustomDimensions);
         end;
 
         // check if anything exported at all
         if (UpdatedLastTimestamp > OldUpdatedLastTimestamp) or (DeletedLastEntryNo > OldDeletedLastEntryNo) then begin
             // update the last timestamps of the record
             if not ADLSETableLastTimestamp.TrySaveUpdatedLastTimestamp(Rec."Table ID", UpdatedLastTimestamp) then begin
-                SetErrorState(Rec);
                 SetStateFinished(Rec);
                 exit;
             end;
             if not ADLSETableLastTimestamp.TrySaveDeletedLastEntryNo(Rec."Table ID", DeletedLastEntryNo) then begin
-                SetErrorState(Rec);
                 SetStateFinished(Rec);
                 exit;
             end;
             if EmitTelemetry then
-                ADLSEExecution.Log('ADLSE-006', 'Saved the timestamps into the database', Verbosity::Normal, DataClassification::CustomerContent);
+                ADLSEExecution.Log('ADLSE-006', 'Saved the timestamps into the database', Verbosity::Normal);
             Commit(); // to save the last time stamps into the database.
-
-            // update Jsons
-            if not ADLSECommunication.TryUpdateCdmJsons(EntityJsonNeedsUpdate, ManifestJsonsNeedsUpdate) then begin
-                SetErrorState(Rec);
-                SetStateFinished(Rec);
-                exit;
-            end;
-            if EmitTelemetry then
-                ADLSEExecution.Log('ADLSE-007', 'Jsons have been updated', Verbosity::Normal, DataClassification::CustomerContent);
         end;
 
-        // Set to not exporting.            
-        Rec.State := "ADLSE State"::Ready;
-        Rec.Modify();
+        // update Jsons
+        if not ADLSECommunication.TryUpdateCdmJsons(EntityJsonNeedsUpdate, ManifestJsonsNeedsUpdate) then begin
+            SetStateFinished(Rec);
+            exit;
+        end;
+        if EmitTelemetry then
+            ADLSEExecution.Log('ADLSE-007', 'Jsons have been updated', Verbosity::Normal);
+
+        // Finalize
         SetStateFinished(Rec);
         if EmitTelemetry then
-            ADLSEExecution.Log('ADLSE-005', 'Export completed without error', Verbosity::Normal, DataClassification::CustomerContent);
+            ADLSEExecution.Log('ADLSE-005', 'Export completed without error', Verbosity::Normal);
     end;
 
     var
@@ -114,19 +105,37 @@ codeunit 82561 "ADLSE Execute"
         var EntityJsonNeedsUpdate: Boolean; var ManifestJsonsNeedsUpdate: Boolean)
     var
         ADLSECommunicationDeletions: Codeunit "ADLSE Communication";
+        ADLSEExecution: Codeunit "ADLSE Execution";
         FieldIdList: List of [Integer];
     begin
         FieldIdList := CreateFieldListForTable(TableID);
 
         // first export the upserts
         ADLSECommunication.Init(TableID, FieldIdList, UpdatedLastTimeStamp, EmitTelemetry);
-        ADLSECommunication.CheckEntity(CDMDataFormat, EntityJsonNeedsUpdate, ManifestJsonsNeedsUpdate);
+        ADLSECommunication.CheckEntity(CDMDataFormat, EntityJsonNeedsUpdate, ManifestJsonsNeedsUpdate, EmitTelemetry);
         ExportTableUpdates(TableID, FieldIdList, ADLSECommunication, UpdatedLastTimeStamp);
 
         // then export the deletes
         ADLSECommunicationDeletions.Init(TableID, FieldIdList, DeletedLastEntryNo, EmitTelemetry);
         // entity has been already checked above
         ExportTableDeletes(TableID, ADLSECommunicationDeletions, DeletedLastEntryNo);
+    end;
+
+    procedure UpdatedRecordsExist(TableID: Integer; UpdatedLastTimeStamp: BigInteger): Boolean
+    var
+        Rec: RecordRef;
+        TimeStampField: FieldRef;
+    begin
+        SetFilterForUpdates(TableID, UpdatedLastTimeStamp, Rec, TimeStampField);
+        exit(not Rec.IsEmpty());
+    end;
+
+    local procedure SetFilterForUpdates(TableID: Integer; UpdatedLastTimeStamp: BigInteger; var Rec: RecordRef; var TimeStampField: FieldRef)
+    begin
+        Rec.Open(TableID);
+        Rec.SetView(TimestampAscendingSortViewTxt);
+        TimeStampField := Rec.Field(0); // 0 is the TimeStamp field
+        TimeStampField.SetFilter('>%1', UpdatedLastTimestamp);
     end;
 
     local procedure ExportTableUpdates(TableID: Integer; FieldIdList: List of [Integer]; ADLSECommunication: Codeunit "ADLSE Communication"; var UpdatedLastTimeStamp: BigInteger)
@@ -137,10 +146,7 @@ codeunit 82561 "ADLSE Execute"
         FlushedTimeStamp: BigInteger;
         FieldId: Integer;
     begin
-        Rec.Open(TableID);
-        Rec.SetView(TimestampAscendingSortViewTxt);
-        TimeStampField := Rec.Field(0); // 0 is the TimeStamp field
-        TimeStampField.SetFilter('>%1', UpdatedLastTimestamp);
+        SetFilterForUpdates(TableID, UpdatedLastTimeStamp, Rec, TimeStampField);
 
         foreach FieldId in FieldIdList do
             Rec.AddLoadFields(FieldID);
@@ -150,7 +156,7 @@ codeunit 82561 "ADLSE Execute"
 
         if Rec.FindSet(false) then begin
             if EmitTelemetry then
-                ADLSEExecution.Log('ADLSE-018', 'Updated records found', Verbosity::Verbose, DataClassification::CustomerContent);
+                ADLSEExecution.Log('ADLSE-021', 'Updated records found', Verbosity::Verbose);
             repeat
                 if ADLSECommunication.TryCollectAndSendRecord(Rec, TimeStampField.Value(), FlushedTimeStamp) then
                     UpdatedLastTimeStamp := FlushedTimeStamp
@@ -164,7 +170,22 @@ codeunit 82561 "ADLSE Execute"
                 Error('%1%2', GetLastErrorText(), GetLastErrorCallStack());
         end;
         if EmitTelemetry then
-            ADLSEExecution.Log('ADLSE-009', 'Updated records exported', Verbosity::Verbose, DataClassification::CustomerContent);
+            ADLSEExecution.Log('ADLSE-009', 'Updated records exported', Verbosity::Verbose);
+    end;
+
+    procedure DeletedRecordsExist(TableID: Integer; DeletedLastEntryNo: BigInteger): Boolean
+    var
+        ADLSEDeletedRecord: Record "ADLSE Deleted Record";
+    begin
+        SetFilterForDeletes(TableID, DeletedLastEntryNo, ADLSEDeletedRecord);
+        exit(not ADLSEDeletedRecord.IsEmpty());
+    end;
+
+    local procedure SetFilterForDeletes(TableID: Integer; DeletedLastEntryNo: BigInteger; var ADLSEDeletedRecord: Record "ADLSE Deleted Record")
+    begin
+        ADLSEDeletedRecord.SetView(TimestampAscendingSortViewTxt);
+        ADLSEDeletedRecord.SetRange("Table ID", TableID);
+        ADLSEDeletedRecord.SetFilter("Entry No.", '>%1', DeletedLastEntryNo);
     end;
 
     local procedure ExportTableDeletes(TableID: Integer; ADLSECommunication: Codeunit "ADLSE Communication"; var DeletedLastEntryNo: BigInteger)
@@ -175,13 +196,11 @@ codeunit 82561 "ADLSE Execute"
         Rec: RecordRef;
         FlushedTimeStamp: BigInteger;
     begin
-        ADLSEDeletedRecord.SetView(TimestampAscendingSortViewTxt);
-        ADLSEDeletedRecord.SetRange("Table ID", TableID);
-        ADLSEDeletedRecord.SetFilter("Entry No.", '>%1', DeletedLastEntryNo);
+        SetFilterForDeletes(TableID, DeletedLastEntryNo, ADLSEDeletedRecord);
 
         if ADLSEDeletedRecord.FindSet(false) then begin
             if EmitTelemetry then
-                ADLSEExecution.Log('ADLSE-010', 'Deleted records found', Verbosity::Verbose, DataClassification::CustomerContent);
+                ADLSEExecution.Log('ADLSE-010', 'Deleted records found', Verbosity::Verbose);
             Rec.Open(ADLSEDeletedRecord."Table ID");
             repeat
                 ADLSEUtil.CreateFakeRecordForDeletedAction(ADLSEDeletedRecord, Rec);
@@ -197,7 +216,7 @@ codeunit 82561 "ADLSE Execute"
                 Error('%1%2', GetLastErrorText(), GetLastErrorCallStack());
         end;
         if EmitTelemetry then
-            ADLSEExecution.Log('ADLSE-011', 'Deleted records exported', Verbosity::Verbose, DataClassification::CustomerContent);
+            ADLSEExecution.Log('ADLSE-011', 'Deleted records exported', Verbosity::Verbose);
     end;
 
     local procedure CreateFieldListForTable(TableID: Integer) FieldIdList: List of [Integer]
@@ -214,58 +233,23 @@ codeunit 82561 "ADLSE Execute"
         ADLSEUtil.AddSystemFields(FieldIdList);
     end;
 
-    local procedure SetErrorState(var ADLSETable: Record "ADLSE Table")
-    var
-        ADLSEExecution: Codeunit "ADLSE Execution";
-        CustomDimension: Dictionary of [Text, Text];
-        LastErrorMessage: Text;
-        LastErrorStack: Text;
-    begin
-        ADLSETable.State := "ADLSE State"::Error;
-        LastErrorMessage := GetLastErrorText();
-        LastErrorStack := GetLastErrorCallStack();
-        if ADLSETable.LastError = '' then // do not overwrite an existing error
-            ADLSETable.LastError := CopyStr(LastErrorMessage + LastErrorStack, 1, 2048); // 2048 is the max size of the field 
-        ADLSETable.Modify();
-        if EmitTelemetry then begin
-            CustomDimension.Add('Error text', LastErrorMessage);
-            CustomDimension.Add('Error stack', LastErrorStack);
-            ADLSEExecution.Log('ADLSE-008', 'Error occured during execution', Verbosity::Warning, DataClassification::CustomerContent, CustomDimension);
-        end;
-    end;
 
     local procedure SetStateFinished(var ADLSETable: Record "ADLSE Table")
+    var
+        ADLSERun: Record "ADLSE Run";
     begin
         if not TrySetStateFinished(ADLSETable."Table ID") then
-            SetErrorState(ADLSETable);
+            ADLSERun.RegisterEnded(ADLSETable."Table ID", EmitTelemetry);
+        Commit();
     end;
 
     [TryFunction]
     local procedure TrySetStateFinished(ADLSETableIDRunning: Integer)
     var
-        ADLSESetup: Record "ADLSE Setup";
+        ADLSERun: Record "ADLSE Run";
         ADLSECurrentSession: Record "ADLSE Current Session";
     begin
-        AcquireLockonADLSESetup(ADLSESetup);
-        // if no other sessions currently running an export, set state to stopped
-        if not ADLSECurrentSession.IsAnySessionActiveForOtherExports(ADLSETableIDRunning) then begin
-            ADLSESetup.Running := false;
-            ADLSESetup.Modify();
-        end;
-
+        ADLSERun.RegisterEnded(ADLSETableIDRunning, EmitTelemetry);
         ADLSECurrentSession.Stop(ADLSETableIDRunning);
-        Commit();
-    end;
-
-    procedure AcquireLockonADLSESetup(var ADLSESetup: Record "ADLSE Setup")
-    begin
-        ADLSESetup.LockTable(true);
-        ADLSESetup.GetSingleton();
-    end;
-
-    local procedure AcquireLockOnADLSETable(var ADLSETable: Record "ADLSE Table")
-    begin
-        ADLSETable.LockTable(true);
-        ADLSETable.Get(ADLSETable."Table ID");
     end;
 }

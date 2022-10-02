@@ -33,7 +33,7 @@ table 82560 "ADLSE Setup"
         {
             Caption = 'Max payload size (MiBs)';
             InitValue = 4;
-            // Refer max limit for pub block calls (https://docs.microsoft.com/en-us/rest/api/storageservices/put-block#remarks)
+            // Refer max limit for put block calls (https://docs.microsoft.com/en-us/rest/api/storageservices/put-block#remarks)
             MaxValue = 4000;
             MinValue = 1;
         }
@@ -48,6 +48,9 @@ table 82560 "ADLSE Setup"
         {
             Caption = 'Exporting data';
             Editable = false;
+            ObsoleteState = Removed;
+            ObsoleteReason = 'Use "ADLSE Current Session"::AreAnySessionsActive(), instead';
+            ObsoleteTag = '1.2.0.0';
         }
 
         field(11; "Emit telemetry"; Boolean)

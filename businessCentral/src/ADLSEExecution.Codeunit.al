@@ -10,14 +10,15 @@ codeunit 82569 "ADLSE Execution"
     end;
 
     var
-        ExportStartedTxt: Label 'Data export started for %1 tables that were in the state Ready. Please refresh this page to see the latest export State for the tables.', Comment = '%1 = number of tables to start the export for.';
-        ExportStoppedDueToCancelledSessionTxt: Label 'Export stopped as session was cancelled. Please check state of the export on the data lake before enabling this.';
+        EmitTelemetry: Boolean;
+        ExportStartedTxt: Label 'Data export started for %1 out of %2 tables. Please refresh this page to see the latest export State for the tables.', Comment = '%1 = number of tables to start the export for. %2 = total number of tables enabled for export.';
         ExportNotStoppedErr: Label 'Not all sessions that are exporting data may have been stopped. Please try cancelling sessions from the Admin Center and try again. Last Error: %1', Comment = '%1 = error text';
         SuccessfulStopMsg: Label 'The export process was stopped successfully.';
         TrackedDeletedRecordsRemovedMsg: Label 'Representations of deleted records that have been exported previously have been deleted.';
         JobCategoryCodeTxt: Label 'ADLSE';
         JobCategoryDescriptionTxt: Label 'Export to Azure Data Lake';
         JobScheduledTxt: Label 'The job has been scheduled. Please go to the Job Queue Entries page to locate it and make further changes.';
+        SessionDidNotStartErr: Label 'A session to export table %1 could not be started. Other table exports that were already started will continue to run. Perhaps there were too many export processes started at the same time. %2', Comment = '%1 = Table caption, %2 = inner error, if any ';
 
     procedure StartExport()
     var
@@ -26,55 +27,115 @@ codeunit 82569 "ADLSE Execution"
         ADLSEField: Record "ADLSE Field";
         ADLSESetup: Codeunit "ADLSE Setup";
         ADSLEConnection: Codeunit "ADLSE Communication";
-        NewSessionID: Integer;
+        ADLSEExecute: Codeunit "ADLSE Execute";
+        ADLSEUtil: Codeunit "ADLSE Util";
+        ADLSECurrentSession: Record "ADLSE Current Session";
         Counter: Integer;
+        Started: Integer;
     begin
         ADLSESetup.CheckSetup(ADLSESetupRec);
-
+        ADLSECurrentSession.CleanupInactiveSessions();
         ADSLEConnection.SetupBlobStorage();
+        EmitTelemetry := ADLSESetupRec."Emit telemetry";
 
-        ADLSESetupRec.Running := true;
-        ADLSESetupRec.Modify();
-        Commit();
-
-        if ADLSETable.FindSet(true) then
+        if EmitTelemetry then
+            Log('ADLSE-022', 'Starting export for all tables', Verbosity::Normal);
+        if ADLSETable.FindSet(false) then
             repeat
+                Counter += 1;
                 ADLSEField.SetRange("Table ID", ADLSETable."Table ID");
                 ADLSEField.SetRange(Enabled, true);
                 if not ADLSEField.IsEmpty() then
-                    // Codeunit.Run(Codeunit::"ADLSE Execute", ADLSETable);
-                    if Session.StartSession(NewSessionID, Codeunit::"ADLSE Execute", CompanyName(), ADLSETable) then
-                        Counter += 1;
+                    if DoExport(ADLSETable, not GuiAllowed) then
+                        Started += 1;
             until ADLSETable.Next() = 0;
 
-        Message(ExportStartedTxt, Counter);
-        if ADLSESetupRec."Emit telemetry" then
-            Log('ADLSE-001', StrSubstNo(ExportStartedTxt, Counter), Verbosity::Normal, DataClassification::SystemMetadata);
+        Message(ExportStartedTxt, Started, Counter);
+        if EmitTelemetry then
+            Log('ADLSE-001', StrSubstNo(ExportStartedTxt, Started, Counter), Verbosity::Normal);
+    end;
+
+    local procedure DoExport(ADLSETable: Record "ADLSE Table"; RaiseError: Boolean) Started: Boolean
+    var
+        ADLSECurrentSession: Record "ADLSE Current Session";
+        ADLSEUtil: Codeunit "ADLSE Util";
+        CustomDimensions: Dictionary of [Text, Text];
+        InnerErrorText: Text;
+        NewSessionID: Integer;
+        ShouldStartExport: Boolean;
+    begin
+        ClearLastError();
+        ShouldStartExport := LastRunFailed(ADLSETable."Table ID");
+        if not ShouldStartExport then
+            ShouldStartExport := DataChangesExist(ADLSETable."Table ID");
+        if ShouldStartExport then begin
+            // Commit();
+            // Codeunit.Run(Codeunit::"ADLSE Execute", ADLSETable);
+            Started := Session.StartSession(NewSessionID, Codeunit::"ADLSE Execute", CompanyName(), ADLSETable);
+            InnerErrorText := GetLastErrorText() + GetLastErrorCallStack();
+            if EmitTelemetry then begin
+                CustomDimensions.Add('TableID', Format(ADLSETable."Table ID"));
+                if Started then begin
+                    CustomDimensions.Add('SessionId', ADLSECurrentSession.GetActiveSessionIDForSession(NewSessionID));
+                    Log('ADLSE-002', 'Export session created', Verbosity::Verbose, CustomDimensions);
+                end else begin
+                    Log('ADLSE-025', 'Session.StartSession() failed', Verbosity::Warning, CustomDimensions);
+                    if RaiseError then
+                        Error(SessionDidNotStartErr, ADLSEUtil.GetTableCaption(ADLSETable."Table ID"), InnerErrorText);
+                end;
+            end;
+            exit;
+        end;
+        if EmitTelemetry then begin
+            CustomDimensions.Add('Entity', ADLSEUtil.GetTableCaption(ADLSETable."Table ID"));
+            Log('ADLSE-024', 'No changes to be exported.', Verbosity::Normal, CustomDimensions);
+        end;
+    end;
+
+    local procedure DataChangesExist(TableID: Integer): Boolean
+    var
+        ADLSETableLastTimestamp: Record "ADLSE Table Last Timestamp";
+        ADLSEExecute: Codeunit "ADLSE Execute";
+        UpdatedLastTimestamp: BigInteger;
+        DeletedLastEntryNo: BigInteger;
+    begin
+        UpdatedLastTimestamp := ADLSETableLastTimestamp.GetUpdatedLastTimestamp(TableID);
+        DeletedLastEntryNo := ADLSETableLastTimestamp.GetDeletedLastEntryNo(TableID);
+
+        if ADLSEExecute.UpdatedRecordsExist(TableID, UpdatedLastTimestamp) then
+            exit(true);
+        if ADLSEExecute.DeletedRecordsExist(TableID, DeletedLastEntryNo) then
+            exit(true);
+    end;
+
+    local procedure LastRunFailed(TableID: Integer): Boolean
+    var
+        ADLSERun: Record "ADLSE Run";
+        Status: Enum "ADLSE Run State";
+        StartedAt: DateTime;
+        Error: Text[2048];
+    begin
+        ADLSERun.GetLastRunDetails(TableID, Status, StartedAt, Error);
+        exit(Status = "ADLSE Run State"::Failed);
     end;
 
     procedure StopExport()
     var
         ADLSESetup: Record "ADLSE Setup";
-        ADLSETable: Record "ADLSE Table";
+        ADLSERun: Record "ADLSE Run";
         ADLSECurrentSession: Record "ADLSE Current Session";
     begin
         ADLSESetup.GetSingleton();
         if ADLSESetup."Emit telemetry" then
-            Log('ADLSE-003', 'Stopping export sessions', Verbosity::Normal, DataClassification::SystemMetadata);
+            Log('ADLSE-003', 'Stopping export sessions', Verbosity::Verbose);
 
-        if not ADLSECurrentSession.CancelAll(ExportStoppedDueToCancelledSessionTxt) then
-            Error(ExportNotStoppedErr, GetLastErrorText() + GetLastErrorCallStack());
+        ADLSECurrentSession.CancelAll();
 
-        ADLSETable.SetRange(State, "ADLSE State"::Exporting);
-        ADLSETable.ModifyAll(State, "ADLSE State"::Error);
-        ADLSETable.ModifyAll(LastError, ExportStoppedDueToCancelledSessionTxt);
-
-        ADLSESetup.Running := false;
-        ADLSESetup.Modify();
+        ADLSERun.CancelAllRuns();
 
         Message(SuccessfulStopMsg);
         if ADLSESetup."Emit telemetry" then
-            Log('ADLSE-004', 'Stopped export sessions', Verbosity::Normal, DataClassification::SystemMetadata);
+            Log('ADLSE-019', 'Stopped export sessions', Verbosity::Normal);
     end;
 
     procedure ScheduleExport()
@@ -84,7 +145,7 @@ codeunit 82569 "ADLSE Execution"
     begin
         CreateJobQueueEntry(JobQueueEntry);
         ScheduleAJob.SetJob(JobQueueEntry);
-        Commit();
+        Commit(); // above changes go into the DB before RunModal
         if ScheduleAJob.RunModal() = Action::OK then
             Message(JobScheduledTxt);
     end;
@@ -123,16 +184,16 @@ codeunit 82569 "ADLSE Execution"
         Message(TrackedDeletedRecordsRemovedMsg);
     end;
 
-    internal procedure Log(EventId: Text; Message: Text; Verbosity: Verbosity; DataClassification: DataClassification)
+    internal procedure Log(EventId: Text; Message: Text; Verbosity: Verbosity)
     var
         CustomDimensions: Dictionary of [Text, Text];
     begin
-        Log(EventId, Message, Verbosity, DataClassification, CustomDimensions);
+        Log(EventId, Message, Verbosity, CustomDimensions);
     end;
 
-    internal procedure Log(EventId: Text; Message: Text; Verbosity: Verbosity; DataClassification: DataClassification; CustomDimensions: Dictionary of [Text, Text])
+    internal procedure Log(EventId: Text; Message: Text; Verbosity: Verbosity; CustomDimensions: Dictionary of [Text, Text])
     begin
-        Session.LogMessage(EventId, Message, Verbosity, DataClassification, TelemetryScope::ExtensionPublisher, CustomDimensions);
+        Session.LogMessage(EventId, Message, Verbosity, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, CustomDimensions);
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::GlobalTriggerManagement, 'OnAfterGetDatabaseTableTriggerSetup', '', false, false)]

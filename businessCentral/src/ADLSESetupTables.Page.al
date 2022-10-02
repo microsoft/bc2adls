@@ -22,12 +22,14 @@ page 82561 "ADLSE Setup Tables"
                     ApplicationArea = All;
                     Editable = false;
                     Caption = 'Table';
-                    Tooltip = 'The caption of the table whose data is to exported.';
+                    Tooltip = 'Specifies the caption of the table whose data is to exported.';
                 }
-                field(State; Rec.State)
+                field(Enabled; Rec.Enabled)
                 {
                     ApplicationArea = All;
-                    Tooltip = 'Specifies the state of the export for this table.';
+                    Editable = true;
+                    Caption = 'Enabled';
+                    Tooltip = 'Specifies the state of the table. Set this checkmark to export this table, otherwise not.';
                 }
                 field(FieldsChosen; NumberFieldsChosenValue)
                 {
@@ -48,10 +50,26 @@ page 82561 "ADLSE Setup Tables"
                     Caption = 'Entity name';
                     Tooltip = 'The name of the entity corresponding to this table on the data lake. The value at the end indicates the table number in Dynamics 365 Business Central.';
                 }
-                field(LastError; Rec.LastError)
+                field(Status; LastRunState)
                 {
                     ApplicationArea = All;
-                    ToolTip = 'The message for the error that occured during the last export of this table.';
+                    Caption = 'Last exported state';
+                    Editable = false;
+                    Tooltip = 'Specifies the status of the last export from this table in this company.';
+                }
+                field(LastRanAt; LastStarted)
+                {
+                    ApplicationArea = All;
+                    Caption = 'Last started at';
+                    Editable = false;
+                    Tooltip = 'Specifies the time of the last export from this table in this company.';
+                }
+                field(LastError; LastRunError)
+                {
+                    ApplicationArea = All;
+                    Caption = 'Last error';
+                    Editable = false;
+                    ToolTip = 'Specifies the error message from the last export of this table in this company.';
                 }
                 field(LastTimestamp; UpdatedLastTimestamp)
                 {
@@ -130,43 +148,6 @@ page 82561 "ADLSE Setup Tables"
                 end;
             }
 
-            action(Disable)
-            {
-                ApplicationArea = All;
-                Caption = 'Disable';
-                ToolTip = 'Set the status to On Hold, so that data is not exported from this table';
-                Promoted = true;
-                PromotedIsBig = true;
-                PromotedOnly = true;
-                PromotedCategory = Process;
-                Image = ApprovalSetup;
-                Visible = CanBeDisabledValue;
-
-                trigger OnAction()
-                begin
-                    Rec.Disable();
-                    CurrPage.Update();
-                end;
-            }
-
-            action(Enable)
-            {
-                ApplicationArea = All;
-                Caption = 'Enable';
-                ToolTip = 'Set the status to Ready, so that data can be exported from this table';
-                Promoted = true;
-                PromotedIsBig = true;
-                PromotedOnly = true;
-                Image = Approval;
-                Visible = CanBeEnabledValue;
-
-                trigger OnAction()
-                begin
-                    Rec.Enable();
-                    CurrPage.Update();
-                end;
-            }
-
             action(Reset)
             {
                 ApplicationArea = All;
@@ -183,7 +164,7 @@ page 82561 "ADLSE Setup Tables"
                     SelectedADLSETable: Record "ADLSE Table";
                 begin
                     CurrPage.SetSelectionFilter(SelectedADLSETable);
-                    ADLSESetup.Reset(SelectedADLSETable);
+                    SelectedADLSETable.ResetSelected();
                     CurrPage.Update();
                 end;
             }
@@ -194,38 +175,36 @@ page 82561 "ADLSE Setup Tables"
     var
         TableMetadata: Record "Table Metadata";
         ADLSETableLastTimestamp: Record "ADLSE Table Last Timestamp";
+        ADLSERun: Record "ADLSE Run";
         ADLSEUtil: Codeunit "ADLSE Util";
     begin
         if TableMetadata.Get(Rec."Table ID") then begin
             TableCaptionValue := ADLSEUtil.GetTableCaption(Rec."Table ID");
             NumberFieldsChosenValue := Rec.FieldsChosen();
-            CanBeDisabledValue := Rec.CanBeDisabled();
-            CanBeEnabledValue := Rec.CanBeEnabled();
             UpdatedLastTimestamp := ADLSETableLastTimestamp.GetUpdatedLastTimestamp(Rec."Table ID");
             DeletedRecordLastEntryNo := ADLSETableLastTimestamp.GetDeletedLastEntryNo(Rec."Table ID");
             ADLSEntityName := ADLSEUtil.GetDataLakeCompliantTableName(Rec."Table ID");
         end else begin
             TableCaptionValue := StrSubstNo(AbsentTableCaptionLbl, Rec."Table ID");
             NumberFieldsChosenValue := 0;
-            CanBeDisabledValue := false;
-            CanBeEnabledValue := false;
             UpdatedLastTimestamp := 0;
             DeletedRecordLastEntryNo := 0;
             ADLSEntityName := '';
-            Rec.State := "ADLSE State"::OnHold;
             Rec.Modify();
         end;
+        ADLSERun.GetLastRunDetails(Rec."Table ID", LastRunState, LastStarted, LastRunError);
     end;
 
     var
         TableCaptionValue: Text;
         NumberFieldsChosenValue: Integer;
-        CanBeDisabledValue: Boolean;
-        CanBeEnabledValue: Boolean;
         ADLSEntityName: Text;
         UpdatedLastTimestamp: BigInteger;
         DeletedRecordLastEntryNo: BigInteger;
         AbsentTableCaptionLbl: Label 'Table%1', Comment = '%1 = Table ID';
+        LastRunState: Enum "ADLSE Run State";
+        LastStarted: DateTime;
+        LastRunError: Text[2048];
 
     local procedure DoChooseFields()
     var

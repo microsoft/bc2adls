@@ -35,6 +35,7 @@ codeunit 82560 "ADLSE Setup"
     begin
         ADLSEField.SetRange("Table ID", ADLSETable."Table ID");
         ADLSEField.InsertForTable(ADLSETable);
+        Commit(); // changes made to the field table go into the database before RunModal is called
         Page.RunModal(Page::"ADLSE Setup Fields", ADLSEField, ADLSEField.Enabled);
     end;
 
@@ -53,27 +54,10 @@ codeunit 82560 "ADLSE Setup"
     begin
         ADLSESetup.GetSingleton();
         ADLSESetup.TestField(Container);
-        if ADLSESetup.Running then
-            if not ADLSESetup."Allow simultaneous exports" then
+        if not ADLSESetup."Allow simultaneous exports" then
+            if ADLSECurrentSession.AreAnySessionsActive() then
                 ADLSECurrentSession.CheckForNoActiveSessions();
 
         ADLSECredentials.Check();
-    end;
-
-    procedure Reset(var ADLSETable: Record "ADLSE Table")
-    var
-        ADLSEDeletedRecord: Record "ADLSE Deleted Record";
-        ADLSETableLastTimestamp: Record "ADLSE Table Last Timestamp";
-    begin
-        if ADLSETable.FindSet() then
-            repeat
-                ADLSETable.Enable();
-                ADLSETableLastTimestamp.SaveUpdatedLastTimestamp(ADLSETable."Table ID", 0);
-                ADLSETableLastTimestamp.SaveDeletedLastEntryNo(ADLSETable."Table ID", 0);
-                ADLSETable.Modify();
-
-                ADLSEDeletedRecord.SetRange("Table ID", ADLSETable."Table ID");
-                ADLSEDeletedRecord.DeleteAll();
-            until ADLSETable.Next = 0;
     end;
 }

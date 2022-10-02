@@ -17,11 +17,22 @@ table 82561 "ADLSE Table"
         {
             Editable = false;
             Caption = 'State';
+            ObsoleteState = Removed;
+            ObsoleteTag = '1.2.0.0';
+            ObsoleteReason = 'Use Enabled field or "ADLSE Run".State instead.';
+        }
+        field(3; Enabled; Boolean)
+        {
+            Editable = false;
+            Caption = 'Enabled';
         }
         field(5; LastError; Text[2048])
         {
             Editable = false;
             Caption = 'Last error';
+            ObsoleteState = Removed;
+            ObsoleteTag = '1.2.0.0';
+            ObsoleteReason = 'Use "ADLSE Run" table instead.';
         }
     }
 
@@ -75,6 +86,7 @@ table 82561 "ADLSE Table"
         TableNotNormalErr: Label 'Table %1 is not a normal table.', Comment = '%1: caption of table';
         TableExportingDataErr: Label 'Data is being executed for table %1. Please wait for the export to finish before making changes.', Comment = '%1: table caption';
         TableCannotBeExportedErr: Label 'The table %1 cannot be exported because of the following error. \%2', Comment = '%1: Table ID, %2: error text';
+        TablesResetTxt: Label '%1 table(s) were reset.', Comment = '%1 = number of tables that were reset';
 
     procedure FieldsChosen(): Integer
     var
@@ -91,7 +103,7 @@ table 82561 "ADLSE Table"
             Error(TableCannotBeExportedErr, TableID, GetLastErrorText());
         Rec.Init();
         Rec."Table ID" := TableID;
-        Rec.State := "ADLSE State"::Ready;
+        Rec.Enabled := true;
         Rec.Insert(true);
     end;
 
@@ -101,7 +113,7 @@ table 82561 "ADLSE Table"
         RecordRef: RecordRef;
     begin
         ClearLastError();
-        RecordRef.Open(TableID);
+        RecordRef.Open(TableID); // proves the table exists and can be opened
     end;
 
     local procedure CheckTableOfTypeNormal(TableID: Integer)
@@ -124,34 +136,66 @@ table 82561 "ADLSE Table"
     var
         ADLSEUtil: Codeunit "ADLSE Util";
     begin
-        if Rec.State = "ADLSE State"::Exporting then
+        if GetLastRunState() = "ADLSE Run State"::InProcess then
             Error(TableExportingDataErr, ADLSEUtil.GetTableCaption(Rec."Table ID"));
     end;
 
-    procedure CanBeDisabled(): Boolean
+    // procedure CanBeDisabled(): Boolean
+    // begin
+    //     exit(Rec.State = "ADLSE State"::Ready);
+    // end;
+
+    // procedure Disable()
+    // begin
+    //     if CanBeDisabled() then begin
+    //         Rec.State := Rec.State::OnHold;
+    //         Rec.Modify();
+    //     end;
+    // end;
+
+    // procedure CanBeEnabled(): Boolean
+    // begin
+    //     exit(Rec.State in ["ADLSE State"::OnHold, "ADLSE State"::Error]);
+    // end;
+
+    // procedure Enable()
+    // begin
+    //     if CanBeEnabled() then begin
+    //         Rec.State := Rec.State::Ready;
+    //         Rec.LastError := '';
+    //         Rec.Modify();
+    //     end;
+    // end;
+
+    local procedure GetLastRunState(): enum "ADLSE Run State"
+    var
+        ADLSERun: Record "ADLSE Run";
+        LastState: enum "ADLSE Run State";
+        LastStarted: DateTime;
+        LastError: Text[2048];
     begin
-        exit(Rec.State = "ADLSE State"::Ready);
+        ADLSERun.GetLastRunDetails(Rec."Table ID", LastState, LastStarted, LastError);
+        exit(LastState);
     end;
 
-    procedure Disable()
+    procedure ResetSelected()
+    var
+        ADLSEDeletedRecord: Record "ADLSE Deleted Record";
+        ADLSETableLastTimestamp: Record "ADLSE Table Last Timestamp";
+        Counter: Integer;
     begin
-        if CanBeDisabled() then begin
-            Rec.State := Rec.State::OnHold;
-            Rec.Modify();
-        end;
-    end;
+        if Rec.FindSet(true) then
+            repeat
+                Rec.Enabled := true;
+                Rec.Modify();
 
-    procedure CanBeEnabled(): Boolean
-    begin
-        exit(Rec.State in ["ADLSE State"::OnHold, "ADLSE State"::Error]);
-    end;
+                ADLSETableLastTimestamp.SaveUpdatedLastTimestamp(Rec."Table ID", 0);
+                ADLSETableLastTimestamp.SaveDeletedLastEntryNo(Rec."Table ID", 0);
 
-    procedure Enable()
-    begin
-        if CanBeEnabled() then begin
-            Rec.State := Rec.State::Ready;
-            Rec.LastError := '';
-            Rec.Modify();
-        end;
+                ADLSEDeletedRecord.SetRange("Table ID", Rec."Table ID");
+                ADLSEDeletedRecord.DeleteAll();
+                Counter += 1;
+            until Rec.Next() = 0;
+        Message(TablesResetTxt, Counter);
     end;
 }
