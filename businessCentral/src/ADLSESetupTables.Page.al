@@ -103,6 +103,7 @@ page 82561 "ADLSE Setup Tables"
                 PromotedOnly = true;
                 PromotedCategory = Process;
                 Image = New;
+                Enabled = NoExportInProgress;
 
                 trigger OnAction()
                 var
@@ -123,6 +124,7 @@ page 82561 "ADLSE Setup Tables"
                 PromotedOnly = true;
                 PromotedCategory = Process;
                 Image = Delete;
+                Enabled = NoExportInProgress;
 
                 trigger OnAction()
                 begin
@@ -141,6 +143,7 @@ page 82561 "ADLSE Setup Tables"
                 PromotedOnly = true;
                 PromotedCategory = Process;
                 Image = SelectEntries;
+                Enabled = NoExportInProgress;
 
                 trigger OnAction()
                 begin
@@ -157,10 +160,10 @@ page 82561 "ADLSE Setup Tables"
                 PromotedIsBig = true;
                 PromotedOnly = true;
                 Image = ResetStatus;
+                Enabled = NoExportInProgress;
 
                 trigger OnAction()
                 var
-                    ADLSESetup: Codeunit "ADLSE Setup";
                     SelectedADLSETable: Record "ADLSE Table";
                 begin
                     CurrPage.SetSelectionFilter(SelectedADLSETable);
@@ -170,6 +173,13 @@ page 82561 "ADLSE Setup Tables"
             }
         }
     }
+
+    trigger OnInit()
+    var
+        ADLSECurrentSession: Record "ADLSE Current Session";
+    begin
+        NoExportInProgress := not ADLSECurrentSession.AreAnySessionsActive();
+    end;
 
     trigger OnAfterGetRecord()
     var
@@ -205,6 +215,7 @@ page 82561 "ADLSE Setup Tables"
         LastRunState: Enum "ADLSE Run State";
         LastStarted: DateTime;
         LastRunError: Text[2048];
+        NoExportInProgress: Boolean;
 
     local procedure DoChooseFields()
     var

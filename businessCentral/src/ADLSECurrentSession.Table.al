@@ -53,7 +53,7 @@ table 82565 "ADLSE Current Session"
         Rec."Table ID" := ADLSETableID;
         Rec."Session ID" := SessionId();
         Rec."Session Unique ID" := GetActiveSessionIDForSession(SessionId());
-        Rec."Company Name" := CompanyName();
+        Rec."Company Name" := CopyStr(CompanyName(), 1, 30);
         Rec.Insert();
     end;
 
@@ -89,15 +89,13 @@ table 82565 "ADLSE Current Session"
     procedure CleanupInactiveSessions()
     begin
         Rec.SetRange("Company Name", CompanyName());
-        if Rec.FindSet(true) then begin
+        if Rec.FindSet(true) then
             if not IsSessionActive() then
                 Rec.Delete();
-        end;
     end;
 
     procedure CancelAll()
     var
-        ADLSERun: Record "ADLSE Run";
         ADLSEUtil: Codeunit "ADLSE Util";
     begin
         if Rec.FindSet(false) then

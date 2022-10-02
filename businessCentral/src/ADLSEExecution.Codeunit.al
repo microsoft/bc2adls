@@ -12,7 +12,6 @@ codeunit 82569 "ADLSE Execution"
     var
         EmitTelemetry: Boolean;
         ExportStartedTxt: Label 'Data export started for %1 out of %2 tables. Please refresh this page to see the latest export State for the tables.', Comment = '%1 = number of tables to start the export for. %2 = total number of tables enabled for export.';
-        ExportNotStoppedErr: Label 'Not all sessions that are exporting data may have been stopped. Please try cancelling sessions from the Admin Center and try again. Last Error: %1', Comment = '%1 = error text';
         SuccessfulStopMsg: Label 'The export process was stopped successfully.';
         TrackedDeletedRecordsRemovedMsg: Label 'Representations of deleted records that have been exported previously have been deleted.';
         JobCategoryCodeTxt: Label 'ADLSE';
@@ -25,17 +24,15 @@ codeunit 82569 "ADLSE Execution"
         ADLSESetupRec: Record "ADLSE Setup";
         ADLSETable: Record "ADLSE Table";
         ADLSEField: Record "ADLSE Field";
-        ADLSESetup: Codeunit "ADLSE Setup";
-        ADSLEConnection: Codeunit "ADLSE Communication";
-        ADLSEExecute: Codeunit "ADLSE Execute";
-        ADLSEUtil: Codeunit "ADLSE Util";
         ADLSECurrentSession: Record "ADLSE Current Session";
+        ADLSESetup: Codeunit "ADLSE Setup";
+        ADLSECommunication: Codeunit "ADLSE Communication";
         Counter: Integer;
         Started: Integer;
     begin
         ADLSESetup.CheckSetup(ADLSESetupRec);
         ADLSECurrentSession.CleanupInactiveSessions();
-        ADSLEConnection.SetupBlobStorage();
+        ADLSECommunication.SetupBlobStorage();
         EmitTelemetry := ADLSESetupRec."Emit telemetry";
 
         if EmitTelemetry then

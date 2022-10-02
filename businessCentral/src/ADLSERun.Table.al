@@ -58,7 +58,7 @@ table 82566 "ADLSE Run"
     }
 
     var
-        ExportRunNotFoundErr: Label 'No export process running for table %1.', Comment = '&1 = caption of the table';
+        ExportRunNotFoundErr: Label 'No export process running for table %1.', Comment = '%1 = caption of the table';
         ExportStoppedDueToCancelledSessionTxt: Label 'Export stopped as session was cancelled. Please check state of the export on the data lake before enabling this.';
 
     procedure GetLastRunDetails(TableID: Integer; var Status: enum "ADLSE Run State"; var Started: DateTime; var ErrorIfAny: Text[2048])
@@ -78,7 +78,7 @@ table 82566 "ADLSE Run"
     begin
         Rec.Init();
         Rec."Table ID" := TableID;
-        Rec."Company Name" := CompanyName();
+        Rec."Company Name" := CopyStr(CompanyName(), 1, 30);
         Rec.State := "ADLSE Run State"::InProcess;
         Rec.Started := CurrentDateTime();
         Rec.Insert();

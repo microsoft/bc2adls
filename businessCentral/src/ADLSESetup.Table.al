@@ -89,7 +89,7 @@ table 82560 "ADLSE Setup"
         ContainerNameIncorrectFormatErr: Label 'The container name is in an incorrect format.';
         RecordDoesNotExistErr: Label 'No record on this table exists.';
         NoChangesAllowedErr: Label 'No changes allowed when exports have been configured to be allowed simultaneously.';
-        PrimaryKeyValue: Label '0', Locked = true;
+        PrimaryKeyValueLbl: Label '0', Locked = true;
 
     local procedure TextContainerCharactersOtherThan(String: Text; CharString: Text): Boolean
     var
@@ -130,7 +130,7 @@ table 82560 "ADLSE Setup"
 
     local procedure GetPrimaryKeyValue() PKValue: Integer
     begin
-        Evaluate(PKValue, PrimaryKeyValue, 9);
+        Evaluate(PKValue, PrimaryKeyValueLbl, 9);
     end;
 
 }

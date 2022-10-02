@@ -152,11 +152,9 @@ page 82560 "ADLSE Setup"
 
                 trigger OnAction()
                 var
-                    ADLSECurrentSession: Record "ADLSE Current Session";
                     ADLSEExecution: Codeunit "ADLSE Execution";
                 begin
                     ADLSEExecution.StopExport();
-                    ExportInProgress := ADLSECurrentSession.AreAnySessionsActive(); // Rec.Running;
                     CurrPage.Update();
                 end;
             }
@@ -240,7 +238,7 @@ page 82560 "ADLSE Setup"
         ADLSECurrentSession: Record "ADLSE Current Session";
         ADLSERun: Record "ADLSE Run";
     begin
-        ExportInProgress := ADLSECurrentSession.AreAnySessionsActive();// ADLSESetup.Running;
+        ExportInProgress := ADLSECurrentSession.AreAnySessionsActive();
         TrackedDeletedRecordsExist := not ADLSEDeletedRecord.IsEmpty();
         OldLogsExist := ADLSERun.OldRunsExist();
         UpdateNotificationIfAnyTableExportFailed();

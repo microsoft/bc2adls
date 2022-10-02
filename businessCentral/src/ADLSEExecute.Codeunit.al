@@ -105,7 +105,6 @@ codeunit 82561 "ADLSE Execute"
         var EntityJsonNeedsUpdate: Boolean; var ManifestJsonsNeedsUpdate: Boolean)
     var
         ADLSECommunicationDeletions: Codeunit "ADLSE Communication";
-        ADLSEExecution: Codeunit "ADLSE Execution";
         FieldIdList: List of [Integer];
     begin
         FieldIdList := CreateFieldListForTable(TableID);

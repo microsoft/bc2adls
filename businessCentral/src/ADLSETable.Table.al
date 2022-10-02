@@ -47,7 +47,6 @@ table 82561 "ADLSE Table"
     trigger OnInsert()
     var
         ADLSESetup: Record "ADLSE Setup";
-        ADLSETableField: Record "ADLSE Field";
     begin
         ADLSESetup.CheckNoSimultaneousExportsAllowed();
 
@@ -140,41 +139,15 @@ table 82561 "ADLSE Table"
             Error(TableExportingDataErr, ADLSEUtil.GetTableCaption(Rec."Table ID"));
     end;
 
-    // procedure CanBeDisabled(): Boolean
-    // begin
-    //     exit(Rec.State = "ADLSE State"::Ready);
-    // end;
-
-    // procedure Disable()
-    // begin
-    //     if CanBeDisabled() then begin
-    //         Rec.State := Rec.State::OnHold;
-    //         Rec.Modify();
-    //     end;
-    // end;
-
-    // procedure CanBeEnabled(): Boolean
-    // begin
-    //     exit(Rec.State in ["ADLSE State"::OnHold, "ADLSE State"::Error]);
-    // end;
-
-    // procedure Enable()
-    // begin
-    //     if CanBeEnabled() then begin
-    //         Rec.State := Rec.State::Ready;
-    //         Rec.LastError := '';
-    //         Rec.Modify();
-    //     end;
-    // end;
 
     local procedure GetLastRunState(): enum "ADLSE Run State"
     var
         ADLSERun: Record "ADLSE Run";
         LastState: enum "ADLSE Run State";
         LastStarted: DateTime;
-        LastError: Text[2048];
+        LastErrorText: Text[2048];
     begin
-        ADLSERun.GetLastRunDetails(Rec."Table ID", LastState, LastStarted, LastError);
+        ADLSERun.GetLastRunDetails(Rec."Table ID", LastState, LastStarted, LastErrorText);
         exit(LastState);
     end;
 
