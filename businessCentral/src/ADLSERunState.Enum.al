@@ -1,6 +1,6 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
-enum 82563 "ADLSE Run State"
+enum 82560 "ADLSE Run State"
 {
     Access = Internal;
     Extensible = false;

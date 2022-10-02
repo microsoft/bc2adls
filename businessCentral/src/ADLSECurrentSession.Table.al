@@ -63,12 +63,6 @@ table 82565 "ADLSE Current Session"
         Rec.Delete();
     end;
 
-    [Obsolete('Use the function CheckForNoActiveSessions instead', '1.2.0.0')]
-    procedure CheckSessionsActive() AnyActive: Boolean
-    begin
-        AnyActive := AreAnySessionsActive();
-    end;
-
     procedure CheckForNoActiveSessions()
     begin
         if AreAnySessionsActive() then

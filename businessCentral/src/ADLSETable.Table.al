@@ -13,26 +13,10 @@ table 82561 "ADLSE Table"
             Editable = false;
             Caption = 'Table ID';
         }
-        field(2; State; Enum "ADLSE State")
-        {
-            Editable = false;
-            Caption = 'State';
-            ObsoleteState = Removed;
-            ObsoleteTag = '1.2.0.0';
-            ObsoleteReason = 'Use Enabled field or "ADLSE Run".State instead.';
-        }
         field(3; Enabled; Boolean)
         {
             Editable = false;
             Caption = 'Enabled';
-        }
-        field(5; LastError; Text[2048])
-        {
-            Editable = false;
-            Caption = 'Last error';
-            ObsoleteState = Removed;
-            ObsoleteTag = '1.2.0.0';
-            ObsoleteReason = 'Use "ADLSE Run" table instead.';
         }
     }
 
