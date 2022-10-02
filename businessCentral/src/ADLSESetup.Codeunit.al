@@ -36,6 +36,7 @@ codeunit 82560 "ADLSE Setup"
     begin
         ADLSEField.SetRange("Table ID", ADLSETable."Table ID");
         ADLSEField.InsertForTable(ADLSETable);
+        Commit(); // changes made to the field table go into the database before RunModal is called
         Page.RunModal(Page::"ADLSE Setup Fields", ADLSEField, ADLSEField.Enabled);
     end;
 
