@@ -11,20 +11,23 @@ The **bc2adls** tool is used to export data from [Dynamics 365 Business Central]
 The following diagram illustrates the flow of data through a usage scenario- the main points being,
 - Incremental update data from BC is moved to Azure Data Lake Storage through the ADLSE extension into the `deltas` folder.
 - Triggering the Synapse pipeline(s) consolidates the increments into the data folder.
-- The data is now ready for consumption by analytics apps like Power BI,
-	- via the `data.cdm.manifest.json manifest` file, or
-	- via the raw CSV files for each individual entity inside the `data` folder
+- The resulting data can be consumed by applications, such as Power BI, in the following ways:
+	- CDM: via the `data.cdm.manifest.json manifest`
+	- CSV/Parquet: via the underlying files for each individual entity inside the `data` folder
+	- Spark/SQL: via [shared metadata tables](./assets/SharedMetaDataTables.md)
 	
 ![Architecture](/.assets/architecture.jpg "Flow of data")
 
 More details:
 - [Installation and configuration](/.assets/Setup.md)
 - [Executing the export and pipeline](/.assets/Execution.md)
+- [Creating shared metadata tables](./assets/SharedMetaDataTables.md)
 
 ## Latest notable changes
 
 Pull request | Changes
 --------------- | ---
+[TBD]() | Entities using the Parquet file format can now automatically be registered as a shared metadata table that is managed in Spark but can also be queried using Serverless SQL. You can find the full feature guide [here](/.assets/SharedMetadataTables.md).
 [43](https://github.com/microsoft/bc2adls/pull/43) | Intermediate staging data is no longer saved in CDM format. This eliminates potential conflicts during concurrent updates to the manifest. This does not affect the final data output, which continues to be in CDM format.
 [33](https://github.com/microsoft/bc2adls/pull/33) | Fixing issue related to localizations of booleans and options/ enums. 
 [31](https://github.com/microsoft/bc2adls/pull/31) | Permissions corrected to direct permissions.
