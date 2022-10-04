@@ -16,7 +16,7 @@ The following diagram illustrates the flow of data through a usage scenario- the
 	- CSV/Parquet: via the underlying files for each individual entity inside the `data` folder
 	- Spark/SQL: via [shared metadata tables](./assets/SharedMetaDataTables.md)
 	
-![Architecture](/.assets/architecture.jpg "Flow of data")
+![Architecture](/.assets/architecture.png "Flow of data")
 
 More details:
 - [Installation and configuration](/.assets/Setup.md)
