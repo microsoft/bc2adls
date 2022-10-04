@@ -27,7 +27,7 @@ More details:
 
 Pull request | Changes
 --------------- | ---
-[TBD]() | Entities using the Parquet file format can now automatically be registered as a shared metadata table that is managed in Spark but can also be queried using Serverless SQL. You can find the full feature guide [here](/.assets/SharedMetadataTables.md).
+[49](https://github.com/microsoft/bc2adls/pull/49) | Entities using the Parquet file format can now automatically be registered as a shared metadata table that is managed in Spark but can also be queried using Serverless SQL. You can find the full feature guide [here](/.assets/SharedMetadataTables.md).
 [43](https://github.com/microsoft/bc2adls/pull/43) | Intermediate staging data is no longer saved in CDM format. This eliminates potential conflicts during concurrent updates to the manifest. This does not affect the final data output, which continues to be in CDM format.
 [33](https://github.com/microsoft/bc2adls/pull/33) | Fixing issue related to localizations of booleans and options/ enums. 
 [31](https://github.com/microsoft/bc2adls/pull/31) | Permissions corrected to direct permissions.
