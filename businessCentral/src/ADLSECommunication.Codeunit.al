@@ -70,7 +70,7 @@ codeunit 82562 "ADLSE Communication"
         EmitTelemetry := EmitTelemetryValue;
     end;
 
-    procedure CheckEntity(CdmDataFormat: Enum "ADLSE CDM Format"; var EntityJsonNeedsUpdate: Boolean; var ManifestJsonsNeedsUpdate: Boolean; EmitTelemetry: Boolean)
+    procedure CheckEntity(CdmDataFormat: Enum "ADLSE CDM Format"; var EntityJsonNeedsUpdate: Boolean; var ManifestJsonsNeedsUpdate: Boolean)
     var
         ADLSESetup: Record "ADLSE Setup";
         ADLSECdmUtil: Codeunit "ADLSE CDM Util";
@@ -86,15 +86,15 @@ codeunit 82562 "ADLSE Communication"
         OldJson := ADLSEGen2Util.GetBlobContent(GetBaseUrl() + BlobEntityPath, ADLSECredentials, BlobExists);
         if BlobExists then
             ADLSECdmUtil.CheckChangeInEntities(OldJson, EntityJson, EntityName);
-        EntityJsonNeedsUpdate := JsonsDifferent(OldJson, EntityJson, EmitTelemetry);
+        EntityJsonNeedsUpdate := JsonsDifferent(OldJson, EntityJson);
 
         // check manifest. Assume that if the data manifest needs change, the delta manifest will also need be updated
         OldJson := ADLSEGen2Util.GetBlobContent(GetBaseUrl() + StrSubstNo(CorpusJsonPathTxt, DataCdmManifestNameTxt), ADLSECredentials, BlobExists);
         NewJson := ADLSECdmUtil.UpdateDefaultManifestContent(OldJson, TableID, 'data', CdmDataFormat);
-        ManifestJsonsNeedsUpdate := JsonsDifferent(OldJson, NewJson, EmitTelemetry);
+        ManifestJsonsNeedsUpdate := JsonsDifferent(OldJson, NewJson);
 
         ADLSESetup.GetSingleton();
-        if ADLSESetup."Allow simultaneous exports" then begin
+        if ADLSESetup."Multi- Company Export" then begin
             if EntityJsonNeedsUpdate then
                 Error(EntitySchemaChangedErr, EntityName, NotAllowedOnSimultaneousExportTxt);
             if ManifestJsonsNeedsUpdate then
@@ -102,7 +102,7 @@ codeunit 82562 "ADLSE Communication"
         end;
     end;
 
-    local procedure JsonsDifferent(Json1: JsonObject; Json2: JsonObject; EmitTelemetry: Boolean) Result: Boolean
+    local procedure JsonsDifferent(Json1: JsonObject; Json2: JsonObject) Result: Boolean
     var
         ADLSEExecution: Codeunit "ADLSE Execution";
         CustomDimensions: Dictionary of [Text, Text];
