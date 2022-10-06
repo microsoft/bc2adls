@@ -77,11 +77,11 @@ This is the step that would create the analytics pipelines in the above workspac
 | Sequence # | Name & Url | Tab | Menu to invoke under the `+` sign | 
 | ---------- | ---- | --- | ----------------------------------| 
 |1|[`data_dataset`](/synapse/dataset/data_dataset.json)|`Data`|`Integration dataset`|
-|2|[`dataManifest_dataset`](/synapse/dataset/dataManifest_dataset.json)|`Data`|`Integration dataset`|
-|3|[`deltas_dataset`](/synapse/dataset/deltas_dataset.json)|`Data`|`Integration dataset`|
-|4|[`deltasManifest_dataset`](/synapse/dataset/deltasManifest_dataset.json)|`Data`|`Integration dataset`|
-|5|[`staging_dataset`](/synapse/dataset/staging_dataset.json)|`Data`|`Integration dataset`|
-|6|[`stagingManifest_dataset`](/synapse/dataset/stagingManifest_dataset.json)|`Data`|`Integration dataset`|
+|2|[`data_dataset_parquet`](/synapse/dataset/data_dataset_parquet.json)|`Data`|`Integration dataset`|
+|3|[`dataManifest_dataset`](/synapse/dataset/dataManifest_dataset.json)|`Data`|`Integration dataset`|
+|4|[`deltas_dataset`](/synapse/dataset/deltas_dataset.json)|`Data`|`Integration dataset`|
+|5|[`deltasManifest_dataset`](/synapse/dataset/deltasManifest_dataset.json)|`Data`|`Integration dataset`|
+|6|[`staging_dataset`](/synapse/dataset/staging_dataset.json)|`Data`|`Integration dataset`|
 |7|[`Consolidation_flow`](/synapse/dataflow/Consolidation_flow.json)|`Develop`|`Data flow`|
 |8|[`Consolidation_OneEntity`](/synapse/pipeline/Consolidation_OneEntity.json)|`Integrate`|`Pipeline`|
 |9|[`Consolidation_CheckForDeltas`](/synapse/pipeline/Consolidation_CheckForDeltas.json)|`Integrate`|`Pipeline`|
