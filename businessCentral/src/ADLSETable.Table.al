@@ -13,10 +13,25 @@ table 82561 "ADLSE Table"
             Editable = false;
             Caption = 'Table ID';
         }
+        field(2; State; Integer)
+        {
+            Caption = 'State';
+            ObsoleteReason = 'Use ADLSE Run table instead';
+            ObsoleteTag = '1.2.2.0';
+            ObsoleteState = Removed;
+        }
         field(3; Enabled; Boolean)
         {
             Editable = false;
             Caption = 'Enabled';
+        }
+        field(5; LastError; Text[2048])
+        {
+            Editable = false;
+            Caption = 'Last error';
+            ObsoleteReason = 'Use ADLSE Run table instead';
+            ObsoleteTag = '1.2.2.0';
+            ObsoleteState = Removed;
         }
     }
 

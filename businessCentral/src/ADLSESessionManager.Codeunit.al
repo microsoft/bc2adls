@@ -81,8 +81,7 @@ codeunit 82570 "ADLSE Session Manager"
 
         if ADLSESetup."Emit telemetry" then begin
             CustomDimensions.Add('PendingTables', Concatenate(GetPendingTablesList()));
-            // TODO change to verbose
-            ADLSEExecution.Log('ADLSE-026', 'Export from pending tables starting', Verbosity::Normal, CustomDimensions);
+            ADLSEExecution.Log('ADLSE-026', 'Export from pending tables starting', Verbosity::Verbose, CustomDimensions);
         end;
 
         // One session freed up. create session from queue
