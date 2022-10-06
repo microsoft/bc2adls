@@ -12,6 +12,8 @@ codeunit 82566 "ADLSE CDM Util" // Refer Common Data Model https://docs.microsof
         RepresentsTableTxt: Label 'Represents the table %1', Comment = '%1: table caption';
         ManifestNameTxt: Label '%1-manifest', Comment = '%1: name of manifest';
         EntityPathTok: Label '%1.cdm.json/%1', Comment = '%1: Entity';
+        UnequalAttributeCountErr: Label 'Unequal number of attributes';
+        MismatchedValueInAttributeErr: Label 'The attribute value for %1 at index %2 is different. First: %3, Second: %4', Comment = '%1 = field, %2 = index, %3 = value of the first, %4 = value of the second';
 
     procedure CreateEntityContent(TableID: Integer; FieldIdList: List of [Integer]) Content: JsonObject
     var
@@ -185,5 +187,48 @@ codeunit 82566 "ADLSE CDM Util" // Refer Common Data Model https://docs.microsof
             if not OldAttributeFound then
                 Error(ExistingFieldCannotBeRemovedErr, OldAttributeName, EntityName);
         end;
+    end;
+
+    [TryFunction]
+    procedure CompareEntityJsons(Json1: JsonObject; Json2: JsonObject)
+    var
+        Token: JsonToken;
+        Attributes1: JsonArray;
+        Attributes2: JsonArray;
+        Attribute1: JsonToken;
+        Attribute2: JsonToken;
+        Counter: Integer;
+    begin
+        ClearLastError();
+
+        Json1.SelectToken('definitions[0].hasAttributes', Token);
+        Attributes1 := Token.AsArray();
+
+        Json2.SelectToken('definitions[0].hasAttributes', Token);
+        Attributes2 := Token.AsArray();
+
+        if Attributes1.Count() <> Attributes2.Count() then
+            Error(UnequalAttributeCountErr);
+
+        for Counter := 1 to Attributes1.Count() do begin
+            Attributes1.Get(Counter, Attribute1);
+            Attributes2.Get(Counter, Attribute2);
+
+            CompareAttributeField(Attribute1, Attribute2, 'name', Counter);
+            CompareAttributeField(Attribute1, Attribute2, 'dataFormat', Counter);
+            CompareAttributeField(Attribute1, Attribute2, 'displayName', Counter);
+        end;
+    end;
+
+    local procedure CompareAttributeField(Attribute1: JsonToken; Attribute2: JsonToken; FieldName: Text; Index: Integer)
+    var
+        ADLSEUtil: Codeunit "ADLSE Util";
+        Value1: Text;
+        Value2: Text;
+    begin
+        Value1 := ADLSEUtil.GetTextValueForKeyInJson(Attribute1.AsObject(), FieldName);
+        Value2 := ADLSEUtil.GetTextValueForKeyInJson(Attribute2.AsObject(), FieldName);
+        if (Value1 <> Value2) then
+            Error(MismatchedValueInAttributeErr, FieldName, Index, Value1, Value2);
     end;
 }

@@ -86,7 +86,9 @@ codeunit 82562 "ADLSE Communication"
         OldJson := ADLSEGen2Util.GetBlobContent(GetBaseUrl() + BlobEntityPath, ADLSECredentials, BlobExists);
         if BlobExists then
             ADLSECdmUtil.CheckChangeInEntities(OldJson, EntityJson, EntityName);
-        EntityJsonNeedsUpdate := JsonsDifferent(OldJson, EntityJson);
+        EntityJsonNeedsUpdate := ADLSECdmUtil.CompareEntityJsons(OldJson, EntityJson);
+        if EntityJsonNeedsUpdate then
+            JsonsDifferent(OldJson, NewJson); // to log the difference
 
         // check manifest. Assume that if the data manifest needs change, the delta manifest will also need be updated
         OldJson := ADLSEGen2Util.GetBlobContent(GetBaseUrl() + StrSubstNo(CorpusJsonPathTxt, DataCdmManifestNameTxt), ADLSECredentials, BlobExists);

@@ -1,0 +1,157 @@
+codeunit 82570 "ADLSE Session Manager"
+{
+    Access = Internal;
+
+    var
+        PendingTablesKeyTxt: Label 'Pending', Locked = true;
+        ConcatendatedStringLbl: Label '%1,%2', Locked = true;
+
+    procedure Init()
+    begin
+        SavePendingTables('');
+    end;
+
+    procedure StartExport(TableID: Integer; EmitTelemetry: Boolean): Boolean
+    begin
+        exit(StartExport(TableID, false, EmitTelemetry));
+    end;
+
+    local procedure StartExport(TableID: Integer; ExportWasPending: Boolean; EmitTelemetry: Boolean) Started: Boolean
+    var
+        ADLSETable: Record "ADLSE Table";
+        ADLSEExecution: Codeunit "ADLSE Execution";
+        ADLSEUtil: Codeunit "ADLSE Util";
+        CustomDimensions: Dictionary of [Text, Text];
+        NewSessionID: Integer;
+    begin
+        if DataChangesExist(TableID) then begin
+            ADLSETable.Get(TableID);
+            Started := Session.StartSession(NewSessionID, Codeunit::"ADLSE Execute", CompanyName(), ADLSETable);
+            CustomDimensions.Add('Entity', ADLSEUtil.GetTableCaption(TableID));
+            CustomDimensions.Add('ExportWasPending', Format(ExportWasPending));
+            if Started then begin
+                CustomDimensions.Add('SessionId', Format(NewSessionID));
+                if EmitTelemetry then
+                    ADLSEExecution.Log('ADLSE-002', 'Export session created', Verbosity::Normal, CustomDimensions);
+
+                if ExportWasPending then
+                    RemoveFromPendingTables(TableID); // remove because the export session was started
+            end else begin
+                if EmitTelemetry then
+                    ADLSEExecution.Log('ADLSE-025', 'Session.StartSession() failed', Verbosity::Warning, CustomDimensions);
+
+                if not ExportWasPending then
+                    PushToPendingTables(TableID);
+            end;
+        end else begin
+            if ExportWasPending then
+                RemoveFromPendingTables(TableID); // remove because a previous export may have successful
+
+            if EmitTelemetry then begin
+                CustomDimensions.Add('Entity', ADLSEUtil.GetTableCaption(ADLSETable."Table ID"));
+                ADLSEExecution.Log('ADLSE-024', 'No changes to be exported.', Verbosity::Normal, CustomDimensions);
+            end;
+        end;
+    end;
+
+    local procedure DataChangesExist(TableID: Integer): Boolean
+    var
+        ADLSETableLastTimestamp: Record "ADLSE Table Last Timestamp";
+        ADLSEExecute: Codeunit "ADLSE Execute";
+        UpdatedLastTimestamp: BigInteger;
+        DeletedLastEntryNo: BigInteger;
+    begin
+        UpdatedLastTimestamp := ADLSETableLastTimestamp.GetUpdatedLastTimestamp(TableID);
+        DeletedLastEntryNo := ADLSETableLastTimestamp.GetDeletedLastEntryNo(TableID);
+
+        if ADLSEExecute.UpdatedRecordsExist(TableID, UpdatedLastTimestamp) then
+            exit(true);
+        if ADLSEExecute.DeletedRecordsExist(TableID, DeletedLastEntryNo) then
+            exit(true);
+    end;
+
+    procedure StartExportFromPendingTables()
+    var
+        ADLSESetup: Record "ADLSE Setup";
+        ADLSEExecution: Codeunit "ADLSE Execution";
+        CustomDimensions: Dictionary of [Text, Text];
+        TableID: Integer;
+    begin
+        ADLSESetup.GetSingleton();
+
+        if ADLSESetup."Emit telemetry" then begin
+            CustomDimensions.Add('PendingTables', Concatenate(GetPendingTablesList()));
+            // TODO change to verbose
+            ADLSEExecution.Log('ADLSE-026', 'Export from pending tables starting', Verbosity::Normal, CustomDimensions);
+        end;
+
+        // One session freed up. create session from queue
+        if GetFromPendingTables(TableID) then
+            StartExport(TableID, true, ADLSESetup."Emit telemetry");
+    end;
+
+    local procedure GetFromPendingTables(var TableID: Integer): Boolean
+    var
+        Tables: List of [Integer];
+    begin
+        Tables := GetPendingTablesList();
+        exit(Tables.Get(1, TableID));
+    end;
+
+    local procedure PushToPendingTables(TableID: Integer)
+    var
+        Tables: List of [Integer];
+    begin
+        Tables := GetPendingTablesList();
+        if not Tables.Contains(TableID) then begin
+            Tables.Add(TableID);
+            SavePendingTables(Concatenate(Tables));
+        end;
+    end;
+
+    local procedure RemoveFromPendingTables(TableID: Integer): Boolean
+    var
+        Tables: List of [Integer];
+    begin
+        Tables := GetPendingTablesList();
+        if Tables.Remove(TableID) then
+            SavePendingTables(Concatenate(Tables));
+    end;
+
+    local procedure GetPendingTablesList(): List of [Integer]
+    var
+        Result: Text;
+    begin
+        IsolatedStorage.Get(PendingTablesKeyTxt, DataScope::Company, Result);
+        exit(DeConcatenate(Result));
+    end;
+
+    local procedure Concatenate(Values: List of [Integer]) Result: Text
+    var
+        Value: Integer;
+    begin
+        foreach Value in Values do
+            if Result = '' then
+                Result := Format(Value, 0, 9)
+            else
+                Result := StrSubstNo(ConcatendatedStringLbl, Result, Value);
+    end;
+
+    local procedure DeConcatenate(CommaSeperatedText: Text) Values: List of [Integer]
+    var
+        TextValues: List of [Text];
+        ValueText: Text;
+        ValueInt: Integer;
+    begin
+        TextValues := CommaSeperatedText.Split(',');
+        foreach ValueText in TextValues do
+            if Evaluate(ValueInt, ValueText) then
+                Values.Add(ValueInt);
+    end;
+
+    local procedure SavePendingTables(Value: Text)
+    begin
+        if IsolatedStorage.Set(PendingTablesKeyTxt, Value, DataScope::Company) then
+            Commit(); // changing isolated storage triggers a write transaction            
+    end;
+}
