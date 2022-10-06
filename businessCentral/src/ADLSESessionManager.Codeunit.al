@@ -48,7 +48,7 @@ codeunit 82570 "ADLSE Session Manager"
                 RemoveFromPendingTables(TableID); // remove because a previous export may have successful
 
             if EmitTelemetry then begin
-                CustomDimensions.Add('Entity', ADLSEUtil.GetTableCaption(ADLSETable."Table ID"));
+                CustomDimensions.Add('Entity', ADLSEUtil.GetTableCaption(TableID));
                 ADLSEExecution.Log('ADLSE-024', 'No changes to be exported.', Verbosity::Normal, CustomDimensions);
             end;
         end;
