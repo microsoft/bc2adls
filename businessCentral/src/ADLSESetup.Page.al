@@ -91,17 +91,17 @@ page 82560 "ADLSE Setup"
                         ToolTip = 'Specifies the format in which to store the exported data in the ''data'' CDM folder. The Parquet format is recommended for storing the data with the best fidelity.';
                     }
 
+                    field("Multi- Company Export"; Rec."Multi- Company Export")
+                    {
+                        ApplicationArea = All;
+                        Enabled = not ExportInProgress;
+                        Tooltip = 'Specifies if simultaneous exports of data from different companies in Business Central to the lake are allowed. Beware that setting this checkmark will prevent you from making any changes to the export schema. We recommend that you set this checkmark only after the last changes to the CDM schema have been exported to the lake successfully.';
+                    }
+
                     field("Emit telemetry"; Rec."Emit telemetry")
                     {
                         ApplicationArea = All;
                         Tooltip = 'Specifies if operational telemetry will be emitted to this extension publisher''s telemetry pipeline. You will have to configure a telemetry account for this extension first.';
-                    }
-
-                    field("Allow simultaneous exports"; Rec."Allow simultaneous exports")
-                    {
-                        ApplicationArea = All;
-                        Enabled = not ExportInProgress;
-                        Tooltip = 'Specifies if simultaneous exports of data in Business Central to the lake are allowed. Beware that setting this checkmark will prevent you from making any changes to the export schema. We recommend that you set this checkmark only after the last changes in the schema have been exported to the lake successfully.';
                     }
 
                 }
@@ -122,7 +122,7 @@ page 82560 "ADLSE Setup"
             {
                 ApplicationArea = All;
                 Caption = 'Export';
-                Tooltip = 'Starts the export process by spawning different sessions for each table. The action is disabled in case there are export processes currently running.';
+                Tooltip = 'Starts the export process by spawning different sessions for each table. The action is disabled in case there are export processes currently running, also in other companies.';
                 Promoted = true;
                 PromotedIsBig = true;
                 PromotedCategory = Process;
@@ -143,7 +143,7 @@ page 82560 "ADLSE Setup"
             {
                 ApplicationArea = All;
                 Caption = 'Stop export';
-                Tooltip = 'Tries to stop all threads that are exporting data.';
+                Tooltip = 'Tries to stop all sessions that are exporting data, including those that are running in other companies.';
                 Promoted = true;
                 PromotedIsBig = true;
                 PromotedCategory = Process;
