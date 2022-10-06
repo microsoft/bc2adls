@@ -111,7 +111,7 @@ codeunit 82561 "ADLSE Execute"
 
         // first export the upserts
         ADLSECommunication.Init(TableID, FieldIdList, UpdatedLastTimeStamp, EmitTelemetry);
-        ADLSECommunication.CheckEntity(CDMDataFormat, EntityJsonNeedsUpdate, ManifestJsonsNeedsUpdate, EmitTelemetry);
+        ADLSECommunication.CheckEntity(CDMDataFormat, EntityJsonNeedsUpdate, ManifestJsonsNeedsUpdate);
         ExportTableUpdates(TableID, FieldIdList, ADLSECommunication, UpdatedLastTimeStamp);
 
         // then export the deletes
@@ -232,14 +232,26 @@ codeunit 82561 "ADLSE Execute"
         ADLSEUtil.AddSystemFields(FieldIdList);
     end;
 
-
     local procedure SetStateFinished(var ADLSETable: Record "ADLSE Table")
     var
         ADLSERun: Record "ADLSE Run";
+        ADLSESessionManager: Codeunit "ADLSE Session Manager";
     begin
         if not TrySetStateFinished(ADLSETable."Table ID") then
             ADLSERun.RegisterEnded(ADLSETable."Table ID", EmitTelemetry);
         Commit();
+
+        // This export session is soon going to end. Start up a new one from 
+        // the stored list of pending tables to export.
+        // Note that initially as many export sessions, as is allowed per the 
+        // operation limits, are spawned up. The following line continously 
+        // add to the number of sessions by consuming the pending backlog, thus
+        // prolonging the time to finish an export batch. If this is a concern, 
+        // consider commenting out the line below so no futher sessions are 
+        // spawned when the active ones end. This may result in some table 
+        // exports being skipped. But they may become active in the next export 
+        // batch. 
+        ADLSESessionManager.StartExportFromPendingTables();
     end;
 
     [TryFunction]

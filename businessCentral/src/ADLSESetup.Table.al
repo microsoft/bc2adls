@@ -44,22 +44,31 @@ table 82560 "ADLSE Setup"
             InitValue = Parquet;
         }
 
+        field(10; Running; Boolean)
+        {
+            Caption = 'Exporting data';
+            Editable = false;
+            ObsoleteReason = 'Use ADLSE Current Session::AreAnySessionsActive() instead';
+            ObsoleteTag = '1.2.2.0';
+            ObsoleteState = Removed;
+        }
+
         field(11; "Emit telemetry"; Boolean)
         {
             Caption = 'Emit telemetry';
             InitValue = true;
         }
 
-        field(15; "Allow simultaneous exports"; Boolean)
+        field(15; "Multi- Company Export"; Boolean)
         {
-            Caption = 'Allow simultaneous exports';
+            Caption = 'Multi- company export';
             InitValue = false;
 
             trigger OnValidate()
             var
                 ADLSECurrentSession: Record "ADLSE Current Session";
             begin
-                if Rec."Allow simultaneous exports" = xRec."Allow simultaneous exports" then
+                if Rec."Multi- Company Export" = xRec."Multi- Company Export" then
                     exit;
 
                 // ensure that no current export sessions running
@@ -116,7 +125,7 @@ table 82560 "ADLSE Setup"
     procedure CheckNoSimultaneousExportsAllowed()
     begin
         Rec.GetSingleton();
-        Rec.TestField("Allow simultaneous exports", false, ErrorInfo.Create(NoChangesAllowedErr));
+        Rec.TestField("Multi- Company Export", false, ErrorInfo.Create(NoChangesAllowedErr));
     end;
 
     local procedure GetPrimaryKeyValue() PKValue: Integer

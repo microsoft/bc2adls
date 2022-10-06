@@ -45,16 +45,19 @@ table 82565 "ADLSE Current Session"
     var
         SessionTerminatedMsg: Label 'Export to data lake session for table %1 terminated by user.', Comment = '%1 is the table name corresponding to the session';
         ExportDataInProgressErr: Label 'An export data process is already running. Please wait for it to finish.';
+        InsertFailedErr: Label 'Could not start the export as there is already an active export running for the table %1. If this is not so, please stop all exports and try again.', Comment = '%1 = table caption';
 
     procedure Start(ADLSETableID: Integer)
+    var
+        ADLSEUtil: Codeunit "ADLSE Util";
     begin
-
         Rec.Init();
         Rec."Table ID" := ADLSETableID;
         Rec."Session ID" := SessionId();
         Rec."Session Unique ID" := GetActiveSessionIDForSession(SessionId());
         Rec."Company Name" := CopyStr(CompanyName(), 1, 30);
-        Rec.Insert();
+        if not Rec.Insert() then
+            Error(InsertFailedErr, ADLSEUtil.GetTableCaption(ADLSETableID));
     end;
 
     procedure Stop(ADLSETableID: Integer)
@@ -80,12 +83,10 @@ table 82565 "ADLSE Current Session"
             until Rec.Next() = 0;
     end;
 
-    procedure CleanupInactiveSessions()
+    procedure CleanupSessions()
     begin
         Rec.SetRange("Company Name", CompanyName());
-        if Rec.FindSet(true) then
-            if not IsSessionActive() then
-                Rec.Delete();
+        Rec.DeleteAll();
     end;
 
     procedure CancelAll()

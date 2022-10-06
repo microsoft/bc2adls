@@ -27,7 +27,7 @@ codeunit 82562 "ADLSE Communication"
         CannotAddedMoreBlocksErr: Label 'The number of blocks that can be added to the blob has reached its maximum limit.';
         SingleRecordTooLargeErr: Label 'A single record payload exceeded the max payload size. Please adjust the payload size or reduce the fields to be exported for the record.';
         DeltasFileCsvTok: Label '/deltas/%1/%2.csv', Comment = '%1: Entity, %2: File identifier guid';
-        NotAllowedOnSimultaneousExportTxt: Label 'This is not allowed when exports are configured to occur simultaneously. Please uncheck Allow simultaneous exports, export the data at least once, and try again.';
+        NotAllowedOnSimultaneousExportTxt: Label 'This is not allowed when exports are configured to occur simultaneously. Please uncheck Multi- company export, export the data at least once, and try again.';
         EntitySchemaChangedErr: Label 'The schema of the table %1 has changed. %2', Comment = '%1 = Entity name, %2 = NotAllowedOnSimultaneousExportTxt';
         CdmSchemaChangedErr: Label 'There may have been a change in the tables to export. %1', Comment = '%1 = NotAllowedOnSimultaneousExportTxt';
         ManifestJsonsNotUpdatedErr: Label 'Could not update the CDM manifest files because of a race condition. Please try again later.';
@@ -70,7 +70,7 @@ codeunit 82562 "ADLSE Communication"
         EmitTelemetry := EmitTelemetryValue;
     end;
 
-    procedure CheckEntity(CdmDataFormat: Enum "ADLSE CDM Format"; var EntityJsonNeedsUpdate: Boolean; var ManifestJsonsNeedsUpdate: Boolean; EmitTelemetry: Boolean)
+    procedure CheckEntity(CdmDataFormat: Enum "ADLSE CDM Format"; var EntityJsonNeedsUpdate: Boolean; var ManifestJsonsNeedsUpdate: Boolean)
     var
         ADLSESetup: Record "ADLSE Setup";
         ADLSECdmUtil: Codeunit "ADLSE CDM Util";
@@ -86,15 +86,17 @@ codeunit 82562 "ADLSE Communication"
         OldJson := ADLSEGen2Util.GetBlobContent(GetBaseUrl() + BlobEntityPath, ADLSECredentials, BlobExists);
         if BlobExists then
             ADLSECdmUtil.CheckChangeInEntities(OldJson, EntityJson, EntityName);
-        EntityJsonNeedsUpdate := JsonsDifferent(OldJson, EntityJson, EmitTelemetry);
+        EntityJsonNeedsUpdate := ADLSECdmUtil.CompareEntityJsons(OldJson, EntityJson);
+        if EntityJsonNeedsUpdate then
+            JsonsDifferent(OldJson, NewJson); // to log the difference
 
         // check manifest. Assume that if the data manifest needs change, the delta manifest will also need be updated
         OldJson := ADLSEGen2Util.GetBlobContent(GetBaseUrl() + StrSubstNo(CorpusJsonPathTxt, DataCdmManifestNameTxt), ADLSECredentials, BlobExists);
         NewJson := ADLSECdmUtil.UpdateDefaultManifestContent(OldJson, TableID, 'data', CdmDataFormat);
-        ManifestJsonsNeedsUpdate := JsonsDifferent(OldJson, NewJson, EmitTelemetry);
+        ManifestJsonsNeedsUpdate := JsonsDifferent(OldJson, NewJson);
 
         ADLSESetup.GetSingleton();
-        if ADLSESetup."Allow simultaneous exports" then begin
+        if ADLSESetup."Multi- Company Export" then begin
             if EntityJsonNeedsUpdate then
                 Error(EntitySchemaChangedErr, EntityName, NotAllowedOnSimultaneousExportTxt);
             if ManifestJsonsNeedsUpdate then
@@ -102,7 +104,7 @@ codeunit 82562 "ADLSE Communication"
         end;
     end;
 
-    local procedure JsonsDifferent(Json1: JsonObject; Json2: JsonObject; EmitTelemetry: Boolean) Result: Boolean
+    local procedure JsonsDifferent(Json1: JsonObject; Json2: JsonObject) Result: Boolean
     var
         ADLSEExecution: Codeunit "ADLSE Execution";
         CustomDimensions: Dictionary of [Text, Text];
