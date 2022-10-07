@@ -261,7 +261,8 @@ codeunit 82562 "ADLSE Communication"
 
         // update manifest
         if ManifestJsonsNeedsUpdate then begin
-            // Expected that multiple sessions that export data from different tables will be competing for writing to manifest. Semaphore applied.
+            // Expected that multiple sessions that export data from different tables will be competing for writing to 
+            // manifest. Semaphore applied.
             if not AcquireLockonADLSESetup(ADLSESetup) then
                 Error(ManifestJsonsNotUpdatedErr);
 
