@@ -171,6 +171,23 @@ page 82561 "ADLSE Setup Tables"
                     CurrPage.Update();
                 end;
             }
+
+            action(Logs)
+            {
+                ApplicationArea = All;
+                Caption = 'Execution logs';
+                ToolTip = 'View the execution logs for this table in the currently opened company.';
+                Image = Log;
+
+                trigger OnAction()
+                var
+                    ADLSERun: Page "ADLSE Run";
+                begin
+                    ADLSERun.SetDisplayForTable(Rec."Table ID");
+                    ADLSERun.Run();
+                end;
+
+            }
         }
     }
 

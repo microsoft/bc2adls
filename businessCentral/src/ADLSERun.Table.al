@@ -55,6 +55,9 @@ table 82566 "ADLSE Run"
         key(Key2; "Table ID", "Company Name")
         {
         }
+        key(Key3; Started)
+        { // sorting key
+        }
     }
 
     var
@@ -124,14 +127,20 @@ table 82566 "ADLSE Run"
 
     procedure OldRunsExist(): Boolean;
     begin
-        FilterOnOldRuns();
+        CommmonFilterOnOldRuns();
         exit(not Rec.IsEmpty());
     end;
 
     procedure DeleteOldRuns()
     begin
-        FilterOnOldRuns();
+        CommmonFilterOnOldRuns();
         Rec.DeleteAll();
+    end;
+
+    procedure DeleteOldRuns(TableID: Integer)
+    begin
+        Rec.SetRange("Table ID", TableID);
+        DeleteOldRuns();
     end;
 
     local procedure FindLastRun(TableID: Integer) Found: Boolean
@@ -143,7 +152,7 @@ table 82566 "ADLSE Run"
         Found := Rec.FindFirst();
     end;
 
-    local procedure FilterOnOldRuns()
+    local procedure CommmonFilterOnOldRuns()
     begin
         Rec.SetFilter(State, '<>%1', "ADLSE Run State"::InProcess);
         Rec.SetRange("Company Name", CompanyName());
