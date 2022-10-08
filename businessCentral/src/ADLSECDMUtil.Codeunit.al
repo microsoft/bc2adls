@@ -210,7 +210,7 @@ codeunit 82566 "ADLSE CDM Util" // Refer Common Data Model https://docs.microsof
         if Attributes1.Count() <> Attributes2.Count() then
             Error(UnequalAttributeCountErr);
 
-        for Counter := 1 to Attributes1.Count() do begin
+        for Counter := 0 to Attributes1.Count() - 1 do begin
             Attributes1.Get(Counter, Attribute1);
             Attributes2.Get(Counter, Attribute2);
 
