@@ -13,10 +13,16 @@ codeunit 82570 "ADLSE Session Manager"
 
     procedure StartExport(TableID: Integer; EmitTelemetry: Boolean): Boolean
     begin
-        exit(StartExport(TableID, false, EmitTelemetry));
+        // if the last run failed, ensure that you run again, even though there may be no data differences.
+        exit(StartExport(TableID, false, LastRunFailed(TableID, EmitTelemetry), EmitTelemetry));
     end;
 
-    local procedure StartExport(TableID: Integer; ExportWasPending: Boolean; EmitTelemetry: Boolean) Started: Boolean
+    local procedure StartExportFromPending(TableID: Integer; EmitTelemetry: Boolean): Boolean
+    begin
+        StartExport(TableID, true, false, EmitTelemetry);
+    end;
+
+    local procedure StartExport(TableID: Integer; ExportWasPending: Boolean; ForceExport: Boolean; EmitTelemetry: Boolean) Started: Boolean
     var
         ADLSETable: Record "ADLSE Table";
         ADLSEExecution: Codeunit "ADLSE Execution";
@@ -24,7 +30,7 @@ codeunit 82570 "ADLSE Session Manager"
         CustomDimensions: Dictionary of [Text, Text];
         NewSessionID: Integer;
     begin
-        if DataChangesExist(TableID) then begin
+        if ForceExport or DataChangesExist(TableID) then begin
             ADLSETable.Get(TableID);
             Started := Session.StartSession(NewSessionID, Codeunit::"ADLSE Execute", CompanyName(), ADLSETable);
             CustomDimensions.Add('Entity', ADLSEUtil.GetTableCaption(TableID));
@@ -70,6 +76,24 @@ codeunit 82570 "ADLSE Session Manager"
             exit(true);
     end;
 
+    local procedure LastRunFailed(TableID: Integer; EmitTelemetry: Boolean) Result: Boolean
+    var
+        ADLSERun: Record "ADLSE Run";
+        ADLSEUtil: Codeunit "ADLSE Util";
+        ADLSEExecution: Codeunit "ADLSE Execution";
+        CustomDimensions: Dictionary of [Text, Text];
+        Status: Enum "ADLSE Run State";
+        StartedAt: DateTime;
+        Error: Text[2048];
+    begin
+        ADLSERun.GetLastRunDetails(TableID, Status, StartedAt, Error);
+        Result := Status = "ADLSE Run State"::Failed;
+        if Result and EmitTelemetry then begin
+            CustomDimensions.Add('Entity', ADLSEUtil.GetTableCaption(TableID));
+            ADLSEExecution.Log('ADLSE-027', 'Last run failed.', Verbosity::Verbose, CustomDimensions);
+        end;
+    end;
+
     procedure StartExportFromPendingTables()
     var
         ADLSESetup: Record "ADLSE Setup";
@@ -86,7 +110,7 @@ codeunit 82570 "ADLSE Session Manager"
 
         // One session freed up. create session from queue
         if GetFromPendingTables(TableID) then
-            StartExport(TableID, true, ADLSESetup."Emit telemetry");
+            StartExportFromPending(TableID, ADLSESetup."Emit telemetry");
     end;
 
     local procedure GetFromPendingTables(var TableID: Integer): Boolean
