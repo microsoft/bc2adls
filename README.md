@@ -20,6 +20,7 @@ The following diagram illustrates the flow of data through a usage scenario- the
 More details:
 - [Installation and configuration](/.assets/Setup.md)
 - [Executing the export and pipeline](/.assets/Execution.md)
+- [The concept](https://www.microsoft.com/en-us/videoplayer/embed/RWSHHG)
 
 ## Latest notable changes
 
