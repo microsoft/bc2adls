@@ -44,7 +44,6 @@ codeunit 82569 "ADLSE Execution"
                 ADLSEField.SetRange("Table ID", ADLSETable."Table ID");
                 ADLSEField.SetRange(Enabled, true);
                 if not ADLSEField.IsEmpty() then
-                    // Codeunit.Run(Codeunit::"ADLSE Execute", ADLSETable);
                     if ADLSESessionManager.StartExport(ADLSETable."Table ID", EmitTelemetry) then
                         Started += 1;
             until ADLSETable.Next() = 0;
