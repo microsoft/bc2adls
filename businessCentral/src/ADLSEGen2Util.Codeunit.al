@@ -10,20 +10,20 @@ codeunit 82568 "ADLSE Gen 2 Util"
         LeaseDurationSecsTxt: Label '60', Locked = true, Comment = 'This is the maximum duration for a lock on the blobs';
         AcquireLeaseTimeoutSecondsTxt: Label '180', Locked = true, Comment = 'The number of seconds to continuously try to acquire a lock on the blob. This must be more than the value specified for AcquireLeaseSleepSecondsTxt.';
         AcquireLeaseSleepSecondsTxt: Label '10', Locked = true, Comment = 'The number of seconds to sleep for before re-trying to acquire a lock on the blob. This must be less than the value specified for AcquireLeaseTimeoutSecondsTxt.';
-        TimedOutWaitingForLockOnBlobErr: Label 'Timed out waiting to acquire lease on blob %1 after %2 seconds. %3';
-        CouldNotReleaseLockOnBlobErr: Label 'Could not release lock on blob %1. %2';
+        TimedOutWaitingForLockOnBlobErr: Label 'Timed out waiting to acquire lease on blob %1 after %2 seconds. %3', Comment = '%1: blob name, %2: total waiting time in seconds, %3: Http Response';
+        CouldNotReleaseLockOnBlobErr: Label 'Could not release lock on blob %1. %2', Comment = '%1: blob name, %2: Http response.';
 
         CreateContainerSuffixTxt: Label '?restype=container', Locked = true;
-        CoundNotCreateContainerErr: Label 'Could not create container %1. %2', Comment = '%1: container name; &2: error text';
+        CoundNotCreateContainerErr: Label 'Could not create container %1. %2', Comment = '%1: container name; %2: error text';
         GetContainerMetadataSuffixTxt: Label '?restype=container&comp=metadata', Locked = true;
 
         PutBlockSuffixTxt: Label '?comp=block&blockid=%1', Locked = true, Comment = '%1 = the block id being added';
-        PutLockListSuffixText: Label '?comp=blocklist', Locked = true;
-        CouldNotAppendDataToBlobErr: Label 'Could not append data to %1. %2';
-        CouldNotCommitBlocksToDataBlob: Label 'Could not commit blocks to %1. %2';
+        PutLockListSuffixTxt: Label '?comp=blocklist', Locked = true;
+        CouldNotAppendDataToBlobErr: Label 'Could not append data to %1. %2', Comment = '%1: blob path, %2: Http response.';
+        CouldNotCommitBlocksToDataBlobErr: Label 'Could not commit blocks to %1. %2', Comment = '%1: Blob path, %2: Http Response';
         CouldNotCreateBlobErr: Label 'Could not create blob %1. %2', Comment = '%1: blob path, %2: error text';
-        CouldNotUpdateBlobErr: Label 'Could not update data on %1. %2';
-        CouldNotReadDataInBlobErr: Label 'Could not read data on %1. %2';
+        CouldNotReadDataInBlobErr: Label 'Could not read data on %1. %2', Comment = '%1: blob path, %2: Http respomse';
+        LatestBlockTagTok: Label '<Latest>%1</Latest>', Comment = '%1: block ID';
 
     procedure ContainerExists(ContainerPath: Text; ADLSECredentials: Codeunit "ADLSE Credentials"): Boolean
     var
@@ -115,7 +115,7 @@ codeunit 82568 "ADLSE Gen 2 Util"
     begin
         ADLSEHttp.SetMethod("ADLSE Http Method"::Put);
         BlockID := Base64Convert.ToBase64(CreateGuid());
-        ADLSEHttp.SetUrl(StrSubstNo('%1%2', BlobPath, StrSubstNo(PutBlockSuffixTxt, BlockID)));
+        ADLSEHttp.SetUrl(BlobPath + StrSubstNo(PutBlockSuffixTxt, BlockID));
         ADLSEHttp.SetAuthorizationCredentials(ADLSECredentials);
         ADLSEHttp.SetBody(Body);
         if not ADLSEHttp.InvokeRestApi(Response) then
@@ -130,18 +130,17 @@ codeunit 82568 "ADLSE Gen 2 Util"
         BlockID: Text;
     begin
         ADLSEHttp.SetMethod("ADLSE Http Method"::Put);
-        ADLSEHttp.SetUrl(StrSubstNo('%1%2', BlobPath, PutLockListSuffixText));
+        ADLSEHttp.SetUrl(BlobPath + PutLockListSuffixTxt);
         ADLSEHttp.SetAuthorizationCredentials(ADLSECredentials);
 
         Body.Append('<?xml version="1.0" encoding="utf-8"?><BlockList>');
-        foreach BlockID in BlockIDList do begin
-            Body.Append(StrSubstNo('<Latest>%1</Latest>', BlockID));
-        end;
+        foreach BlockID in BlockIDList do
+            Body.Append(StrSubstNo(LatestBlockTagTok, BlockID));
         Body.Append('</BlockList>');
 
         ADLSEHttp.SetBody(Body.ToText());
         if not ADLSEHttp.InvokeRestApi(Response) then
-            Error(CouldNotCommitBlocksToDataBlob, BlobPath, Response);
+            Error(CouldNotCommitBlocksToDataBlobErr, BlobPath, Response);
     end;
 
     procedure AcquireLease(BlobPath: Text; ADLSECredentials: Codeunit "ADLSE Credentials"; var BlobExists: Boolean) LeaseID: Text

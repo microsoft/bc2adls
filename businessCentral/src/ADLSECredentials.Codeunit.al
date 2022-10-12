@@ -21,20 +21,18 @@ codeunit 82565 "ADLSE Credentials"
 
         Initialized: Boolean;
         ValueNotFoundErr: Label 'No value found for %1.', Comment = '%1 = name of the key';
-        TenantIdKeyName: Label 'adlse-tenant-id', Locked = true;
-        StorageAccountKeyName: Label 'adlse-storage-account', Locked = true;
-        ClientIdKeyName: Label 'adlse-client-id', Locked = true;
-        ClientSecretKeyName: Label 'adlse-client-secret', Locked = true;
+        TenantIdKeyNameTok: Label 'adlse-tenant-id', Locked = true;
+        StorageAccountKeyNameTok: Label 'adlse-storage-account', Locked = true;
+        ClientIdKeyNameTok: Label 'adlse-client-id', Locked = true;
+        ClientSecretKeyNameTok: Label 'adlse-client-secret', Locked = true;
 
     [NonDebuggable]
     procedure Init()
-    var
-        ADLSEUtil: Codeunit "ADLSE Util";
     begin
-        StorageTenantID := GetSecret(TenantIdKeyName);
-        StorageAccount := GetSecret(StorageAccountKeyName);
-        ClientID := GetSecret(ClientIdKeyName);
-        ClientSecret := GetSecret(ClientSecretKeyName);
+        StorageTenantID := GetSecret(TenantIdKeyNameTok);
+        StorageAccount := GetSecret(StorageAccountKeyNameTok);
+        ClientID := GetSecret(ClientIdKeyNameTok);
+        ClientSecret := GetSecret(ClientSecretKeyNameTok);
 
         Initialized := true;
     end;
@@ -47,10 +45,10 @@ codeunit 82565 "ADLSE Credentials"
     procedure Check()
     begin
         Init();
-        CheckValueExists(TenantIdKeyName, StorageTenantID);
-        CheckValueExists(StorageAccountKeyName, StorageAccount);
-        CheckValueExists(ClientIdKeyName, ClientID);
-        CheckValueExists(ClientSecretKeyName, ClientSecret);
+        CheckValueExists(TenantIdKeyNameTok, StorageTenantID);
+        CheckValueExists(StorageAccountKeyNameTok, StorageAccount);
+        CheckValueExists(ClientIdKeyNameTok, ClientID);
+        CheckValueExists(ClientSecretKeyNameTok, ClientSecret);
     end;
 
     [NonDebuggable]
@@ -63,7 +61,7 @@ codeunit 82565 "ADLSE Credentials"
     procedure SetTenantID(NewTenantIdValue: Text): Text
     begin
         StorageTenantID := NewTenantIdValue;
-        SetSecret(TenantIdKeyName, NewTenantIdValue);
+        SetSecret(TenantIdKeyNameTok, NewTenantIdValue);
     end;
 
     [NonDebuggable]
@@ -76,7 +74,7 @@ codeunit 82565 "ADLSE Credentials"
     procedure SetStorageAccount(NewStorageAccountValue: Text): Text
     begin
         StorageAccount := NewStorageAccountValue;
-        SetSecret(StorageAccountKeyName, NewStorageAccountValue);
+        SetSecret(StorageAccountKeyNameTok, NewStorageAccountValue);
     end;
 
     [NonDebuggable]
@@ -89,7 +87,7 @@ codeunit 82565 "ADLSE Credentials"
     procedure SetClientID(NewClientIDValue: Text): Text
     begin
         ClientID := NewClientIDValue;
-        SetSecret(ClientIdKeyName, NewClientIDValue);
+        SetSecret(ClientIdKeyNameTok, NewClientIDValue);
     end;
 
     [NonDebuggable]
@@ -102,25 +100,25 @@ codeunit 82565 "ADLSE Credentials"
     procedure SetClientSecret(NewClientSecretValue: Text): Text
     begin
         ClientSecret := NewClientSecretValue;
-        SetSecret(ClientSecretKeyName, NewClientSecretValue);
+        SetSecret(ClientSecretKeyNameTok, NewClientSecretValue);
     end;
 
     [NonDebuggable]
     local procedure GetSecret(KeyName: Text) Secret: Text
     begin
-        if not IsolatedStorage.Contains(KeyName, DataScope::Company) then
+        if not IsolatedStorage.Contains(KeyName, IsolatedStorageDataScope()) then
             exit('');
-        IsolatedStorage.Get(KeyName, DataScope::Company, Secret);
+        IsolatedStorage.Get(KeyName, IsolatedStorageDataScope(), Secret);
     end;
 
     [NonDebuggable]
     local procedure SetSecret(KeyName: Text; Secret: Text)
     begin
         if EncryptionEnabled() then begin
-            IsolatedStorage.SetEncrypted(KeyName, Secret, DataScope::Company);
+            IsolatedStorage.SetEncrypted(KeyName, Secret, IsolatedStorageDataScope());
             exit;
         end;
-        IsolatedStorage.Set(KeyName, Secret, DataScope::Company);
+        IsolatedStorage.Set(KeyName, Secret, IsolatedStorageDataScope());
     end;
 
     [NonDebuggable]
@@ -128,5 +126,10 @@ codeunit 82565 "ADLSE Credentials"
     begin
         if Val.Trim() = '' then
             Error(ValueNotFoundErr, KeyName);
+    end;
+
+    local procedure IsolatedStorageDataScope(): DataScope
+    begin
+        exit(DataScope::Module); // so that all companies share the same settings
     end;
 }

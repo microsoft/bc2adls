@@ -5,17 +5,20 @@ codeunit 82563 "ADLSE Http"
     Access = Internal;
 
     var
+        Credentials: Codeunit "ADLSE Credentials";
         HttpMethod: Enum "ADLSE Http Method";
         Url: Text;
-        Credentials: Codeunit "ADLSE Credentials";
         Body: Text;
         ContentTypeJson: Boolean;
         AdditionalRequestHeaders: Dictionary of [Text, Text];
         ResponseHeaders: HttpHeaders;
-        AzureStorageServiceVersion: Label '2020-10-02', Locked = true; // Latest version from https://docs.microsoft.com/en-us/rest/api/storageservices/versioning-for-the-azure-storage-services
-        ContentTypeApplicationJson: Label 'application/json', Locked = true;
-        ContentTypePlainText: Label 'text/plain; charset=utf-8', Locked = true;
-        UnsupportedMethodErr: Label 'Unsupported method: %1';
+        AzureStorageServiceVersionTok: Label '2020-10-02', Locked = true; // Latest version from https://docs.microsoft.com/en-us/rest/api/storageservices/versioning-for-the-azure-storage-services
+        ContentTypeApplicationJsonTok: Label 'application/json', Locked = true;
+        ContentTypePlainTextTok: Label 'text/plain; charset=utf-8', Locked = true;
+        UnsupportedMethodErr: Label 'Unsupported method: %1', Comment = '%1: http method name';
+        OAuthTok: Label 'https://login.microsoftonline.com/%1/oauth2/token', Comment = '%1: tenant id';
+        BearerTok: Label 'Bearer %1', Comment = '%1: access token';
+        AcquireTokenBodyTok: Label 'resource=%1&scope=%2&client_id=%3&client_secret=%4&client_info=1&grant_type=client_credentials', Comment = '%1: encoded url, %2: encoded user impersonation, %3: client ID, %4: client secret';
 
     procedure SetMethod(HttpMethodValue: Enum "ADLSE Http Method")
     begin
@@ -51,12 +54,12 @@ codeunit 82563 "ADLSE Http"
 
     procedure GetContentTypeJson(): Text
     begin
-        exit(ContentTypeApplicationJson);
+        exit(ContentTypeApplicationJsonTok);
     end;
 
     procedure GetContentTypeTextCsv(): Text
     begin
-        exit(ContentTypePlainText);
+        exit(ContentTypePlainTextTok);
     end;
 
     procedure SetAuthorizationCredentials(ADLSECredentials: Codeunit "ADLSE Credentials")
@@ -117,9 +120,7 @@ codeunit 82563 "ADLSE Http"
                     Client.Put(Url, Content, ResponseMsg);
                 end;
             "ADLSE Http Method"::Delete:
-                begin
-                    Client.Delete(Url, ResponseMsg);
-                end;
+                Client.Delete(Url, ResponseMsg);
             else
                 Error(UnsupportedMethodErr, HttpMethod);
         end;
@@ -133,7 +134,6 @@ codeunit 82563 "ADLSE Http"
 
     local procedure AddContent(var Content: HttpContent)
     var
-        ADLSEUtil: Codeunit "ADLSE Util";
         Headers: HttpHeaders;
     begin
         Content.WriteFrom(Body);
@@ -164,8 +164,8 @@ codeunit 82563 "ADLSE Http"
             exit;
         end;
         Headers := Client.DefaultRequestHeaders();
-        Headers.Add('Authorization', StrSubstNo('Bearer %1', AccessToken));
-        Headers.Add('x-ms-version', AzureStorageServiceVersion);
+        Headers.Add('Authorization', StrSubstNo(BearerTok, AccessToken));
+        Headers.Add('x-ms-version', AzureStorageServiceVersionTok);
         Headers.Add('x-ms-date', ADLSEUtil.GetCurrentDateTimeInGMTFormat());
         Success := true;
     end;
@@ -184,12 +184,12 @@ codeunit 82563 "ADLSE Http"
         ResponseBody: Text;
         Json: JsonObject;
     begin
-        Uri := StrSubstNo('https://login.microsoftonline.com/%1/oauth2/token', Credentials.GetTenantID());
+        Uri := StrSubstNo(OAuthTok, Credentials.GetTenantID());
         RequestMessage.Method('POST');
         RequestMessage.SetRequestUri(Uri);
         RequestBody :=
             StrSubstNo(
-                'resource=%1&scope=%2&client_id=%3&client_secret=%4&client_info=1&grant_type=client_credentials',
+                AcquireTokenBodyTok,
                 'https%3A%2F%2Fstorage.azure.com%2F', // url encoded form of https://storage.azure.com/
                 'https%3A%2F%2Fstorage.azure.com%2Fuser_impersonation', // url encoded form of https://storage.azure.com/user_impersonation
                 Credentials.GetClientID(),

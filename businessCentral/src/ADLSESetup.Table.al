@@ -19,8 +19,6 @@ table 82560 "ADLSE Setup"
             Caption = 'Container';
 
             trigger OnValidate()
-            var
-                ADLSEExecution: Codeunit "ADLSE Execution";
             begin
                 // Name constraints based on https://docs.microsoft.com/en-us/rest/api/storageservices/naming-and-referencing-containers--blobs--and-metadata
                 if (StrLen(Container) < 3) or (StrLen(Container) > 63) // between 6 and 63 characters long
@@ -35,7 +33,7 @@ table 82560 "ADLSE Setup"
         {
             Caption = 'Max payload size (MiBs)';
             InitValue = 4;
-            // Refer max limit for pub block calls (https://docs.microsoft.com/en-us/rest/api/storageservices/put-block#remarks)
+            // Refer max limit for put block calls (https://docs.microsoft.com/en-us/rest/api/storageservices/put-block#remarks)
             MaxValue = 4000;
             MinValue = 1;
         }
@@ -50,12 +48,32 @@ table 82560 "ADLSE Setup"
         {
             Caption = 'Exporting data';
             Editable = false;
+            ObsoleteReason = 'Use ADLSE Current Session::AreAnySessionsActive() instead';
+            ObsoleteTag = '1.2.2.0';
+            ObsoleteState = Removed;
         }
 
         field(11; "Emit telemetry"; Boolean)
         {
             Caption = 'Emit telemetry';
             InitValue = true;
+        }
+
+        field(15; "Multi- Company Export"; Boolean)
+        {
+            Caption = 'Multi- company export';
+            InitValue = false;
+
+            trigger OnValidate()
+            var
+                ADLSECurrentSession: Record "ADLSE Current Session";
+            begin
+                if Rec."Multi- Company Export" = xRec."Multi- Company Export" then
+                    exit;
+
+                // ensure that no current export sessions running
+                ADLSECurrentSession.CheckForNoActiveSessions();
+            end;
         }
     }
 
@@ -69,6 +87,9 @@ table 82560 "ADLSE Setup"
 
     var
         ContainerNameIncorrectFormatErr: Label 'The container name is in an incorrect format.';
+        RecordDoesNotExistErr: Label 'No record on this table exists.';
+        NoChangesAllowedErr: Label 'No changes allowed when exports have been configured to be allowed simultaneously.';
+        PrimaryKeyValueLbl: Label '0', Locked = true;
 
     local procedure TextContainerCharactersOtherThan(String: Text; CharString: Text): Boolean
     var
@@ -80,6 +101,36 @@ table 82560 "ADLSE Setup"
             if StrPos(CharString, Letter) = 0 then
                 exit(true);
         end;
+    end;
+
+    procedure GetSingleton()
+    begin
+        if not Exists() then
+            Error(RecordDoesNotExistErr);
+    end;
+
+    procedure GetOrCreate()
+    begin
+        if Exists() then
+            exit;
+        "Primary Key" := GetPrimaryKeyValue();
+        Insert();
+    end;
+
+    local procedure Exists(): Boolean
+    begin
+        exit(Rec.Get(GetPrimaryKeyValue()));
+    end;
+
+    procedure CheckNoSimultaneousExportsAllowed()
+    begin
+        Rec.GetSingleton();
+        Rec.TestField("Multi- Company Export", false, ErrorInfo.Create(NoChangesAllowedErr));
+    end;
+
+    local procedure GetPrimaryKeyValue() PKValue: Integer
+    begin
+        Evaluate(PKValue, PrimaryKeyValueLbl, 9);
     end;
 
 }

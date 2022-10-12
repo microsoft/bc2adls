@@ -13,7 +13,7 @@ Take particular note of the **a)** and **b)** fields on it. Also note that you w
 The tool exports the BC data to an Azure Data Lake Gen2. You may refer to the following to create the resource, [Create a storage account for Azure Data Lake Storage Gen2 | Microsoft Docs](https://docs.microsoft.com/en-us/azure/storage/blobs/create-data-lake-storage-account).
 
 ### Step 3. Connect credential to the blob storage
-Now you must configure the above storage account to allow changes by the credential created above. Make sure you add a role assignment so that the above credential is granted the **Storage Blob Data Contributor** role on the storage account. Learn more to do this at [Assign an Azure role for access to blob data - Azure Storage | Microsoft Docs](https://docs.microsoft.com/en-us/azure/storage/blobs/assign-azure-role-data-access?tabs=portal#assign-an-azure-role). In the following screenshot, a sample storage account called **bc2adlssa** has been assigned a credential called **bc2adls**.
+Now you must configure the above storage account to allow changes by the credential created above. Make sure you add a role assignment so that the above credential is granted the **Storage Blob Data Contributor** role on the storage account. Learn more to do this at [Assign an Azure role for access to blob data - Azure Storage | Microsoft Docs](https://docs.microsoft.com/en-us/azure/storage/blobs/assign-azure-role-data-access?tabs=portal#assign-an-azure-role). In the following screenshot, a sample storage account called **bc2adlssa** has been assigned a credential called **bc2adls**. [Hint: start typing credential name and select it in the list filtered]
 ![Sample storage account](/.assets/storageAccount.png)
 
 ## Configuring the Dynamics 365 Business Central
@@ -27,12 +27,15 @@ Let us take a look at the settings show in the sample screenshot below,
 - **Client ID** The Application (client) ID from the App registration (refer to **a)** in the picture at [Step 1](/.assets/Setup.md#step-1-create-an-azure-service-principal))
 - **Client secret** The client credential key you had defined (refer to **c)** in the in the picture at [Step 1](/.assets/Setup.md#step-1-create-an-azure-service-principal))
 - **Max payload size (MiBs)** The size of the individual data payload that constitutes a single REST Api upload operation to the data lake. A bigger size will surely mean less number of uploads but might consume too much memory on the BC side. Note that each upload creates a new block within the blob in the data lake. The size of such blocks are constrained as described at [Put Block (REST API) - Azure Storage | Microsoft Docs](https://docs.microsoft.com/en-us/rest/api/storageservices/put-block#remarks).
-- **CDM data format** The format in which the exported data is stored on the data lake. Recommended format is Parquet, which is better at handling special characters in the BC text fields.
+- **CDM data format** The format in which the exported data is stored on the data lake. Recommended format is Parquet, which is better at handling special characters in the BC text fields. Note that the `deltas` folder will always store files in the CSV format but the consolidated `data` folder will store files in the configured format. 
 - **Emit telemetry** The flag to enable or disable operational telemetry from this extension. It is set to True by default. 
+- **Multi- company export** The flag to allow exporting data from multiple companies at the same time. You should enable this only after the export schema is finalized- in other words, ensure that at least one export for a company has been successful with all the desired tables and the desired fields in those tables. We recommend that the json files are manually checked in the outbound container before enabling this flag. Changes to the export schema (adding or removing tables as well as changing the field set to be exported) are not allowed as long as this flag is checked.
 
 ![The Export to Azure Data Lake Storage page](/.assets/bcAdlsePage.png)
 
-> **<em>Note</em>** The above settings are applied for all companies inside BC. Thus, data from all companies in your BC environment will go to the same Azure Data Lake container. It is recommended to use different containers for different environments.
+> **<em>Note</em>** 
+> 1. The above settings are applied for all companies inside BC. Thus, data from all companies in your BC environment will go to the same Azure Data Lake container, using the same export schema. It is recommended to use different containers for different environments.
+> 2. Data is exported in parallel through individual sessions for each table and company. There are operation limits to how many sessions can be queued up and executed - please refer to [Asynchronous task limits](https://learn.microsoft.com/en-us/dynamics365/business-central/dev-itpro/administration/operational-limits-online#Task). Tables that got left out because of such limits will likely be exported in one of the next executions.
 
 ## Configuring the Azure Synapse workspace
 This section deals with consolidation of the data that was uploaded to the data lake from BC. It is assumed that you would run the exports from BC periodically and that would generate incremental changes loaded in the `deltas` CDM folder. These incremental changes will then be consolidated into the final `data` CDM folder using Azure Synapse.
@@ -74,11 +77,11 @@ This is the step that would create the analytics pipelines in the above workspac
 | Sequence # | Name & Url | Tab | Menu to invoke under the `+` sign | 
 | ---------- | ---- | --- | ----------------------------------| 
 |1|[`data_dataset`](/synapse/dataset/data_dataset.json)|`Data`|`Integration dataset`|
-|2|[`dataManifest_dataset`](/synapse/dataset/dataManifest_dataset.json)|`Data`|`Integration dataset`|
-|3|[`deltas_dataset`](/synapse/dataset/deltas_dataset.json)|`Data`|`Integration dataset`|
-|4|[`deltasManifest_dataset`](/synapse/dataset/deltasManifest_dataset.json)|`Data`|`Integration dataset`|
-|5|[`staging_dataset`](/synapse/dataset/staging_dataset.json)|`Data`|`Integration dataset`|
-|6|[`stagingManifest_dataset`](/synapse/dataset/stagingManifest_dataset.json)|`Data`|`Integration dataset`|
+|2|[`data_dataset_parquet`](/synapse/dataset/data_dataset_parquet.json)|`Data`|`Integration dataset`|
+|3|[`dataManifest_dataset`](/synapse/dataset/dataManifest_dataset.json)|`Data`|`Integration dataset`|
+|4|[`deltas_dataset`](/synapse/dataset/deltas_dataset.json)|`Data`|`Integration dataset`|
+|5|[`deltasManifest_dataset`](/synapse/dataset/deltasManifest_dataset.json)|`Data`|`Integration dataset`|
+|6|[`staging_dataset`](/synapse/dataset/staging_dataset.json)|`Data`|`Integration dataset`|
 |7|[`Consolidation_flow`](/synapse/dataflow/Consolidation_flow.json)|`Develop`|`Data flow`|
 |8|[`Consolidation_OneEntity`](/synapse/pipeline/Consolidation_OneEntity.json)|`Integrate`|`Pipeline`|
 |9|[`Consolidation_CheckForDeltas`](/synapse/pipeline/Consolidation_CheckForDeltas.json)|`Integrate`|`Pipeline`|

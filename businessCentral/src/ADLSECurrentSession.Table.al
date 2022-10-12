@@ -23,85 +23,86 @@ table 82565 "ADLSE Current Session"
             Editable = false;
             Caption = 'Session unique ID';
         }
+        field(10; "Company Name"; Text[30])
+        {
+            Editable = false;
+            Caption = 'Company name';
+        }
     }
 
     keys
     {
-        key(Key1; "Table ID")
+        key(Key1; "Table ID", "Company Name")
         {
             Clustered = true;
+        }
+
+        key(SessionID; "Session ID")
+        {
         }
     }
 
     var
         SessionTerminatedMsg: Label 'Export to data lake session for table %1 terminated by user.', Comment = '%1 is the table name corresponding to the session';
+        ExportDataInProgressErr: Label 'An export data process is already running. Please wait for it to finish.';
+        InsertFailedErr: Label 'Could not start the export as there is already an active export running for the table %1. If this is not so, please stop all exports and try again.', Comment = '%1 = table caption';
 
     procedure Start(ADLSETableID: Integer)
     var
-        ActiveSession: Record "Active Session";
+        ADLSEUtil: Codeunit "ADLSE Util";
     begin
-        ActiveSession.Get(ServiceInstanceId(), SessionId());
-
         Rec.Init();
         Rec."Table ID" := ADLSETableID;
-        Rec."Session ID" := SessionId;
-        Rec."Session Unique ID" := ActiveSession."Session Unique ID";
-        Rec.Insert();
+        Rec."Session ID" := SessionId();
+        Rec."Session Unique ID" := GetActiveSessionIDForSession(SessionId());
+        Rec."Company Name" := CopyStr(CompanyName(), 1, 30);
+        if not Rec.Insert() then
+            Error(InsertFailedErr, ADLSEUtil.GetTableCaption(ADLSETableID));
     end;
 
     procedure Stop(ADLSETableID: Integer)
     begin
-        Rec.Get(ADLSETableID);
+        Rec.Get(ADLSETableID, CompanyName());
         Rec.Delete();
     end;
 
-    procedure CheckSessionsActive() AnyActive: Boolean
-    var
-        InactiveSessionIDs: List of [Integer];
-        TheSessionID: Integer;
+    procedure CheckForNoActiveSessions()
+    begin
+        if AreAnySessionsActive() then
+            Error(ExportDataInProgressErr);
+    end;
+
+    procedure AreAnySessionsActive() AnyActive: Boolean
     begin
         if Rec.FindSet(false) then
             repeat
-                if Rec.IsLinkedSessionActive() then
-                    AnyActive := true
-                else
-                    InactiveSessionIDs.Add(Rec."Session ID");
+                if IsSessionActive() then begin
+                    AnyActive := true;
+                    exit;
+                end;
             until Rec.Next() = 0;
-
-        foreach TheSessionID in InactiveSessionIDs do begin
-            Rec.SetRange("Session ID", TheSessionID);
-            Rec.DeleteAll();
-        end;
     end;
 
-    procedure IsAnySessionActiveForOtherExports(ADLSETableID: Integer): Boolean
+    procedure CleanupSessions()
     begin
-        Rec.SetFilter("Table ID", '<>%1', ADLSETableID);
-        exit(not Rec.IsEmpty());
+        Rec.SetRange("Company Name", CompanyName());
+        Rec.DeleteAll();
     end;
 
-    [TryFunction]
-    procedure CancelAll(ADLSETableErrorText: Text)
+    procedure CancelAll()
     var
-        ADLSETable: Record "ADLSE Table";
         ADLSEUtil: Codeunit "ADLSE Util";
     begin
         if Rec.FindSet(false) then
             repeat
-                if Rec.IsLinkedSessionActive() then begin
+                if IsSessionActive() then
                     Session.StopSession(Rec."Session ID", StrSubstNo(SessionTerminatedMsg, ADLSEUtil.GetTableCaption(Rec."Table ID")));
-
-                    ADLSETable.Get(Rec."Table ID");
-                    ADLSETable.State := "ADLSE State"::Error;
-                    ADLSETable.LastError := ADLSETableErrorText;
-                    ADLSETable.Modify();
-                end;
             until Rec.Next() = 0;
 
         Rec.DeleteAll();
     end;
 
-    procedure IsLinkedSessionActive(): Boolean
+    local procedure IsSessionActive(): Boolean
     var
         ActiveSession: Record "Active Session";
     begin
@@ -109,4 +110,11 @@ table 82565 "ADLSE Current Session"
             exit(ActiveSession."Session Unique ID" = Rec."Session Unique ID");
     end;
 
+    procedure GetActiveSessionIDForSession(SessId: Integer): Guid
+    var
+        ActiveSession: Record "Active Session";
+    begin
+        ActiveSession.Get(ServiceInstanceId(), SessId);
+        exit(ActiveSession."Session Unique ID");
+    end;
 }

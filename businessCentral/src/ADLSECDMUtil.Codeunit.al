@@ -6,9 +6,14 @@ codeunit 82566 "ADLSE CDM Util" // Refer Common Data Model https://docs.microsof
 
     var
         BlankArray: JsonArray;
-        CompanyFieldName: Label '$Company';
-        ExitingFieldCannotBeRemovedErr: Label 'The field %1 in the entity %2 is already present in the data lake and cannot be removed.', Comment = '%1: field name, %2: entity name';
+        CompanyFieldNameLbl: Label '$Company';
+        ExistingFieldCannotBeRemovedErr: Label 'The field %1 in the entity %2 is already present in the data lake and cannot be removed.', Comment = '%1: field name, %2: entity name';
         FieldDataTypeCannotBeChangedErr: Label 'The data type for the field %1 in the entity %2 cannot be changed.', Comment = '%1: field name, %2: entity name';
+        RepresentsTableTxt: Label 'Represents the table %1', Comment = '%1: table caption';
+        ManifestNameTxt: Label '%1-manifest', Comment = '%1: name of manifest';
+        EntityPathTok: Label '%1.cdm.json/%1', Comment = '%1: Entity';
+        UnequalAttributeCountErr: Label 'Unequal number of attributes';
+        MismatchedValueInAttributeErr: Label 'The attribute value for %1 at index %2 is different. First: %3, Second: %4', Comment = '%1 = field, %2 = index, %3 = value of the first, %4 = value of the second';
 
     procedure CreateEntityContent(TableID: Integer; FieldIdList: List of [Integer]) Content: JsonObject
     var
@@ -27,7 +32,7 @@ codeunit 82566 "ADLSE CDM Util" // Refer Common Data Model https://docs.microsof
         Definition.Add('entityName', EntityName);
         Definition.Add('exhibitsTraits', BlankArray);
         Definition.Add('displayName', ADLSEUtil.GetTableName(TableID));
-        Definition.Add('description', StrSubstNo('Represents the table %1', ADLSEUtil.GetTableName(TableID)));
+        Definition.Add('description', StrSubstNo(RepresentsTableTxt, ADLSEUtil.GetTableName(TableID)));
         Definition.Add('hasAttributes', CreateAttributes(TableID, FieldIdList));
         Definitions.Add(Definition);
         Content.Add('definitions', Definitions);
@@ -42,14 +47,13 @@ codeunit 82566 "ADLSE CDM Util" // Refer Common Data Model https://docs.microsof
         DataPartitionPattern: JsonObject;
         ExhibitsTrait: JsonObject;
         DataPartitionPatterns: JsonArray;
-        Parameters: JsonArray;
         ExhibitsTraits: JsonArray;
         ExhibitsTraitArgs: JsonArray;
         EntityName: Text;
     begin
         Content.Add('jsonSchemaSemanticVersion', '1.0.0');
         Content.Add('imports', BlankArray);
-        Content.Add('manifestName', StrSubstNo('%1-manifest', Folder));
+        Content.Add('manifestName', StrSubstNo(ManifestNameTxt, Folder));
         Content.Add('explanation', 'Data exported from the Business Central to the Azure Data Lake Storage');
 
         EntityName := ADLSEUtil.GetDataLakeCompliantTableName(TableID);
@@ -60,10 +64,10 @@ codeunit 82566 "ADLSE CDM Util" // Refer Common Data Model https://docs.microsof
         if not ADLSEUtil.JsonTokenExistsWithValueInArray(Entities, 'entityName', EntityName) then begin
             Entity.Add('type', 'LocalEntity');
             Entity.Add('entityName', EntityName);
-            Entity.Add('entityPath', StrSubstNo('%1.cdm.json/%1', EntityName));
+            Entity.Add('entityPath', StrSubstNo(EntityPathTok, EntityName));
 
             DataPartitionPattern.Add('name', EntityName);
-            DataPartitionPattern.Add('rootLocation', StrSubstNo('%1/%2/', Folder, EntityName));
+            DataPartitionPattern.Add('rootLocation', Folder + '/' + EntityName + '/');
             case ADLSECdmFormat of
                 "ADLSE CDM Format"::Csv:
                     begin
@@ -135,12 +139,10 @@ codeunit 82566 "ADLSE CDM Util" // Refer Common Data Model https://docs.microsof
 
     procedure GetCompanyFieldName(): Text
     begin
-        exit(CompanyFieldName);
+        exit(CompanyFieldNameLbl);
     end;
 
     local procedure CreateAttributeJson(Name: Text; DataFormat: Text; DisplayName: Text; AppliedTraits: JsonArray) Attribute: JsonObject
-    var
-        Arr: JsonArray;
     begin
         Attribute.Add('name', Name);
         Attribute.Add('dataFormat', DataFormat);
@@ -183,7 +185,50 @@ codeunit 82566 "ADLSE CDM Util" // Refer Common Data Model https://docs.microsof
                 end;
 
             if not OldAttributeFound then
-                Error(ExitingFieldCannotBeRemovedErr, OldAttributeName, EntityName);
+                Error(ExistingFieldCannotBeRemovedErr, OldAttributeName, EntityName);
         end;
+    end;
+
+    [TryFunction]
+    procedure CompareEntityJsons(Json1: JsonObject; Json2: JsonObject)
+    var
+        Token: JsonToken;
+        Attributes1: JsonArray;
+        Attributes2: JsonArray;
+        Attribute1: JsonToken;
+        Attribute2: JsonToken;
+        Counter: Integer;
+    begin
+        ClearLastError();
+
+        Json1.SelectToken('definitions[0].hasAttributes', Token);
+        Attributes1 := Token.AsArray();
+
+        Json2.SelectToken('definitions[0].hasAttributes', Token);
+        Attributes2 := Token.AsArray();
+
+        if Attributes1.Count() <> Attributes2.Count() then
+            Error(UnequalAttributeCountErr);
+
+        for Counter := 0 to Attributes1.Count() - 1 do begin
+            Attributes1.Get(Counter, Attribute1);
+            Attributes2.Get(Counter, Attribute2);
+
+            CompareAttributeField(Attribute1, Attribute2, 'name', Counter);
+            CompareAttributeField(Attribute1, Attribute2, 'dataFormat', Counter);
+            CompareAttributeField(Attribute1, Attribute2, 'displayName', Counter);
+        end;
+    end;
+
+    local procedure CompareAttributeField(Attribute1: JsonToken; Attribute2: JsonToken; FieldName: Text; Index: Integer)
+    var
+        ADLSEUtil: Codeunit "ADLSE Util";
+        Value1: Text;
+        Value2: Text;
+    begin
+        Value1 := ADLSEUtil.GetTextValueForKeyInJson(Attribute1.AsObject(), FieldName);
+        Value2 := ADLSEUtil.GetTextValueForKeyInJson(Attribute2.AsObject(), FieldName);
+        if (Value1 <> Value2) then
+            Error(MismatchedValueInAttributeErr, FieldName, Index, Value1, Value2);
     end;
 }

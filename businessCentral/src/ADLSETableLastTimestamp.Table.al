@@ -94,7 +94,7 @@ table 82564 "ADLSE Table Last Timestamp"
             Rec.Modify();
         end else begin
             Rec.Init();
-            Rec."Company Name" := Company;
+            Rec."Company Name" := CopyStr(Company, 1, 30);
             Rec."Table ID" := TableID;
             ChangeLastTimestamp(Timestamp, Update);
             Rec.Insert();

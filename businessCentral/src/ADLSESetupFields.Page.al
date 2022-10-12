@@ -49,6 +49,7 @@ page 82562 "ADLSE Setup Fields"
                 {
                     ApplicationArea = All;
                     Caption = 'Class';
+                    OptionCaption = 'Normal,FlowField,FlowFilter';
                     Tooltip = 'Specifies the field class';
                     Editable = false;
                     Visible = false;
@@ -67,6 +68,7 @@ page 82562 "ADLSE Setup Fields"
                 {
                     ApplicationArea = All;
                     Caption = 'Obsolete State';
+                    OptionCaption = 'No,Pending,Removed';
                     Tooltip = 'Specifies the Obsolete State of the field';
                     Editable = false;
                     Visible = false;
@@ -124,5 +126,5 @@ page 82562 "ADLSE Setup Fields"
         FieldClassName: Option Normal,FlowField,FlowFilter;
         FieldTypeName: Text[30];
         SomeFieldsCouldNotBeEnabledMsg: Label 'One or more fields could not be enabled.';
-        FieldObsoleteState: option No,Pending,Removed;
+        FieldObsoleteState: Option No,Pending,Removed;
 }

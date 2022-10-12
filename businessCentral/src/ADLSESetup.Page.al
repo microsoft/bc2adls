@@ -53,6 +53,7 @@ page 82560 "ADLSE Setup"
                     Caption = 'App registration';
                     field("Client ID"; ClientID)
                     {
+                        Caption = 'Client ID';
                         ApplicationArea = All;
                         ExtendedDatatype = Masked;
                         Tooltip = 'Specifies the application client ID for the Azure App Registration that accesses the storage account.';
@@ -64,6 +65,7 @@ page 82560 "ADLSE Setup"
                     }
                     field("Client secret"; ClientSecret)
                     {
+                        Caption = 'Client secret';
                         ApplicationArea = All;
                         ExtendedDatatype = Masked;
                         Tooltip = 'Specifies the client secret for the Azure App Registration that accesses the storage account.';
@@ -86,7 +88,14 @@ page 82560 "ADLSE Setup"
                     field("CDM data format"; Rec.DataFormat)
                     {
                         ApplicationArea = All;
-                        ToolTip = 'Specifies the format of the CDM folder to store the exported data. The Parquet format is recommended for storing the data with the best fidelity.';
+                        ToolTip = 'Specifies the format in which to store the exported data in the ''data'' CDM folder. The Parquet format is recommended for storing the data with the best fidelity.';
+                    }
+
+                    field("Multi- Company Export"; Rec."Multi- Company Export")
+                    {
+                        ApplicationArea = All;
+                        Enabled = not ExportInProgress;
+                        Tooltip = 'Specifies if simultaneous exports of data from different companies in Business Central to the lake are allowed. Beware that setting this checkmark will prevent you from making any changes to the export schema. We recommend that you set this checkmark only after the last changes to the CDM schema have been exported to the lake successfully.';
                     }
 
                     field("Emit telemetry"; Rec."Emit telemetry")
@@ -113,7 +122,7 @@ page 82560 "ADLSE Setup"
             {
                 ApplicationArea = All;
                 Caption = 'Export';
-                Tooltip = 'Starts the export process by spawning different sessions for each table.';
+                Tooltip = 'Starts the export process by spawning different sessions for each table. The action is disabled in case there are export processes currently running, also in other companies.';
                 Promoted = true;
                 PromotedIsBig = true;
                 PromotedCategory = Process;
@@ -134,7 +143,7 @@ page 82560 "ADLSE Setup"
             {
                 ApplicationArea = All;
                 Caption = 'Stop export';
-                Tooltip = 'Tries to stop all threads that are exporting data.';
+                Tooltip = 'Tries to stop all sessions that are exporting data, including those that are running in other companies.';
                 Promoted = true;
                 PromotedIsBig = true;
                 PromotedCategory = Process;
@@ -173,7 +182,7 @@ page 82560 "ADLSE Setup"
             {
                 ApplicationArea = All;
                 Caption = 'Clear tracked deleted records';
-                Tooltip = 'Removes the entries in the deleted record list that have already been exported. This may have to be done periodically to free up storage space.';
+                Tooltip = 'Removes the entries in the deleted record list that have already been exported. This should be done periodically to free up storage space.';
                 Promoted = true;
                 PromotedIsBig = true;
                 PromotedCategory = Process;
@@ -189,29 +198,54 @@ page 82560 "ADLSE Setup"
                     CurrPage.Update();
                 end;
             }
+
+            action(DeleteOldRuns)
+            {
+                ApplicationArea = All;
+                Caption = 'Clear execution log';
+                Tooltip = 'Removes the history of the export executions. This should be done periodically to free up storage space.';
+                Promoted = true;
+                PromotedIsBig = true;
+                PromotedCategory = Process;
+                PromotedOnly = true;
+                Image = History;
+                Enabled = OldLogsExist;
+
+                trigger OnAction()
+                var
+                    ADLSERun: Record "ADLSE Run";
+                begin
+                    ADLSERun.DeleteOldRuns();
+                    CurrPage.Update();
+                end;
+            }
         }
     }
 
     trigger OnInit()
-    var
-        ADLSEDeletedRecord: Record "ADLSE Deleted Record";
-        ADLSESetup: Record "ADLSE Setup";
-        ADLSEExecute: Codeunit "ADLSE Execute";
     begin
-        if not ADLSESetup.Get(0) then
-            ADLSESetup.Insert();
-        ExportInProgress := ADLSESetup.Running;
-
+        Rec.GetOrCreate();
         ADLSECredentials.Init();
         StorageTenantID := ADLSECredentials.GetTenantID();
         StorageAccount := ADLSECredentials.GetStorageAccount();
         ClientID := ADLSECredentials.GetClientID();
         ClientSecret := ADLSECredentials.GetClientSecret();
+    end;
 
+    trigger OnAfterGetRecord()
+    var
+        ADLSEDeletedRecord: Record "ADLSE Deleted Record";
+        ADLSECurrentSession: Record "ADLSE Current Session";
+        ADLSERun: Record "ADLSE Run";
+    begin
+        ExportInProgress := ADLSECurrentSession.AreAnySessionsActive();
         TrackedDeletedRecordsExist := not ADLSEDeletedRecord.IsEmpty();
+        OldLogsExist := ADLSERun.OldRunsExist();
+        UpdateNotificationIfAnyTableExportFailed();
     end;
 
     var
+        ADLSECredentials: Codeunit "ADLSE Credentials";
         TrackedDeletedRecordsExist: Boolean;
         ExportInProgress: Boolean;
         [NonDebuggable]
@@ -222,5 +256,40 @@ page 82560 "ADLSE Setup"
         ClientID: Text;
         [NonDebuggable]
         ClientSecret: Text;
-        ADLSECredentials: Codeunit "ADLSE Credentials";
+        OldLogsExist: Boolean;
+        FailureNotificationID: Guid;
+        ExportFailureNotificationMsg: Label 'Data from one or more tables failed to export on the last run. Please check the tables below to see the error(s).';
+
+    local procedure UpdateNotificationIfAnyTableExportFailed()
+    var
+        ADLSETable: Record "ADLSE Table";
+        ADLSERun: Record "ADLSE Run";
+        FailureNotification: Notification;
+        Status: enum "ADLSE Run State";
+        LastStarted: DateTime;
+        ErrorIfAny: Text[2048];
+    begin
+        if ADLSETable.FindSet() then
+            repeat
+                ADLSERun.GetLastRunDetails(ADLSETable."Table ID", Status, LastStarted, ErrorIfAny);
+                if Status = "ADLSE Run State"::Failed then begin
+                    FailureNotification.Message := ExportFailureNotificationMsg;
+                    FailureNotification.Scope := NotificationScope::LocalScope;
+
+                    if IsNullGuid(FailureNotificationID) then
+                        FailureNotificationID := CreateGuid();
+                    FailureNotification.Id := FailureNotificationID;
+
+                    FailureNotification.Send();
+                    exit;
+                end;
+            until ADLSETable.Next() = 0;
+
+        // no failures- recall notification
+        if not IsNullGuid(FailureNotificationID) then begin
+            FailureNotification.Id := FailureNotificationID;
+            FailureNotification.Recall();
+            Clear(FailureNotificationID);
+        end;
+    end;
 }

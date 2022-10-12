@@ -1,0 +1,125 @@
+{
+    "name": "Consolidation_CheckForDeltas",
+    "properties": {
+        "activities": [
+            {
+                "name": "CheckEntityExistence",
+                "type": "GetMetadata",
+                "dependsOn": [],
+                "policy": {
+                    "timeout": "7.00:00:00",
+                    "retry": 0,
+                    "retryIntervalInSeconds": 30,
+                    "secureOutput": false,
+                    "secureInput": false
+                },
+                "userProperties": [],
+                "typeProperties": {
+                    "dataset": {
+                        "referenceName": "deltas_dataset",
+                        "type": "DatasetReference",
+                        "parameters": {
+                            "containerName": {
+                                "value": "@pipeline().parameters.containerName",
+                                "type": "Expression"
+                            },
+                            "entityName": {
+                                "value": "@pipeline().parameters.entityName",
+                                "type": "Expression"
+                            }
+                        }
+                    },
+                    "fieldList": [
+                        "exists"
+                    ],
+                    "storeSettings": {
+                        "type": "AzureBlobFSReadSettings",
+                        "recursive": true,
+                        "enablePartitionDiscovery": false
+                    },
+                    "formatSettings": {
+                        "type": "DelimitedTextReadSettings"
+                    }
+                }
+            },
+            {
+                "name": "IfEntityExists",
+                "type": "IfCondition",
+                "dependsOn": [
+                    {
+                        "activity": "CheckEntityExistence",
+                        "dependencyConditions": [
+                            "Succeeded"
+                        ]
+                    }
+                ],
+                "userProperties": [],
+                "typeProperties": {
+                    "expression": {
+                        "value": "@activity('CheckEntityExistence').output.exists",
+                        "type": "Expression"
+                    },
+                    "ifFalseActivities": [
+                        {
+                            "name": "FailIfEntityNotFound",
+                            "description": "Fails the current iteration over the entities in the deltas manifest if no directory is found for the current entity",
+                            "type": "Fail",
+                            "dependsOn": [],
+                            "userProperties": [],
+                            "typeProperties": {
+                                "message": {
+                                    "value": "@concat('Entity with name ', pipeline().parameters.entityName, ' was found in the deltas.manifest.cdm.json but no directory with that name was found in ', pipeline().parameters.containerName, '/deltas/. This may be the case if no new deltas have been exported.')",
+                                    "type": "Expression"
+                                },
+                                "errorCode": "404"
+                            }
+                        }
+                    ],
+                    "ifTrueActivities": [
+                        {
+                            "name": "ConsolidateEntity",
+                            "type": "ExecutePipeline",
+                            "dependsOn": [],
+                            "userProperties": [],
+                            "typeProperties": {
+                                "pipeline": {
+                                    "referenceName": "Consolidation_OneEntity",
+                                    "type": "PipelineReference"
+                                },
+                                "waitOnCompletion": true,
+                                "parameters": {
+                                    "containerName": {
+                                        "value": "@pipeline().parameters.containerName",
+                                        "type": "Expression"
+                                    },
+                                    "entityName": {
+                                        "value": "@pipeline().parameters.entityName",
+                                        "type": "Expression"
+                                    },
+                                    "deleteDeltas": {
+                                        "value": "@pipeline().parameters.deleteDeltas",
+                                        "type": "Expression"
+                                    }
+                                }
+                            }
+                        }
+                    ]
+                }
+            }
+        ],
+        "parameters": {
+            "containerName": {
+                "type": "string"
+            },
+            "entityName": {
+                "type": "string"
+            },
+            "deleteDeltas": {
+                "type": "bool"
+            }
+        },
+        "annotations": [],
+        "type": "Microsoft.Synapse/workspaces/pipelines"
+    },
+    "type": "Microsoft.Synapse/workspaces/pipelines"
+}
