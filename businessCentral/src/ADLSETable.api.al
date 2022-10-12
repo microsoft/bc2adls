@@ -1,4 +1,4 @@
-page 82563 "ADLSE Table API"
+page 82565 "ADLSE Table API"
 {
     PageType = API;
     APIPublisher = 'Microsoft';
@@ -19,8 +19,7 @@ page 82563 "ADLSE Table API"
             repeater(GroupName)
             {
                 field(tableId; rec."Table ID") { }
-                field(state; rec.State) { }
-                field(lastError; rec.LastError) { }
+                field(enabled; rec.Enabled) { }
                 field(systemId; Rec.SystemId) { }
                 field(systemCreatedAt; Rec.SystemCreatedAt) { }
                 field(systemCreatedBy; Rec.SystemCreatedBy) { }
@@ -29,19 +28,6 @@ page 82563 "ADLSE Table API"
             }
         }
     }
-    [ServiceEnabled]
-    procedure disable(var ActionContext: WebServiceActionContext)
-    begin
-        rec.Disable();
-        SetActionResponse(ActionContext, rec."SystemId");
-    end;
-
-    [ServiceEnabled]
-    procedure enable(var ActionContext: WebServiceActionContext)
-    begin
-        rec.enable();
-        SetActionResponse(ActionContext, rec."SystemId");
-    end;
 
     [ServiceEnabled]
     procedure reset(var ActionContext: WebServiceActionContext)

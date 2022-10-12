@@ -22,7 +22,7 @@ page 82564 "ADLSE Setup API"
                 field(emitTelemetry; rec."Emit telemetry") { }
                 field(dataFormat; rec.DataFormat) { }
                 field(maxPayloadSizeMiB; rec.MaxPayloadSizeMiB) { }
-                field(running; rec.Running) { }
+                field(multiCompanyExport; rec."Multi- Company Export") { }
                 field(systemId; Rec.SystemId) { }
                 field(systemCreatedAt; Rec.SystemCreatedAt) { }
                 field(systemCreatedBy; Rec.SystemCreatedBy) { }
