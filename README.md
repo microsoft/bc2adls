@@ -20,7 +20,7 @@ The following diagram illustrates the flow of data through a usage scenario- the
 More details:
 - [Installation and configuration](/.assets/Setup.md)
 - [Executing the export and pipeline](/.assets/Execution.md)
-- [Watch the webinar on bc2adls from Jan 2021](https://www.microsoft.com/en-us/videoplayer/embed/RWSHHG)
+- [Watch the webinar on bc2adls from Jan 2022](https://www.microsoft.com/en-us/videoplayer/embed/RWSHHG)
 
 ## Latest notable changes
 
