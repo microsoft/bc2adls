@@ -44,12 +44,29 @@ table 82562 "ADLSE Field"
         }
     }
 
+    trigger OnInsert()
+    var
+        ADLSESetup: Record "ADLSE Setup";
+    begin
+        ADLSESetup.CheckNoSimultaneousExportsAllowed();
+    end;
+
     trigger OnModify()
     var
+        ADLSESetup: Record "ADLSE Setup";
         ADLSETable: Record "ADLSE Table";
     begin
+        ADLSESetup.CheckNoSimultaneousExportsAllowed();
+
         ADLSETable.Get(Rec."Table ID");
         ADLSETable.CheckNotExporting();
+    end;
+
+    trigger OnDelete()
+    var
+        ADLSESetup: Record "ADLSE Setup";
+    begin
+        ADLSESetup.CheckNoSimultaneousExportsAllowed();
     end;
 
     procedure InsertForTable(ADLSETable: Record "ADLSE Table")
