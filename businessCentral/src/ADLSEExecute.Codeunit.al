@@ -94,8 +94,6 @@ codeunit 82561 "ADLSE Execute"
     end;
 
     var
-        TimestampAscendingSortViewTxt: Label 'Sorting(Timestamp) Order(Ascending)', Locked = true;
-        InsufficientReadPermErr: Label 'You do not have sufficient permissions to read from the table.';
         EmitTelemetry: Boolean;
         CDMDataFormat: Enum "ADLSE CDM Format";
 
@@ -120,38 +118,15 @@ codeunit 82561 "ADLSE Execute"
         ExportTableDeletes(TableID, ADLSECommunicationDeletions, DeletedLastEntryNo);
     end;
 
-    procedure UpdatedRecordsExist(TableID: Integer; UpdatedLastTimeStamp: BigInteger): Boolean
-    var
-        Rec: RecordRef;
-        TimeStampField: FieldRef;
-    begin
-        SetFilterForUpdates(TableID, UpdatedLastTimeStamp, Rec, TimeStampField);
-        exit(not Rec.IsEmpty());
-    end;
-
-    local procedure SetFilterForUpdates(TableID: Integer; UpdatedLastTimeStamp: BigInteger; var Rec: RecordRef; var TimeStampField: FieldRef)
-    begin
-        Rec.Open(TableID);
-        Rec.SetView(TimestampAscendingSortViewTxt);
-        TimeStampField := Rec.Field(0); // 0 is the TimeStamp field
-        TimeStampField.SetFilter('>%1', UpdatedLastTimestamp);
-    end;
-
     local procedure ExportTableUpdates(TableID: Integer; FieldIdList: List of [Integer]; ADLSECommunication: Codeunit "ADLSE Communication"; var UpdatedLastTimeStamp: BigInteger)
     var
+        ADLSESeekDataOnReplica: Report "ADLSE Seek Data On Replica";
         ADLSEExecution: Codeunit "ADLSE Execution";
         Rec: RecordRef;
         TimeStampField: FieldRef;
         FlushedTimeStamp: BigInteger;
-        FieldId: Integer;
     begin
-        SetFilterForUpdates(TableID, UpdatedLastTimeStamp, Rec, TimeStampField);
-
-        foreach FieldId in FieldIdList do
-            Rec.AddLoadFields(FieldID);
-
-        if not Rec.ReadPermission() then
-            Error(InsufficientReadPermErr);
+        ADLSESeekDataOnReplica.InitializeReportForUpdates(TableID, UpdatedLastTimeStamp, FieldIdList, Rec);
 
         if Rec.FindSet(false) then begin
             if EmitTelemetry then
@@ -172,30 +147,16 @@ codeunit 82561 "ADLSE Execute"
             ADLSEExecution.Log('ADLSE-009', 'Updated records exported', Verbosity::Verbose);
     end;
 
-    procedure DeletedRecordsExist(TableID: Integer; DeletedLastEntryNo: BigInteger): Boolean
-    var
-        ADLSEDeletedRecord: Record "ADLSE Deleted Record";
-    begin
-        SetFilterForDeletes(TableID, DeletedLastEntryNo, ADLSEDeletedRecord);
-        exit(not ADLSEDeletedRecord.IsEmpty());
-    end;
-
-    local procedure SetFilterForDeletes(TableID: Integer; DeletedLastEntryNo: BigInteger; var ADLSEDeletedRecord: Record "ADLSE Deleted Record")
-    begin
-        ADLSEDeletedRecord.SetView(TimestampAscendingSortViewTxt);
-        ADLSEDeletedRecord.SetRange("Table ID", TableID);
-        ADLSEDeletedRecord.SetFilter("Entry No.", '>%1', DeletedLastEntryNo);
-    end;
-
     local procedure ExportTableDeletes(TableID: Integer; ADLSECommunication: Codeunit "ADLSE Communication"; var DeletedLastEntryNo: BigInteger)
     var
         ADLSEDeletedRecord: Record "ADLSE Deleted Record";
+        ADLSESeekDataOnReplica: Report "ADLSE Seek Data On Replica";
         ADLSEUtil: Codeunit "ADLSE Util";
         ADLSEExecution: Codeunit "ADLSE Execution";
         Rec: RecordRef;
         FlushedTimeStamp: BigInteger;
     begin
-        SetFilterForDeletes(TableID, DeletedLastEntryNo, ADLSEDeletedRecord);
+        ADLSESeekDataOnReplica.InitializeReportForDeletes(TableID, DeletedLastEntryNo, ADLSEDeletedRecord);
 
         if ADLSEDeletedRecord.FindSet(false) then begin
             if EmitTelemetry then
