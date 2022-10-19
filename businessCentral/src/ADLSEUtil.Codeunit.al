@@ -326,6 +326,7 @@ codeunit 82564 "ADLSE Util"
         FieldsAdded: Integer;
         FieldTextValue: Text;
         Payload: TextBuilder;
+        SystemCreatedAt: DateTime;
     begin
         FieldsAdded := 0;
         if AddHeaders then begin
@@ -349,6 +350,12 @@ codeunit 82564 "ADLSE Util"
             Field := Rec.Field(FieldID);
 
             FieldTextValue := ConvertFieldToText(Field);
+            // Records created before SystemCreatedAt field was introduced, have null values. Initialize with 01 Jan 1900
+            if FieldID = Rec.SystemCreatedAtNo() then begin
+                SystemCreatedAt := Field.Value();
+                if SystemCreatedAt = 0DT then
+                    FieldTextValue := ConvertDateTimeToText(CreateDateTime(19000101D, 000000T));
+            end;
             if FieldsAdded = 0 then
                 Payload.Append(FieldTextValue)
             else
