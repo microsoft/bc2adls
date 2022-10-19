@@ -26,6 +26,7 @@ More details:
 
 Pull request | Changes
 --------------- | ---
+[54](https://github.com/microsoft/bc2adls/pull/54) | Very old records do not appear in the lake sometimes because the `SystemCreatedAt` field is set to null. This field is now artificaly initialized to a date so that it appears in the lake.
 [47](https://github.com/microsoft/bc2adls/pull/47) | The ability to simultaneously export data from multiple companies has been introduced. This is expected to save time and effort in cases which required users to sequence the runs for different companies one after the other.  
 [43](https://github.com/microsoft/bc2adls/pull/43) | Intermediate staging data is no longer saved in CDM format. This eliminates potential conflicts during concurrent updates to the manifest. This does not affect the final data output, which continues to be in CDM format.
 [33](https://github.com/microsoft/bc2adls/pull/33) | Fixing issue related to localizations of booleans and options/ enums. 
