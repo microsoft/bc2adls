@@ -63,16 +63,16 @@ codeunit 82570 "ADLSE Session Manager"
     local procedure DataChangesExist(TableID: Integer): Boolean
     var
         ADLSETableLastTimestamp: Record "ADLSE Table Last Timestamp";
-        ADLSESeekDataOnReplica: Report "ADLSE Seek Data On Replica";
+        ADLSEExecute: Codeunit "ADLSE Execute";
         UpdatedLastTimestamp: BigInteger;
         DeletedLastEntryNo: BigInteger;
     begin
         UpdatedLastTimestamp := ADLSETableLastTimestamp.GetUpdatedLastTimestamp(TableID);
         DeletedLastEntryNo := ADLSETableLastTimestamp.GetDeletedLastEntryNo(TableID);
 
-        if ADLSESeekDataOnReplica.UpdatedRecordsExist(TableID, UpdatedLastTimestamp) then
+        if ADLSEExecute.UpdatedRecordsExist(TableID, UpdatedLastTimestamp) then
             exit(true);
-        if ADLSESeekDataOnReplica.DeletedRecordsExist(TableID, DeletedLastEntryNo) then
+        if ADLSEExecute.DeletedRecordsExist(TableID, DeletedLastEntryNo) then
             exit(true);
     end;
 
