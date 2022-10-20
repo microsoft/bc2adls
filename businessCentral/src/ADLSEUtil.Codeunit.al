@@ -354,7 +354,7 @@ codeunit 82564 "ADLSE Util"
             if FieldID = Rec.SystemCreatedAtNo() then begin
                 SystemCreatedAt := Field.Value();
                 if SystemCreatedAt = 0DT then
-                    FieldTextValue := ConvertDateTimeToText(CreateDateTime(19000101D, 000000T));
+                    FieldTextValue := ConvertDateTimeToText(CreateDateTime(DMY2Date(1, 1, 1900), 0T));
             end;
             if FieldsAdded = 0 then
                 Payload.Append(FieldTextValue)
