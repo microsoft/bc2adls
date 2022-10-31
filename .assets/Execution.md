@@ -5,9 +5,9 @@ The export process makes incremental updates to the data lake, based on the amou
 
 > **<em>Note</em>** BLOB, Flow and Filter fields as well as the fields that have been Obsoleted are not supported.
 
-Ensure that the `State` columns for the table rows are set to Ready. Click now on the `Export` action at the top of the page. This spawns multiple sessions that export each table in parallel and uploads only the incremental updates to the data since the last export. 
+Click on the `Export` action at the top of the page. This spawns multiple sessions that export each table in parallel and uploads only the incremental updates to the data since the last export. When none of the table rows have a `Last exported status` of `In process`, it indicates that the export process has completed. You should be able to see the data through the CDM endpoint: `deltas.cdm.manifest.json`.
 
-When none of the table rows have a `Status` of `Exporting`, it indicates that the export process has completed. You should be able to see the data through the CDM endpoint: `deltas.cdm.manifest.json`.
+For tables that either have `DataPerCompany` set to `false` or have been reset and exported multiple times, there may be duplicate data in the deltas folder. When running the integration pipeline process, such duplicates should be removed.
 
 ## Telemetry
 You may switch off the telemetry traces specified inside the code of this extension by turning the "Emit telemetry" flag to off on the main setup page. When switched on, operational telemetry is pushed to any Application Insights account specified on the extension by the publisher. [Read more](https://docs.microsoft.com/en-us/dynamics365/business-central/dev-itpro/administration/telemetry-overview).

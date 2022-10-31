@@ -36,7 +36,7 @@ table 82563 "ADLSE Deleted Record"
         {
             Clustered = true;
         }
-        key(Key2; "Table ID", "Entry No.")
+        key(Key2; "Table ID")
         {
         }
     }

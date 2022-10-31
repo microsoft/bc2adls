@@ -106,19 +106,19 @@ codeunit 82565 "ADLSE Credentials"
     [NonDebuggable]
     local procedure GetSecret(KeyName: Text) Secret: Text
     begin
-        if not IsolatedStorage.Contains(KeyName, DataScope::Company) then
+        if not IsolatedStorage.Contains(KeyName, IsolatedStorageDataScope()) then
             exit('');
-        IsolatedStorage.Get(KeyName, DataScope::Company, Secret);
+        IsolatedStorage.Get(KeyName, IsolatedStorageDataScope(), Secret);
     end;
 
     [NonDebuggable]
     local procedure SetSecret(KeyName: Text; Secret: Text)
     begin
         if EncryptionEnabled() then begin
-            IsolatedStorage.SetEncrypted(KeyName, Secret, DataScope::Company);
+            IsolatedStorage.SetEncrypted(KeyName, Secret, IsolatedStorageDataScope());
             exit;
         end;
-        IsolatedStorage.Set(KeyName, Secret, DataScope::Company);
+        IsolatedStorage.Set(KeyName, Secret, IsolatedStorageDataScope());
     end;
 
     [NonDebuggable]
@@ -126,5 +126,10 @@ codeunit 82565 "ADLSE Credentials"
     begin
         if Val.Trim() = '' then
             Error(ValueNotFoundErr, KeyName);
+    end;
+
+    local procedure IsolatedStorageDataScope(): DataScope
+    begin
+        exit(DataScope::Module); // so that all companies share the same settings
     end;
 }

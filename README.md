@@ -22,12 +22,14 @@ More details:
 - [Installation and configuration](/.assets/Setup.md)
 - [Executing the export and pipeline](/.assets/Execution.md)
 - [Creating shared metadata tables](./assets/SharedMetaDataTables.md)
+- [Watch the webinar on bc2adls from Jan 2022](https://www.microsoft.com/en-us/videoplayer/embed/RWSHHG)
 
 ## Latest notable changes
 
 Pull request | Changes
 --------------- | ---
 [49](https://github.com/microsoft/bc2adls/pull/49) | Entities using the Parquet file format can now automatically be registered as a shared metadata table that is managed in Spark but can also be queried using Serverless SQL. You can find the full feature guide [here](/.assets/SharedMetadataTables.md).
+[47](https://github.com/microsoft/bc2adls/pull/47) | The ability to simultaneously export data from multiple companies has been introduced. This is expected to save time and effort in cases which required users to sequence the runs for different companies one after the other.  
 [43](https://github.com/microsoft/bc2adls/pull/43) | Intermediate staging data is no longer saved in CDM format. This eliminates potential conflicts during concurrent updates to the manifest. This does not affect the final data output, which continues to be in CDM format.
 [33](https://github.com/microsoft/bc2adls/pull/33) | Fixing issue related to localizations of booleans and options/ enums. 
 [31](https://github.com/microsoft/bc2adls/pull/31) | Permissions corrected to direct permissions.

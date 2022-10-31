@@ -27,6 +27,10 @@ codeunit 82562 "ADLSE Communication"
         CannotAddedMoreBlocksErr: Label 'The number of blocks that can be added to the blob has reached its maximum limit.';
         SingleRecordTooLargeErr: Label 'A single record payload exceeded the max payload size. Please adjust the payload size or reduce the fields to be exported for the record.';
         DeltasFileCsvTok: Label '/deltas/%1/%2.csv', Comment = '%1: Entity, %2: File identifier guid';
+        NotAllowedOnSimultaneousExportTxt: Label 'This is not allowed when exports are configured to occur simultaneously. Please uncheck Multi- company export, export the data at least once, and try again.';
+        EntitySchemaChangedErr: Label 'The schema of the table %1 has changed. %2', Comment = '%1 = Entity name, %2 = NotAllowedOnSimultaneousExportTxt';
+        CdmSchemaChangedErr: Label 'There may have been a change in the tables to export. %1', Comment = '%1 = NotAllowedOnSimultaneousExportTxt';
+        ManifestJsonsNotUpdatedErr: Label 'Could not update the CDM manifest files because of a race condition. Please try again later.';
 
     procedure SetupBlobStorage()
     var
@@ -43,7 +47,7 @@ codeunit 82562 "ADLSE Communication"
         ADLSESetup: Record "ADLSE Setup";
     begin
         if DefaultContainerName = '' then begin
-            ADLSESetup.Get();
+            ADLSESetup.GetSingleton();
             DefaultContainerName := ADLSESetup.Container;
         end;
         exit(StrSubstNo(ContainerUrlTxt, ADLSECredentials.GetStorageAccount(), DefaultContainerName));
@@ -61,15 +65,17 @@ codeunit 82562 "ADLSE Communication"
         EntityName := ADLSEUtil.GetDataLakeCompliantTableName(TableID);
 
         LastFlushedTimeStamp := LastFlushedTimeStampValue;
-        ADLSESetup.Get();
+        ADLSESetup.GetSingleton();
         MaxSizeOfPayloadMiB := ADLSESetup.MaxPayloadSizeMiB;
         EmitTelemetry := EmitTelemetryValue;
     end;
 
     procedure CheckEntity(CdmDataFormat: Enum "ADLSE CDM Format"; var EntityJsonNeedsUpdate: Boolean; var ManifestJsonsNeedsUpdate: Boolean)
     var
+        ADLSESetup: Record "ADLSE Setup";
         ADLSECdmUtil: Codeunit "ADLSE CDM Util";
         ADLSEGen2Util: Codeunit "ADLSE Gen 2 Util";
+        ADLSEExecution: Codeunit "ADLSE Execution";
         OldJson: JsonObject;
         NewJson: JsonObject;
         BlobExists: Boolean;
@@ -81,22 +87,44 @@ codeunit 82562 "ADLSE Communication"
         OldJson := ADLSEGen2Util.GetBlobContent(GetBaseUrl() + BlobEntityPath, ADLSECredentials, BlobExists);
         if BlobExists then
             ADLSECdmUtil.CheckChangeInEntities(OldJson, EntityJson, EntityName);
-        EntityJsonNeedsUpdate := JsonsDifferent(OldJson, EntityJson);
+        if not ADLSECdmUtil.CompareEntityJsons(OldJson, EntityJson) then begin
+            if EmitTelemetry then
+                ADLSEExecution.Log('ADLSE-028', GetLastErrorText() + GetLastErrorCallStack(), Verbosity::Warning);
+            ClearLastError();
+
+            EntityJsonNeedsUpdate := true;
+            JsonsDifferent(OldJson, EntityJson); // to log the difference
+        end;
 
         // check manifest. Assume that if the data manifest needs change, the delta manifest will also need be updated
         OldJson := ADLSEGen2Util.GetBlobContent(GetBaseUrl() + StrSubstNo(CorpusJsonPathTxt, DataCdmManifestNameTxt), ADLSECredentials, BlobExists);
         NewJson := ADLSECdmUtil.UpdateDefaultManifestContent(OldJson, TableID, 'data', CdmDataFormat);
         ManifestJsonsNeedsUpdate := JsonsDifferent(OldJson, NewJson);
+
+        ADLSESetup.GetSingleton();
+        if ADLSESetup."Multi- Company Export" then begin
+            if EntityJsonNeedsUpdate then
+                Error(EntitySchemaChangedErr, EntityName, NotAllowedOnSimultaneousExportTxt);
+            if ManifestJsonsNeedsUpdate then
+                Error(CdmSchemaChangedErr, NotAllowedOnSimultaneousExportTxt);
+        end;
     end;
 
-    local procedure JsonsDifferent(Json1: JsonObject; Json2: JsonObject): Boolean
+    local procedure JsonsDifferent(Json1: JsonObject; Json2: JsonObject) Result: Boolean
     var
+        ADLSEExecution: Codeunit "ADLSE Execution";
+        CustomDimensions: Dictionary of [Text, Text];
         Content1: Text;
         Content2: Text;
     begin
         Json1.WriteTo(Content1);
         Json2.WriteTo(Content2);
-        exit(Content1 <> Content2);
+        Result := Content1 <> Content2;
+        if Result and EmitTelemetry then begin
+            CustomDimensions.Add('Content1', Content1);
+            CustomDimensions.Add('Content2', Content2);
+            ADLSEExecution.Log('ADLSE-023', 'Jsons were found to be different.', Verbosity::Warning, CustomDimensions);
+        end;
     end;
 
     local procedure CreateDataBlob()
@@ -114,14 +142,15 @@ codeunit 82562 "ADLSE Communication"
         DataBlobPath := StrSubstNo(DeltasFileCsvTok, EntityName, ADLSEUtil.ToText(FileIdentifer));
         ADLSEGen2Util.CreateDataBlob(GetBaseUrl() + DataBlobPath, ADLSECredentials);
         if EmitTelemetry then begin
-            CustomDimension.Add('Path', DataBlobPath);
-            ADLSEExecution.Log('ADLSE-012', 'Created new blob to hold the data to be exported', Verbosity::Normal, DataClassification::SystemMetadata, CustomDimension);
+            CustomDimension.Add('Entity', EntityName);
+            ADLSEExecution.Log('ADLSE-012', 'Created new blob to hold the data to be exported', Verbosity::Verbose, CustomDimension);
         end;
     end;
 
     [TryFunction]
     procedure TryCollectAndSendRecord(Rec: RecordRef; RecordTimeStamp: BigInteger; var LastTimestampExported: BigInteger)
     begin
+        ClearLastError();
         CreateDataBlob();
         LastTimestampExported := CollectAndSendRecord(Rec, RecordTimeStamp);
     end;
@@ -151,6 +180,7 @@ codeunit 82562 "ADLSE Communication"
     [TryFunction]
     procedure TryFinish(var LastTimestampExported: BigInteger)
     begin
+        ClearLastError();
         LastTimestampExported := Finish();
     end;
 
@@ -186,19 +216,19 @@ codeunit 82562 "ADLSE Communication"
 
         if EmitTelemetry then begin
             CustomDimensions.Add('Length of payload', Format(Payload.Length()));
-            ADLSEExecution.Log('ADLSE-013', 'Flushing the payload', Verbosity::Normal, DataClassification::CustomerContent, CustomDimensions);
+            ADLSEExecution.Log('ADLSE-013', 'Flushing the payload', Verbosity::Verbose, CustomDimensions);
         end;
 
         BlockID := ADLSEGen2Util.AddBlockToDataBlob(GetBaseUrl() + DataBlobPath, Payload.ToText(), ADLSECredentials);
         if EmitTelemetry then begin
             Clear(CustomDimensions);
             CustomDimensions.Add('Block ID', BlockID);
-            ADLSEExecution.Log('ADLSE-014', 'Block added to blob', Verbosity::Normal, DataClassification::CustomerContent, CustomDimensions);
+            ADLSEExecution.Log('ADLSE-014', 'Block added to blob', Verbosity::Verbose, CustomDimensions);
         end;
         DataBlobBlockIDs.Add(BlockID);
         ADLSEGen2Util.CommitAllBlocksOnDataBlob(GetBaseUrl() + DataBlobPath, ADLSECredentials, DataBlobBlockIDs);
         if EmitTelemetry then
-            ADLSEExecution.Log('ADLSE-015', 'Block committed', Verbosity::Normal, DataClassification::CustomerContent);
+            ADLSEExecution.Log('ADLSE-015', 'Block committed', Verbosity::Verbose);
 
         LastFlushedTimeStamp := LastRecordOnPayloadTimeStamp;
         Payload.Clear();
@@ -209,7 +239,7 @@ codeunit 82562 "ADLSE Communication"
         if EmitTelemetry then begin
             Clear(CustomDimensions);
             CustomDimensions.Add('Flushed count', Format(NumberOfFlushes));
-            ADLSEExecution.Log('ADLSE-016', 'Flushed the payload', Verbosity::Normal, DataClassification::CustomerContent, CustomDimensions);
+            ADLSEExecution.Log('ADLSE-016', 'Flushed the payload', Verbosity::Verbose, CustomDimensions);
         end;
     end;
 
@@ -223,7 +253,6 @@ codeunit 82562 "ADLSE Communication"
     var
         ADLSESetup: Record "ADLSE Setup";
         ADLSEGen2Util: Codeunit "ADLSE Gen 2 Util";
-        ADLSEExecute: Codeunit "ADLSE Execute";
         LeaseID: Text;
         BlobPath: Text;
         BlobExists: Boolean;
@@ -238,13 +267,22 @@ codeunit 82562 "ADLSE Communication"
 
         // update manifest
         if ManifestJsonsNeedsUpdate then begin
-            // Expected that multiple sessions that export data from different tables will be competing for writing to manifest. Semaphore applied.
-            ADLSEExecute.AcquireLockonADLSESetup(ADLSESetup);
+            // Expected that multiple sessions that export data from different tables will be competing for writing to 
+            // manifest. Semaphore applied.
+            if not AcquireLockonADLSESetup(ADLSESetup) then
+                Error(ManifestJsonsNotUpdatedErr);
 
             UpdateManifest(GetBaseUrl() + StrSubstNo(CorpusJsonPathTxt, DataCdmManifestNameTxt), 'data', ADLSESetup.DataFormat);
             UpdateManifest(GetBaseUrl() + StrSubstNo(CorpusJsonPathTxt, DeltaCdmManifestNameTxt), 'deltas', "ADLSE CDM Format"::Csv);
             Commit(); // to release the lock above
         end;
+    end;
+
+    [TryFunction]
+    local procedure AcquireLockonADLSESetup(var ADLSESetup: Record "ADLSE Setup")
+    begin
+        ADLSESetup.LockTable(true);
+        ADLSESetup.GetSingleton();
     end;
 
     local procedure UpdateManifest(BlobPath: Text; Folder: Text; ADLSECdmFormat: Enum "ADLSE CDM Format")
