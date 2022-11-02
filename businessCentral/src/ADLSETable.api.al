@@ -1,11 +1,11 @@
 page 82565 "ADLSE Table API"
 {
     PageType = API;
-    APIPublisher = 'Microsoft';
+    APIPublisher = 'bc2adlsTeamMicrosoft';
     APIGroup = 'bc2adls';
     APIVersion = 'v1.0';
-    EntityName = 'adlsTable';
-    EntitySetName = 'adlsTable';
+    EntityName = 'adlseTable';
+    EntitySetName = 'adlseTable';
     SourceTable = "ADLSE Table";
     InsertAllowed = false;
     DeleteAllowed = false;
@@ -18,21 +18,24 @@ page 82565 "ADLSE Table API"
         {
             repeater(GroupName)
             {
-                field(tableId; rec."Table ID") { }
-                field(enabled; rec.Enabled) { }
-                field(systemId; Rec.SystemId) { }
-                field(systemCreatedAt; Rec.SystemCreatedAt) { }
-                field(systemCreatedBy; Rec.SystemCreatedBy) { }
-                field(systemModifiedAt; Rec.SystemModifiedAt) { }
-                field(systemModifiedBy; Rec.SystemModifiedBy) { }
+                field(tableId; Rec."Table ID") { }
+                field(enabled; Rec.Enabled) { }
+                field(systemId; Rec.SystemId)
+                {
+                    Editable = false;
+                }
+                field(lastModifiedDateTime; Rec.SystemModifiedAt)
+                {
+                    Editable = false;
+                }
             }
         }
     }
 
     [ServiceEnabled]
-    procedure reset(var ActionContext: WebServiceActionContext)
+    procedure Reset(var ActionContext: WebServiceActionContext)
     begin
-        rec.reset();
+        Rec.reset();
         SetActionResponse(ActionContext, rec."SystemId");
     end;
 

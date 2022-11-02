@@ -1,11 +1,11 @@
 page 82564 "ADLSE Setup API"
 {
     PageType = API;
-    APIPublisher = 'Microsoft';
+    APIPublisher = 'bc2adlsTeamMicrosoft';
     APIGroup = 'bc2adls';
     APIVersion = 'v1.0';
-    EntityName = 'adlsSetup';
-    EntitySetName = 'adlsSetup';
+    EntityName = 'adlseSetup';
+    EntitySetName = 'adlseSetup';
     SourceTable = "ADLSE Setup";
     InsertAllowed = false;
     DeleteAllowed = false;
@@ -18,22 +18,26 @@ page 82564 "ADLSE Setup API"
         {
             repeater(GroupName)
             {
-                field(container; rec.Container) { }
-                field(emitTelemetry; rec."Emit telemetry") { }
-                field(dataFormat; rec.DataFormat) { }
-                field(maxPayloadSizeMiB; rec.MaxPayloadSizeMiB) { }
-                field(multiCompanyExport; rec."Multi- Company Export") { }
-                field(systemId; Rec.SystemId) { }
-                field(systemCreatedAt; Rec.SystemCreatedAt) { }
-                field(systemCreatedBy; Rec.SystemCreatedBy) { }
-                field(systemModifiedAt; Rec.SystemModifiedAt) { }
-                field(systemModifiedBy; Rec.SystemModifiedBy) { }
+                field(primaryKey; Rec."Primary Key") { }
+                field(container; Rec.Container) { }
+                field(emitTelemetry; Rec."Emit telemetry") { }
+                field(dataFormat; Rec.DataFormat) { }
+                field(maxPayloadSizeMiB; Rec.MaxPayloadSizeMiB) { }
+                field(multiCompanyExport; Rec."Multi- Company Export") { }
+                field(systemId; Rec.SystemId)
+                {
+                    Editable = false;
+                }
+                field(lastModifiedDateTime; Rec.SystemModifiedAt)
+                {
+                    Editable = false;
+                }
             }
         }
     }
 
     [ServiceEnabled]
-    procedure startExport(var ActionContext: WebServiceActionContext)
+    procedure StartExport(var ActionContext: WebServiceActionContext)
     var
         ADLSEExecution: Codeunit "ADLSE Execution";
     begin
@@ -42,7 +46,7 @@ page 82564 "ADLSE Setup API"
     end;
 
     [ServiceEnabled]
-    procedure stopExport(var ActionContext: WebServiceActionContext)
+    procedure StopExport(var ActionContext: WebServiceActionContext)
     var
         ADLSEExecution: Codeunit "ADLSE Execution";
     begin
