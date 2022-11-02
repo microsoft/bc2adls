@@ -17,6 +17,12 @@
                         "dependencyConditions": [
                             "Succeeded"
                         ]
+                    },
+                    {
+                        "activity": "Filtered on Company field",
+                        "dependencyConditions": [
+                            "Succeeded"
+                        ]
                     }
                 ],
                 "policy": {
@@ -42,6 +48,10 @@
                             },
                             "dataFormat": {
                                 "value": "'@{variables('dataFormat')}'",
+                                "type": "Expression"
+                            },
+                            "perCompanyEntity": {
+                                "value": "@equals(\n    activity('Filtered on Company field').output.FilteredItemsCount, \n    1\n)",
                                 "type": "Expression"
                             }
                         }
@@ -593,6 +603,77 @@
                         "type": "AzureBlobFSReadSettings",
                         "recursive": true,
                         "enablePartitionDiscovery": false
+                    }
+                }
+            },
+            {
+                "name": "Lookup entity json",
+                "type": "Lookup",
+                "dependsOn": [
+                    {
+                        "activity": "Entity found",
+                        "dependencyConditions": [
+                            "Succeeded"
+                        ]
+                    }
+                ],
+                "policy": {
+                    "timeout": "7.00:00:00",
+                    "retry": 0,
+                    "retryIntervalInSeconds": 30,
+                    "secureOutput": false,
+                    "secureInput": false
+                },
+                "userProperties": [],
+                "typeProperties": {
+                    "source": {
+                        "type": "JsonSource",
+                        "storeSettings": {
+                            "type": "AzureBlobFSReadSettings",
+                            "recursive": true,
+                            "enablePartitionDiscovery": false
+                        },
+                        "formatSettings": {
+                            "type": "JsonReadSettings"
+                        }
+                    },
+                    "dataset": {
+                        "referenceName": "entity_dataset",
+                        "type": "DatasetReference",
+                        "parameters": {
+                            "containerName": {
+                                "value": "@pipeline().parameters.containerName",
+                                "type": "Expression"
+                            },
+                            "entityName": {
+                                "value": "@pipeline().parameters.entityName",
+                                "type": "Expression"
+                            }
+                        }
+                    },
+                    "firstRowOnly": false
+                }
+            },
+            {
+                "name": "Filtered on Company field",
+                "type": "Filter",
+                "dependsOn": [
+                    {
+                        "activity": "Lookup entity json",
+                        "dependencyConditions": [
+                            "Succeeded"
+                        ]
+                    }
+                ],
+                "userProperties": [],
+                "typeProperties": {
+                    "items": {
+                        "value": "@activity('Lookup entity json').output.value[0].definitions[0].hasAttributes",
+                        "type": "Expression"
+                    },
+                    "condition": {
+                        "value": "@equals(item().name, '$Company')",
+                        "type": "Expression"
                     }
                 }
             },
