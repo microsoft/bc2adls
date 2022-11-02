@@ -14,14 +14,14 @@ The following diagram illustrates the flow of data through a usage scenario- the
 - The resulting data can be consumed by applications, such as Power BI, in the following ways:
 	- CDM: via the `data.cdm.manifest.json manifest`
 	- CSV/Parquet: via the underlying files for each individual entity inside the `data` folder
-	- Spark/SQL: via [shared metadata tables](./assets/SharedMetaDataTables.md)
+	- Spark/SQL: via [shared metadata tables](/.assets/SharedMetadataTables.md)
 	
 ![Architecture](/.assets/architecture.png "Flow of data")
 
 More details:
 - [Installation and configuration](/.assets/Setup.md)
 - [Executing the export and pipeline](/.assets/Execution.md)
-- [Creating shared metadata tables](./assets/SharedMetaDataTables.md)
+- [Creating shared metadata tables](/.assets/SharedMetadataTables.md)
 - [Watch the webinar on bc2adls from Jan 2022](https://www.microsoft.com/en-us/videoplayer/embed/RWSHHG)
 
 ## Latest notable changes

@@ -95,7 +95,7 @@ It is important that the resources are created in the following sequence:
 
 
 ## Congratulations!
-You have completed configuring the resources. Please proceed to running the tool and exporting BC data to data lake [here](/.assets/RunningAnalytics.md).
+You have completed configuring the resources. Please proceed to running the tool and exporting BC data to data lake [here](/.assets/Execution.md).
 
 
 
