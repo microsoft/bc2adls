@@ -72,6 +72,12 @@
                         "dependencyConditions": [
                             "Succeeded"
                         ]
+                    },
+                    {
+                        "activity": "CheckEntityExistenceInData",
+                        "dependencyConditions": [
+                            "Succeeded"
+                        ]
                     }
                 ],
                 "policy": {
@@ -670,6 +676,108 @@
                         "type": "Expression"
                     }
                 }
+            },
+            {
+                "name": "SparkTableConditions",
+                "description": "Checks whether a new Spark table should be created. \nThree conditions need to be met.\n1. The pipeline parameter sparkpoolName may not be empty.\n2. The data format needs to be parquet.\n3. The entity must not yet exist in the data folder.",
+                "type": "IfCondition",
+                "dependsOn": [
+                    {
+                        "activity": "Copy staging to data",
+                        "dependencyConditions": [
+                            "Succeeded"
+                        ]
+                    }
+                ],
+                "userProperties": [],
+                "typeProperties": {
+                    "expression": {
+                        "value": "@and(\n    and(\n        equals(variables('dataFormat'), 'parquet'),\n        not(\n            empty(pipeline().parameters.sparkpoolName)\n        )\n    ),\n    not(\n        activity('CheckEntityExistenceInData').output.exists\n    )\n)",
+                        "type": "Expression"
+                    },
+                    "ifTrueActivities": [
+                        {
+                            "name": "CreateParquetTable",
+                            "type": "SynapseNotebook",
+                            "dependsOn": [],
+                            "policy": {
+                                "timeout": "0.12:00:00",
+                                "retry": 0,
+                                "retryIntervalInSeconds": 30,
+                                "secureOutput": false,
+                                "secureInput": false
+                            },
+                            "userProperties": [],
+                            "typeProperties": {
+                                "notebook": {
+                                    "referenceName": "CreateParquetTable",
+                                    "type": "NotebookReference"
+                                },
+                                "parameters": {
+                                    "container_name": {
+                                        "value": {
+                                            "value": "@pipeline().parameters.containerName",
+                                            "type": "Expression"
+                                        },
+                                        "type": "string"
+                                    },
+                                    "entity_name": {
+                                        "value": {
+                                            "value": "@pipeline().parameters.entityName",
+                                            "type": "Expression"
+                                        },
+                                        "type": "string"
+                                    }
+                                },
+                                "snapshot": true,
+                                "sparkPool": {
+                                    "referenceName": {
+                                        "value": "@pipeline().parameters.sparkpoolName",
+                                        "type": "Expression"
+                                    },
+                                    "type": "BigDataPoolReference"
+                                }
+                            }
+                        }
+                    ]
+                }
+            },
+            {
+                "name": "CheckEntityExistenceInData",
+                "type": "GetMetadata",
+                "dependsOn": [],
+                "policy": {
+                    "timeout": "7.00:00:00",
+                    "retry": 0,
+                    "retryIntervalInSeconds": 30,
+                    "secureOutput": false,
+                    "secureInput": false
+                },
+                "userProperties": [],
+                "typeProperties": {
+                    "dataset": {
+                        "referenceName": "data_dataset_parquet",
+                        "type": "DatasetReference",
+                        "parameters": {
+                            "containerName": {
+                                "value": "@pipeline().parameters.containerName",
+                                "type": "Expression"
+                            },
+                            "entityName": {
+                                "value": "@pipeline().parameters.entityName",
+                                "type": "Expression"
+                            }
+                        }
+                    },
+                    "fieldList": [
+                        "exists"
+                    ],
+                    "storeSettings": {
+                        "type": "AzureBlobFSReadSettings",
+                        "recursive": true,
+                        "enablePartitionDiscovery": false
+                    }
+                }
             }
         ],
         "parameters": {
@@ -682,6 +790,9 @@
             "deleteDeltas": {
                 "type": "bool",
                 "defaultValue": false
+            },
+            "sparkpoolName": {
+                "type": "string"
             }
         },
         "variables": {

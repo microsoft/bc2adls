@@ -82,6 +82,10 @@
                                     "deleteDeltas": {
                                         "value": "@pipeline().parameters.deleteDeltas",
                                         "type": "Expression"
+                                    },
+                                    "sparkpoolName": {
+                                        "value": "@pipeline().parameters.sparkpoolName",
+                                        "type": "Expression"
                                     }
                                 }
                             }
@@ -97,6 +101,9 @@
             "deleteDeltas": {
                 "type": "bool",
                 "defaultValue": false
+            },
+            "sparkpoolName": {
+                "type": "string"
             }
         },
         "annotations": [],
