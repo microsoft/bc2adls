@@ -42,7 +42,7 @@ page 82564 "ADLSE Setup API"
         ADLSEExecution: Codeunit "ADLSE Execution";
     begin
         ADLSEExecution.StartExport();
-        SetActionResponse(ActionContext, rec."SystemId");
+        SetActionResponse(ActionContext, Rec."SystemId");
     end;
 
     [ServiceEnabled]
@@ -51,7 +51,7 @@ page 82564 "ADLSE Setup API"
         ADLSEExecution: Codeunit "ADLSE Execution";
     begin
         ADLSEExecution.StopExport();
-        SetActionResponse(ActionContext, rec."SystemId");
+        SetActionResponse(ActionContext, Rec."SystemId");
     end;
 
     local procedure SetActionResponse(var ActionContext: WebServiceActionContext; AdlsId: Guid)
@@ -65,7 +65,7 @@ page 82564 "ADLSE Setup API"
     begin
         ActionContext.SetObjectType(ObjectType::Page);
         ActionContext.SetObjectId(PageId);
-        ActionContext.AddEntityKey(rec.FieldNo(SystemId), DocumentId);
+        ActionContext.AddEntityKey(Rec.FieldNo(SystemId), DocumentId);
         ActionContext.SetResultCode(WebServiceActionResultCode::Updated);
     end;
 }

@@ -36,7 +36,7 @@ page 82565 "ADLSE Table API"
     procedure Reset(var ActionContext: WebServiceActionContext)
     begin
         Rec.reset();
-        SetActionResponse(ActionContext, rec."SystemId");
+        SetActionResponse(ActionContext, Rec."SystemId");
     end;
 
     local procedure SetActionResponse(var ActionContext: WebServiceActionContext; AdlsId: Guid)
@@ -50,7 +50,7 @@ page 82565 "ADLSE Table API"
     begin
         ActionContext.SetObjectType(ObjectType::Page);
         ActionContext.SetObjectId(PageId);
-        ActionContext.AddEntityKey(rec.FieldNo(SystemId), DocumentId);
+        ActionContext.AddEntityKey(Rec.FieldNo(SystemId), DocumentId);
         ActionContext.SetResultCode(WebServiceActionResultCode::Updated);
     end;
 }
