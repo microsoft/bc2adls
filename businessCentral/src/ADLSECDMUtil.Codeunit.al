@@ -122,7 +122,7 @@ codeunit 82566 "ADLSE CDM Util" // Refer Common Data Model https://docs.microsof
         RecRef.Open(TableID);
         foreach FieldId in FieldIdList do begin
             FldRef := RecRef.Field(FieldId);
-            ADLSEUtil.GetCDMAttributeDetails(FldRef.Type, DataFormat, AppliedTraits);
+            GetCDMAttributeDetails(FldRef.Type, DataFormat, AppliedTraits);
             Result.Add(
                 CreateAttributeJson(
                     ADLSEUtil.GetDataLakeCompliantFieldName(FldRef.Name, FldRef.Number),
@@ -131,7 +131,7 @@ codeunit 82566 "ADLSE CDM Util" // Refer Common Data Model https://docs.microsof
                     AppliedTraits));
         end;
         if ADLSEUtil.IsTablePerCompany(TableID) then begin
-            ADLSEUtil.GetCDMAttributeDetails(FieldType::Text, DataFormat, AppliedTraits);
+            GetCDMAttributeDetails(FieldType::Text, DataFormat, AppliedTraits);
             Result.Add(
                 CreateAttributeJson(GetCompanyFieldName(), DataFormat, GetCompanyFieldName(), AppliedTraits));
         end;
@@ -218,6 +218,78 @@ codeunit 82566 "ADLSE CDM Util" // Refer Common Data Model https://docs.microsof
             CompareAttributeField(Attribute1, Attribute2, 'dataFormat', Counter);
             CompareAttributeField(Attribute1, Attribute2, 'displayName', Counter);
         end;
+    end;
+
+    local procedure GetCDMAttributeDetails(Type: FieldType; var DataFormat: Text; var AppliedTraits: JsonArray)
+    begin
+        DataFormat := '';
+        Clear(AppliedTraits);
+        AppliedTraits := GetAppliedTraits(Type);
+        DataFormat := GetCDMDataFormat(Type);
+    end;
+
+    local procedure GetAppliedTraits(Type: FieldType) AppliedTraits: JsonArray
+    var
+        JsonTrait: JsonObject;
+        TraitArgs: JsonArray;
+    begin
+        case Type of
+            FieldType::Decimal:
+                begin
+                    JsonTrait.Add('traitReference', 'is.dataFormat.numeric.shaped');
+                    AddTraitArgs(TraitArgs, 'scale', '5'); // 5 is the default max number of decimals. https://github.com/microsoft/CDM/blob/master/samples/example-public-standards/primitives.cdm.json
+                    JsonTrait.Add('arguments', TraitArgs);
+                    AppliedTraits.Add(JsonTrait);
+                end;
+        end;
+    end;
+
+    local procedure AddTraitArgs(var TraitArgs: JsonArray; Name: Text; Value: Text)
+    var
+        JsonNameValue: JsonObject;
+    begin
+        JsonNameValue.Add('name', Name);
+        JsonNameValue.Add('value', Value);
+        TraitArgs.Add(JsonNameValue);
+    end;
+
+    local procedure GetCDMDataFormat(Type: FieldType): Text
+    begin
+        // Refer https://docs.microsoft.com/en-us/common-data-model/sdk/list-of-datatypes
+        // Refer https://docs.microsoft.com/en-us/common-data-model/1.0om/api-reference/cdm/dataformat
+        case Type of
+            FieldType::BigInteger:
+                exit('Int64');
+            FieldType::Date:
+                exit('Date');
+            FieldType::DateFormula:
+                exit(GetCDMDataFormat_String());
+            FieldType::DateTime:
+                exit('DateTime');
+            FieldType::Decimal:
+                exit('Decimal');
+            FieldType::Duration:
+                exit('DateTimeOffset');
+            FieldType::Integer:
+                exit('Int32');
+            FieldType::Option:
+                exit(GetCDMDataFormat_String());
+            FieldType::Time:
+                exit('Time');
+            FieldType::Boolean:
+                exit('Boolean');
+            FieldType::Code:
+                exit(GetCDMDataFormat_String());
+            FieldType::Guid:
+                exit('Guid');
+            FieldType::Text:
+                exit(GetCDMDataFormat_String());
+        end;
+    end;
+
+    local procedure GetCDMDataFormat_String(): Text
+    begin
+        exit('String');
     end;
 
     local procedure CompareAttributeField(Attribute1: JsonToken; Attribute2: JsonToken; FieldName: Text; Index: Integer)
