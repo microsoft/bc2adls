@@ -28,6 +28,7 @@ More details:
 
 Pull request | Changes
 --------------- | ---
+[59](https://github.com/microsoft/bc2adls/pull/59) | The default rounding principles caused the consolidated data to have a maximum of two decimal places even though the data in the `deltas` may have had higher decimal precision. Added an applied trait to all decimal fields so that they account for upto 5 decimal places. 
 [54](https://github.com/microsoft/bc2adls/pull/54) | Fixes irregularities on the System Audit fields. (1) Very old records do not appear in the lake sometimes because the `SystemCreatedAt` field is set to null. This field is now artificaly initialized to a date so that it appears in the lake, and (2) The `SystemID` field may be repeated over different records belonging to different companies in the same table. Thus, the uniqueness contraint has been fixed. 
 [49](https://github.com/microsoft/bc2adls/pull/49) | Entities using the Parquet file format can now automatically be registered as a shared metadata table that is managed in Spark but can also be queried using Serverless SQL. You can find the full feature guide [here](/.assets/SharedMetadataTables.md).
 [47](https://github.com/microsoft/bc2adls/pull/47) | The ability to simultaneously export data from multiple companies has been introduced. This is expected to save time and effort in cases which required users to sequence the runs for different companies one after the other.  

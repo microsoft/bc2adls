@@ -259,53 +259,6 @@ codeunit 82564 "ADLSE Util"
         Result := Result.Replace(StrSubstNo(WholeSecondsTok, SecondsText), StrSubstNo(FractionSecondsTok, WholeSecondsText, MillisecondsText));
     end;
 
-    procedure GetCDMAttributeDetails(Type: FieldType; var DataFormat: Text; var AppliedTraits: JsonArray)
-    begin
-        DataFormat := '';
-        Clear(AppliedTraits);
-
-        DataFormat := GetCDMDataFormat(Type);
-    end;
-
-    local procedure GetCDMDataFormat(Type: FieldType): Text
-    begin
-        // Refer https://docs.microsoft.com/en-us/common-data-model/sdk/list-of-datatypes
-        // Refer https://docs.microsoft.com/en-us/common-data-model/1.0om/api-reference/cdm/dataformat
-        case Type of
-            FieldType::BigInteger:
-                exit('Int64');
-            FieldType::Date:
-                exit('Date');
-            FieldType::DateFormula:
-                exit(GetCDMDataFormat_String());
-            FieldType::DateTime:
-                exit('DateTime');
-            FieldType::Decimal:
-                exit('Decimal');
-            FieldType::Duration:
-                exit('DateTimeOffset');
-            FieldType::Integer:
-                exit('Int32');
-            FieldType::Option:
-                exit(GetCDMDataFormat_String());
-            FieldType::Time:
-                exit('Time');
-            FieldType::Boolean:
-                exit('Boolean');
-            FieldType::Code:
-                exit(GetCDMDataFormat_String());
-            FieldType::Guid:
-                exit('Guid');
-            FieldType::Text:
-                exit(GetCDMDataFormat_String());
-        end;
-    end;
-
-    local procedure GetCDMDataFormat_String(): Text
-    begin
-        exit('String');
-    end;
-
     procedure AddSystemFields(var FieldIdList: List of [Integer])
     var
         RecRef: RecordRef;
