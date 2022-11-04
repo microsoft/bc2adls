@@ -3,7 +3,7 @@
     "properties": {
         "activities": [
             {
-                "name": "CheckEntityExistence",
+                "name": "CheckEntityExistenceInDeltas",
                 "type": "GetMetadata",
                 "dependsOn": [],
                 "policy": {
@@ -47,7 +47,7 @@
                 "type": "IfCondition",
                 "dependsOn": [
                     {
-                        "activity": "CheckEntityExistence",
+                        "activity": "CheckEntityExistenceInDeltas",
                         "dependencyConditions": [
                             "Succeeded"
                         ]
@@ -56,7 +56,7 @@
                 "userProperties": [],
                 "typeProperties": {
                     "expression": {
-                        "value": "@activity('CheckEntityExistence').output.exists",
+                        "value": "@activity('CheckEntityExistenceInDeltas').output.exists",
                         "type": "Expression"
                     },
                     "ifFalseActivities": [
@@ -99,6 +99,10 @@
                                     "deleteDeltas": {
                                         "value": "@pipeline().parameters.deleteDeltas",
                                         "type": "Expression"
+                                    },
+                                    "sparkpoolName": {
+                                        "value": "@pipeline().parameters.sparkpoolName",
+                                        "type": "Expression"
                                     }
                                 }
                             }
@@ -116,6 +120,9 @@
             },
             "deleteDeltas": {
                 "type": "bool"
+            },
+            "sparkpoolName": {
+                "type": "string"
             }
         },
         "annotations": [],

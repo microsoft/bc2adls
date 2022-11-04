@@ -1,0 +1,34 @@
+{
+    "name": "entity_dataset",
+    "properties": {
+        "linkedServiceName": {
+            "referenceName": "AzureDataLakeStorage",
+            "type": "LinkedServiceReference"
+        },
+        "parameters": {
+            "containerName": {
+                "type": "string"
+            },
+            "entityName": {
+                "type": "string"
+            }
+        },
+        "annotations": [],
+        "type": "Json",
+        "typeProperties": {
+            "location": {
+                "type": "AzureBlobFSLocation",
+                "fileName": {
+                    "value": "@concat(dataset().entityName, '.cdm.json')",
+                    "type": "Expression"
+                },
+                "fileSystem": {
+                    "value": "@dataset().containerName",
+                    "type": "Expression"
+                }
+            }
+        },
+        "schema": {}
+    },
+    "type": "Microsoft.Synapse/workspaces/datasets"
+}
