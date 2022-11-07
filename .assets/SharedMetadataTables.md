@@ -14,7 +14,9 @@ You can read more about shared metadata tables [here](https://learn.microsoft.co
 
 ## What are the advantages of using shared metadata tables?
 
-Shared metadata tables combine the advantages of multiple different approaches to data storage. Like a traditional database table, they can be queried using SQL. At the same time, they store their data on the data lake, reducing storage costs and eliminating the need for database compute. This also means [Power BI can connect to them in DirectQuery mode](https://learn.microsoft.com/en-us/azure/synapse-analytics/sql/tutorial-connect-power-bi-desktop#4---create-power-bi-report), using the Serverless SQL endpoint of Azure Synapse Analytics.
+Shared metadata tables combine the advantages of multiple different approaches to data storage. Like a traditional database table, they can be queried using SQL. At the same time, they store their data on the data lake, reducing storage costs and eliminating the need for database compute. This also means [Power BI can connect to them in DirectQuery mode](https://learn.microsoft.com/en-us/azure/synapse-analytics/sql/tutorial-connect-power-bi-desktop#4---create-power-bi-report), using the Serverless SQL endpoint of Azure Synapse Analytics workspace. You can find this endpoint in the Azure Portal on the **Overview** blade of your Synapse workspace resource.
+
+Connecting with DirectQuery allows you to create composite multi-table based views in Power BI, similar to [API entities](https://learn.microsoft.com/en-us/dynamics365/business-central/dev-itpro/webservices/api-overview) that have been exposed as read-only API pages or queries. 
 
 In addition, the tables can easily be read and modified using [Spark notebooks written in Python, C#, Scala or SQL](https://learn.microsoft.com/en-us/azure/synapse-analytics/spark/apache-spark-development-using-notebooks) to support big data analytics or machine learning scenarios.
 
@@ -32,6 +34,9 @@ After the pipeline run has successfully completed, a new lake database will be v
 ### How does it work?
 
 The [Consolidation_OneEntity](/synapse/pipeline/Consolidation_OneEntity.json) pipeline checks whether the entity it is currently processing already exists in the **data** folder of the Data Lake. If that is not the case - indicating that a new table has been exported - the pipeline will execute a pySpark notebook that creates the Spark table. Since the data is in Parquet format, Spark can read the schema from the Parquet files, when creating the table. This means that columns will retain their defined data types (or Spark equivalents).
+
+> **<em>Note</em>** 
+> Table and database names are always in lower case and non-alphanumeric characters, e.g., hyphens (-), are replaced with underscores (_).
 
 ### When is manual intervention required?
 
