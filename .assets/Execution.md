@@ -11,6 +11,8 @@ Click on the `Export` action at the top of the page. This spawns multiple sessio
 
 For tables that either have `DataPerCompany` set to `false` or have been reset and exported multiple times, there may be duplicate data in the deltas folder. When running the integration pipeline process, such duplicates should be removed.
 
+In version 21, a new feature called `Report read-only data access` needs to [be enabled](https://learn.microsoft.com/en-us/dynamics365/business-central/dev-itpro/administration/feature-management) so that all reads from the tables are made from the replica database. We encourage you to turn this on, as running the exports from the replica database will help minimize the performance impact on the "normal" ERP operations.
+
 ## Telemetry
 You may switch off the telemetry traces specified inside the code of this extension by turning the "Emit telemetry" flag to off on the main setup page. When switched on, operational telemetry is pushed to any Application Insights account specified on the extension by the publisher. [Read more](https://docs.microsoft.com/en-us/dynamics365/business-central/dev-itpro/administration/telemetry-overview).
 
