@@ -98,10 +98,6 @@ page 82561 "ADLSE Setup Tables"
                 ApplicationArea = All;
                 Caption = 'Add';
                 Tooltip = 'Add a table to be exported';
-                Promoted = true;
-                PromotedIsBig = true;
-                PromotedOnly = true;
-                PromotedCategory = Process;
                 Image = New;
                 Enabled = NoExportInProgress;
 
@@ -119,10 +115,6 @@ page 82561 "ADLSE Setup Tables"
                 ApplicationArea = All;
                 Caption = 'Delete';
                 Tooltip = 'Removes a table that had been added to the list meant for export';
-                Promoted = true;
-                PromotedIsBig = true;
-                PromotedOnly = true;
-                PromotedCategory = Process;
                 Image = Delete;
                 Enabled = NoExportInProgress;
 
@@ -138,10 +130,6 @@ page 82561 "ADLSE Setup Tables"
                 ApplicationArea = All;
                 Caption = 'Choose fields';
                 ToolTip = 'Select the fields of this table to be exported';
-                Promoted = true;
-                PromotedIsBig = true;
-                PromotedOnly = true;
-                PromotedCategory = Process;
                 Image = SelectEntries;
                 Enabled = NoExportInProgress;
 
@@ -156,9 +144,6 @@ page 82561 "ADLSE Setup Tables"
                 ApplicationArea = All;
                 Caption = 'Reset';
                 ToolTip = 'Set the selected tables to export all of its data again.';
-                Promoted = true;
-                PromotedIsBig = true;
-                PromotedOnly = true;
                 Image = ResetStatus;
                 Enabled = NoExportInProgress;
 
