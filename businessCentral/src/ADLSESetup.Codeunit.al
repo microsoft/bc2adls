@@ -8,6 +8,7 @@ codeunit 82560 "ADLSE Setup"
         FieldClassNotSupportedErr: Label 'The field %1 of class %2 is not supported.', Comment = '%1 = field name, %2 = field class';
         SelectTableLbl: Label 'Select the tables to be exported';
         FieldObsoleteNotSupportedErr: Label 'The field %1 is obsolete', Comment = '%1 = field name';
+        FieldDisabledNotSupportedErr: Label 'The field %1 is disabled', Comment = '%1 = field name';
 
     procedure AddTableToExport()
     var
@@ -45,6 +46,8 @@ codeunit 82560 "ADLSE Setup"
             Error(FieldClassNotSupportedErr, Fld."Field Caption", Fld.Class);
         if Fld.ObsoleteState = Fld.ObsoleteState::Removed then
             Error(FieldObsoleteNotSupportedErr, Fld."Field Caption");
+        if not Fld.Enabled then
+            Error(FieldDisabledNotSupportedErr, Fld."Field Caption");
     end;
 
     procedure CheckSetup(var ADLSESetup: Record "ADLSE Setup")
