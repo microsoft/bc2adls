@@ -15,6 +15,7 @@ codeunit 82561 "ADLSE Execute"
         ADLSEExecution: Codeunit "ADLSE Execution";
         ADLSEUtil: Codeunit "ADLSE Util";
         CustomDimensions: Dictionary of [Text, Text];
+        TableCaption: Text;
         UpdatedLastTimestamp: BigInteger;
         DeletedLastEntryNo: BigInteger;
         OldUpdatedLastTimestamp: BigInteger;
@@ -25,8 +26,10 @@ codeunit 82561 "ADLSE Execute"
         ADLSESetup.GetSingleton();
         EmitTelemetry := ADLSESetup."Emit telemetry";
         CDMDataFormat := ADLSESetup.DataFormat;
+
         if EmitTelemetry then begin
-            CustomDimensions.Add('Entity', ADLSEUtil.GetTableCaption(Rec."Table ID"));
+            TableCaption := ADLSEUtil.GetTableCaption(Rec."Table ID");
+            CustomDimensions.Add('Entity', TableCaption);
             ADLSEExecution.Log('ADLSE-017', 'Starting the export for table', Verbosity::Normal, CustomDimensions);
         end;
 
@@ -41,7 +44,6 @@ codeunit 82561 "ADLSE Execute"
         DeletedLastEntryNo := ADLSETableLastTimestamp.GetDeletedLastEntryNo(Rec."Table ID");
 
         if EmitTelemetry then begin
-            Clear(CustomDimensions);
             CustomDimensions.Add('Old Updated Last time stamp', Format(UpdatedLastTimestamp));
             CustomDimensions.Add('Old Deleted Last entry no.', Format(DeletedLastEntryNo));
             ADLSEExecution.Log('ADLSE-004', 'Exporting with parameters', Verbosity::Verbose, CustomDimensions);
@@ -56,6 +58,7 @@ codeunit 82561 "ADLSE Execute"
         end;
         if EmitTelemetry then begin
             Clear(CustomDimensions);
+            CustomDimensions.Add('Entity', TableCaption);
             CustomDimensions.Add('Updated Last time stamp', Format(UpdatedLastTimestamp));
             CustomDimensions.Add('Deleted Last entry no.', Format(DeletedLastEntryNo));
             CustomDimensions.Add('Entity Json needs update', Format(EntityJsonNeedsUpdate));
@@ -74,8 +77,11 @@ codeunit 82561 "ADLSE Execute"
                 SetStateFinished(Rec);
                 exit;
             end;
-            if EmitTelemetry then
-                ADLSEExecution.Log('ADLSE-006', 'Saved the timestamps into the database', Verbosity::Normal);
+            if EmitTelemetry then begin
+                Clear(CustomDimensions);
+                CustomDimensions.Add('Entity', TableCaption);
+                ADLSEExecution.Log('ADLSE-006', 'Saved the timestamps into the database', Verbosity::Normal, CustomDimensions);
+            end;
             Commit(); // to save the last time stamps into the database.
         end;
 
@@ -85,12 +91,12 @@ codeunit 82561 "ADLSE Execute"
             exit;
         end;
         if EmitTelemetry then
-            ADLSEExecution.Log('ADLSE-007', 'Jsons have been updated', Verbosity::Normal);
+            ADLSEExecution.Log('ADLSE-007', 'Jsons have been updated', Verbosity::Normal, CustomDimensions);
 
         // Finalize
         SetStateFinished(Rec);
         if EmitTelemetry then
-            ADLSEExecution.Log('ADLSE-005', 'Export completed without error', Verbosity::Normal);
+            ADLSEExecution.Log('ADLSE-005', 'Export completed without error', Verbosity::Normal, CustomDimensions);
     end;
 
     var
@@ -144,6 +150,9 @@ codeunit 82561 "ADLSE Execute"
         ADLSEExecution: Codeunit "ADLSE Execution";
         Rec: RecordRef;
         TimeStampField: FieldRef;
+        CustomDimensions: Dictionary of [Text, Text];
+        TableCaption: Text;
+        EntityCount: Text;
         FlushedTimeStamp: BigInteger;
         FieldId: Integer;
     begin
@@ -156,8 +165,14 @@ codeunit 82561 "ADLSE Execute"
             Error(InsufficientReadPermErr);
 
         if ADLSESeekData.FindRecords(Rec) then begin
-            if EmitTelemetry then
-                ADLSEExecution.Log('ADLSE-021', 'Updated records found', Verbosity::Verbose);
+            if EmitTelemetry then begin
+                TableCaption := Rec.Caption();
+                EntityCount := Format(Rec.Count());
+                CustomDimensions.Add('Entity', TableCaption);
+                CustomDimensions.Add('Entity Count', EntityCount);
+                ADLSEExecution.Log('ADLSE-021', 'Updated records found', Verbosity::Normal, CustomDimensions);             
+            end;
+
             repeat
                 if ADLSECommunication.TryCollectAndSendRecord(Rec, TimeStampField.Value(), FlushedTimeStamp) then
                     UpdatedLastTimeStamp := FlushedTimeStamp
