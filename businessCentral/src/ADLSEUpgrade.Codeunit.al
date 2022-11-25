@@ -5,8 +5,8 @@ codeunit 82572 "ADLSE Upgrade"
 
     trigger OnUpgradePerCompany()
     var
-        adlseInstaller: Codeunit "ADLSE Installer";
+        ADLSEInstaller: Codeunit "ADLSE Installer";
     begin
-        adlseInstaller.AddAllowedTables(); // also sets the tag!
+        ADLSEInstaller.AddAllowedTables(); // also sets the tag!
     end;
 }

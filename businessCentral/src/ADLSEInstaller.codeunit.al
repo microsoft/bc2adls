@@ -4,8 +4,11 @@ codeunit 82571 "ADLSE Installer"
     Access = Internal;
 
     trigger OnInstallAppPerCompany()
+    var
+        UpgradeTag: Codeunit "Upgrade Tag";
     begin
-        AddAllowedTables();
+        if not UpgradeTag.HasUpgradeTag(GetRetenPolLogEntryAddedUpgradeTag()) then
+            AddAllowedTables();
     end;
 
     procedure AddAllowedTables()
@@ -18,20 +21,7 @@ codeunit 82571 "ADLSE Installer"
         RecRef: RecordRef;
         TableFilters: JsonArray;
     begin
-        if UpgradeTag.HasUpgradeTag(GetRetenPolLogEntryAddedUpgradeTag()) then
-            exit;
-
         RetenPolAllowedTables.AddAllowedTable(Database::"ADLSE Run", ADLSERun.FieldNo(SystemModifiedAt));
-
-        ADLSEDeletedRecord.SetRange(Exported, false);
-        RecRef.GetTable(ADLSEDeletedRecord);
-        RetenPolAllowedTables.AddTableFilterToJsonArray(TableFilters, RetentionPeriodEnum::"Never Delete", ADLSEDeletedRecord.FieldNo(SystemCreatedAt), true, true, RecRef);
-        ADLSEDeletedRecord.Reset();
-        ADLSEDeletedRecord.SetRange(Exported, true);
-        RecRef.GetTable(ADLSEDeletedRecord);
-        RetenPolAllowedTables.AddTableFilterToJsonArray(TableFilters, RetentionPeriodEnum::"1 Week", ADLSEDeletedRecord.FieldNo(SystemCreatedAt), true, false, RecRef);
-
-        RetenPolAllowedTables.AddAllowedTable(Database::"ADLSE Deleted Record", ADLSEDeletedRecord.FieldNo(SystemCreatedAt), TableFilters);
 
         UpgradeTag.SetUpgradeTag(GetRetenPolLogEntryAddedUpgradeTag());
     end;

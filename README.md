@@ -26,6 +26,7 @@ More details:
 
 Pull request | Changes
 --------------- | ---
+[56](https://github.com/microsoft/bc2adls/pull/56) | The table ADLSE Run has now been added to the retention policy so that the logs for the executions can be cleared periodically, thus taking up less space in the database.
 [47](https://github.com/microsoft/bc2adls/pull/47) | The ability to simultaneously export data from multiple companies has been introduced. This is expected to save time and effort in cases which required users to sequence the runs for different companies one after the other.  
 [43](https://github.com/microsoft/bc2adls/pull/43) | Intermediate staging data is no longer saved in CDM format. This eliminates potential conflicts during concurrent updates to the manifest. This does not affect the final data output, which continues to be in CDM format.
 [33](https://github.com/microsoft/bc2adls/pull/33) | Fixing issue related to localizations of booleans and options/ enums. 

@@ -208,9 +208,6 @@ codeunit 82561 "ADLSE Execute"
                 else
                     Error('%1%2', GetLastErrorText(), GetLastErrorCallStack());
 
-                ADLSEDeletedRecord.Exported := true;
-                ADLSEDeletedRecord.Modify();
-
             until ADLSEDeletedRecord.Next() = 0;
 
             if ADLSECommunication.TryFinish(FlushedTimeStamp) then

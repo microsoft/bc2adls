@@ -28,11 +28,6 @@ table 82563 "ADLSE Deleted Record"
             Editable = false;
             Caption = 'Deletion Timestamp';
         }
-        field(5; "Exported"; Boolean)
-        {
-            Editable = false;
-            Caption = 'Exported';
-        }
     }
 
     keys
