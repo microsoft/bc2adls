@@ -170,7 +170,7 @@ codeunit 82561 "ADLSE Execute"
                 EntityCount := Format(Rec.Count());
                 CustomDimensions.Add('Entity', TableCaption);
                 CustomDimensions.Add('Entity Count', EntityCount);
-                ADLSEExecution.Log('ADLSE-021', 'Updated records found', Verbosity::Normal, CustomDimensions);             
+                ADLSEExecution.Log('ADLSE-021', 'Updated records found', Verbosity::Normal, CustomDimensions);
             end;
 
             repeat
@@ -212,14 +212,24 @@ codeunit 82561 "ADLSE Execute"
         ADLSEUtil: Codeunit "ADLSE Util";
         ADLSEExecution: Codeunit "ADLSE Execution";
         Rec: RecordRef;
+        CustomDimensions: Dictionary of [Text, Text];
+        TableCaption: Text;
+        EntityCount: Text;
         FlushedTimeStamp: BigInteger;
     begin
         SetFilterForDeletes(TableID, DeletedLastEntryNo, ADLSEDeletedRecord);
 
         if ADLSESeekData.FindRecords(ADLSEDeletedRecord) then begin
-            if EmitTelemetry then
-                ADLSEExecution.Log('ADLSE-010', 'Deleted records found', Verbosity::Verbose);
             Rec.Open(ADLSEDeletedRecord."Table ID");
+
+            if EmitTelemetry then begin
+                TableCaption := Rec.Caption();
+                EntityCount := Format(Rec.Count());
+                CustomDimensions.Add('Entity', TableCaption);
+                CustomDimensions.Add('Entity Count', EntityCount);
+                ADLSEExecution.Log('ADLSE-010', 'Deleted records found', Verbosity::Normal, CustomDimensions);
+            end;
+
             repeat
                 ADLSEUtil.CreateFakeRecordForDeletedAction(ADLSEDeletedRecord, Rec);
                 if ADLSECommunication.TryCollectAndSendRecord(Rec, ADLSEDeletedRecord."Entry No.", FlushedTimeStamp) then
@@ -234,7 +244,7 @@ codeunit 82561 "ADLSE Execute"
                 Error('%1%2', GetLastErrorText(), GetLastErrorCallStack());
         end;
         if EmitTelemetry then
-            ADLSEExecution.Log('ADLSE-011', 'Deleted records exported', Verbosity::Verbose);
+            ADLSEExecution.Log('ADLSE-011', 'Deleted records exported', Verbosity::Normal, CustomDimensions);
     end;
 
     local procedure CreateFieldListForTable(TableID: Integer) FieldIdList: List of [Integer]
