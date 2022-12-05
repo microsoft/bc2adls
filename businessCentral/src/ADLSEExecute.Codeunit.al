@@ -211,7 +211,6 @@ codeunit 82561 "ADLSE Execute"
                     DeletedLastEntryNo := FlushedTimeStamp
                 else
                     Error('%1%2', GetLastErrorText(), GetLastErrorCallStack());
-
             until ADLSEDeletedRecord.Next() = 0;
 
             if ADLSECommunication.TryFinish(FlushedTimeStamp) then
