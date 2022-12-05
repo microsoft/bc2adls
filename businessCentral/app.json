@@ -13,8 +13,8 @@
   "screenshots":  [
 
                   ],
-  "platform":  "20.0.0.0",
-  "application":  "20.0.0.0",
+  "platform":  "21.0.0.0",
+  "application":  "21.0.0.0",
   "resourceExposurePolicy": {
     "allowDebugging": true,
     "allowDownloadingSource": true,
@@ -27,5 +27,5 @@
     }
   ],
   "target": "Cloud",
-  "runtime": "9.0"
+  "runtime": "10.0"
 }

@@ -72,7 +72,9 @@ This is the step that would create the analytics pipelines in the above workspac
 
     ![New Dataset](/.assets/synapseNewIntegrationDataset.png)
 
-    It is important that the resources are created in the following sequence, 
+The [`CreateParquetTable`](/synapse/notebook/CreateParquetTable.ipynb) notebook can also be [imported directly from the file](https://learn.microsoft.com/en-us/azure/synapse-analytics/spark/apache-spark-development-using-notebooks#create-a-notebook).
+
+It is important that the resources are created in the following sequence:
 
 | Sequence # | Name & Url | Tab | Menu to invoke under the `+` sign | 
 | ---------- | ---- | --- | ----------------------------------| 
@@ -81,17 +83,19 @@ This is the step that would create the analytics pipelines in the above workspac
 |3|[`dataManifest_dataset`](/synapse/dataset/dataManifest_dataset.json)|`Data`|`Integration dataset`|
 |4|[`deltas_dataset`](/synapse/dataset/deltas_dataset.json)|`Data`|`Integration dataset`|
 |5|[`deltasManifest_dataset`](/synapse/dataset/deltasManifest_dataset.json)|`Data`|`Integration dataset`|
-|6|[`staging_dataset`](/synapse/dataset/staging_dataset.json)|`Data`|`Integration dataset`|
-|7|[`Consolidation_flow`](/synapse/dataflow/Consolidation_flow.json)|`Develop`|`Data flow`|
-|8|[`Consolidation_OneEntity`](/synapse/pipeline/Consolidation_OneEntity.json)|`Integrate`|`Pipeline`|
-|9|[`Consolidation_CheckForDeltas`](/synapse/pipeline/Consolidation_CheckForDeltas.json)|`Integrate`|`Pipeline`|
-|10|[`Consolidation_AllEntities`](/synapse/pipeline/Consolidation_AllEntities.json)|`Integrate`|`Pipeline`|
+|6|[`entity_dataset`](/synapse/dataset/entity_dataset.json)|`Data`|`Integration dataset`|
+|7|[`staging_dataset`](/synapse/dataset/staging_dataset.json)|`Data`|`Integration dataset`|
+|8|[`CreateParquetTable`](/synapse/notebook/CreateParquetTable.ipynb)|`Develop`|`Notebook`|
+|9|[`Consolidation_flow`](/synapse/dataflow/Consolidation_flow.json)|`Develop`|`Data flow`|
+|10|[`Consolidation_OneEntity`](/synapse/pipeline/Consolidation_OneEntity.json)|`Integrate`|`Pipeline`|
+|11|[`Consolidation_CheckForDeltas`](/synapse/pipeline/Consolidation_CheckForDeltas.json)|`Integrate`|`Pipeline`|
+|12|[`Consolidation_AllEntities`](/synapse/pipeline/Consolidation_AllEntities.json)|`Integrate`|`Pipeline`|
 
 6. At the toolbar of the **Synapse Studio** at the top, you may now click on **Validate all** and if there are no errors, click on **Publish all**.
 
 
 ## Congratulations!
-You have completed configuring the resources. Please proceed to running the tool and exporting BC data to data lake [here](/.assets/RunningAnalytics.md).
+You have completed configuring the resources. Please proceed to running the tool and exporting BC data to data lake [here](/.assets/Execution.md).
 
 
 

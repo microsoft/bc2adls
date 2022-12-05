@@ -11,21 +11,27 @@ The **bc2adls** tool is used to export data from [Dynamics 365 Business Central]
 The following diagram illustrates the flow of data through a usage scenario- the main points being,
 - Incremental update data from BC is moved to Azure Data Lake Storage through the ADLSE extension into the `deltas` folder.
 - Triggering the Synapse pipeline(s) consolidates the increments into the data folder.
-- The data is now ready for consumption by analytics apps like Power BI,
-	- via the `data.cdm.manifest.json manifest` file, or
-	- via the raw CSV files for each individual entity inside the `data` folder
+- The resulting data can be consumed by applications, such as Power BI, in the following ways:
+	- CDM: via the `data.cdm.manifest.json manifest`
+	- CSV/Parquet: via the underlying files for each individual entity inside the `data` folder
+	- Spark/SQL: via [shared metadata tables](/.assets/SharedMetadataTables.md)
 	
-![Architecture](/.assets/architecture.jpg "Flow of data")
+![Architecture](/.assets/architecture.png "Flow of data")
 
 More details:
 - [Installation and configuration](/.assets/Setup.md)
 - [Executing the export and pipeline](/.assets/Execution.md)
+- [Creating shared metadata tables](/.assets/SharedMetadataTables.md)
 - [Watch the webinar on bc2adls from Jan 2022](https://www.microsoft.com/en-us/videoplayer/embed/RWSHHG)
 
 ## Latest notable changes
 
 Pull request | Changes
 --------------- | ---
+[55](https://github.com/microsoft/bc2adls/pull/55) | A much awaited request to allow the BC extension to read from the replica database saves up resources that can otherwise be dedicated to normal ERP operations, has now been implemented. This change is dependent on the version 21 of the application.
+[59](https://github.com/microsoft/bc2adls/pull/59) | The default rounding principles caused the consolidated data to have a maximum of two decimal places even though the data in the `deltas` may have had higher decimal precision. Added an applied trait to all decimal fields so that they account for up to 5 decimal places. 
+[54](https://github.com/microsoft/bc2adls/pull/54) | Fixes irregularities on the System Audit fields. (1) Very old records do not appear in the lake sometimes because the `SystemCreatedAt` field is set to null. This field is now artificaly initialized to a date so that it appears in the lake, and (2) The `SystemID` field may be repeated over different records belonging to different companies in the same table. Thus, the uniqueness contraint has been fixed. 
+[49](https://github.com/microsoft/bc2adls/pull/49) | Entities using the Parquet file format can now automatically be registered as a shared metadata table that is managed in Spark but can also be queried using Serverless SQL. You can find the full feature guide [here](/.assets/SharedMetadataTables.md).
 [56](https://github.com/microsoft/bc2adls/pull/56) | The table ADLSE Run has now been added to the retention policy so that the logs for the executions can be cleared periodically, thus taking up less space in the database.
 [47](https://github.com/microsoft/bc2adls/pull/47) | The ability to simultaneously export data from multiple companies has been introduced. This is expected to save time and effort in cases which required users to sequence the runs for different companies one after the other.  
 [43](https://github.com/microsoft/bc2adls/pull/43) | Intermediate staging data is no longer saved in CDM format. This eliminates potential conflicts during concurrent updates to the manifest. This does not affect the final data output, which continues to be in CDM format.

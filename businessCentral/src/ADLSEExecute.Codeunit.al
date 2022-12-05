@@ -122,11 +122,12 @@ codeunit 82561 "ADLSE Execute"
 
     procedure UpdatedRecordsExist(TableID: Integer; UpdatedLastTimeStamp: BigInteger): Boolean
     var
+        ADLSESeekData: Report "ADLSE Seek Data";
         Rec: RecordRef;
         TimeStampField: FieldRef;
     begin
         SetFilterForUpdates(TableID, UpdatedLastTimeStamp, Rec, TimeStampField);
-        exit(not Rec.IsEmpty());
+        exit(ADLSESeekData.RecordsExist(Rec));
     end;
 
     local procedure SetFilterForUpdates(TableID: Integer; UpdatedLastTimeStamp: BigInteger; var Rec: RecordRef; var TimeStampField: FieldRef)
@@ -139,6 +140,7 @@ codeunit 82561 "ADLSE Execute"
 
     local procedure ExportTableUpdates(TableID: Integer; FieldIdList: List of [Integer]; ADLSECommunication: Codeunit "ADLSE Communication"; var UpdatedLastTimeStamp: BigInteger)
     var
+        ADLSESeekData: Report "ADLSE Seek Data";
         ADLSEExecution: Codeunit "ADLSE Execution";
         Rec: RecordRef;
         TimeStampField: FieldRef;
@@ -153,7 +155,7 @@ codeunit 82561 "ADLSE Execute"
         if not Rec.ReadPermission() then
             Error(InsufficientReadPermErr);
 
-        if Rec.FindSet(false) then begin
+        if ADLSESeekData.FindRecords(Rec) then begin
             if EmitTelemetry then
                 ADLSEExecution.Log('ADLSE-021', 'Updated records found', Verbosity::Verbose);
             repeat
@@ -175,9 +177,10 @@ codeunit 82561 "ADLSE Execute"
     procedure DeletedRecordsExist(TableID: Integer; DeletedLastEntryNo: BigInteger): Boolean
     var
         ADLSEDeletedRecord: Record "ADLSE Deleted Record";
+        ADLSESeekData: Report "ADLSE Seek Data";
     begin
         SetFilterForDeletes(TableID, DeletedLastEntryNo, ADLSEDeletedRecord);
-        exit(not ADLSEDeletedRecord.IsEmpty());
+        exit(ADLSESeekData.RecordsExist(ADLSEDeletedRecord));
     end;
 
     local procedure SetFilterForDeletes(TableID: Integer; DeletedLastEntryNo: BigInteger; var ADLSEDeletedRecord: Record "ADLSE Deleted Record")
@@ -190,6 +193,7 @@ codeunit 82561 "ADLSE Execute"
     local procedure ExportTableDeletes(TableID: Integer; ADLSECommunication: Codeunit "ADLSE Communication"; var DeletedLastEntryNo: BigInteger)
     var
         ADLSEDeletedRecord: Record "ADLSE Deleted Record";
+        ADLSESeekData: Report "ADLSE Seek Data";
         ADLSEUtil: Codeunit "ADLSE Util";
         ADLSEExecution: Codeunit "ADLSE Execution";
         Rec: RecordRef;
@@ -197,7 +201,7 @@ codeunit 82561 "ADLSE Execute"
     begin
         SetFilterForDeletes(TableID, DeletedLastEntryNo, ADLSEDeletedRecord);
 
-        if ADLSEDeletedRecord.FindSet(false) then begin
+        if ADLSESeekData.FindRecords(ADLSEDeletedRecord) then begin
             if EmitTelemetry then
                 ADLSEExecution.Log('ADLSE-010', 'Deleted records found', Verbosity::Verbose);
             Rec.Open(ADLSEDeletedRecord."Table ID");
