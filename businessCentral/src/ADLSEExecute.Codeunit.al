@@ -224,7 +224,7 @@ codeunit 82561 "ADLSE Execute"
 
             if EmitTelemetry then begin
                 TableCaption := Rec.Caption();
-                EntityCount := Format(Rec.Count());
+                EntityCount := Format(ADLSEDeletedRecord.Count());
                 CustomDimensions.Add('Entity', TableCaption);
                 CustomDimensions.Add('Entity Count', EntityCount);
                 ADLSEExecution.Log('ADLSE-010', 'Deleted records found', Verbosity::Normal, CustomDimensions);
