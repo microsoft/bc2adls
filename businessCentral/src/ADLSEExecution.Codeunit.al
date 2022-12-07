@@ -162,4 +162,13 @@ codeunit 82569 "ADLSE Execution"
 
         ADLSEDeletedRecord.TrackDeletedRecord(RecRef);
     end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"G/L Account Category Mgt.", 'OnAfterInitializeCompany', '', false, false)]
+    local procedure OnAfterInitializeCompany()
+    var
+        ADLSEInstaller: Codeunit "ADLSE Installer";
+    begin
+        ADLSEInstaller.AddAllowedTables();
+    end;
+
 }
