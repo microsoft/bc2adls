@@ -1,6 +1,8 @@
 # Support
 
-Please be aware that this tool is an experiment and should not be used for running production-level ETL (extract, transform, load) data processes from Dynamics 365 Business Central. The tool is not supported by the Dynamics 365 Business Central product group in Microsoft and was created with the sole intention of inspiring the community. Because of the paucity of resources, our support on this tool is very limited. The tool will be obsoleted if and once the data export feature is supported by the product group. Please expect delays in responding to your queries or bugs.
+Please be aware that bc2adls is an experimental prototype which is not supported by the Dynamics 365 Business Central product group in Microsoft. You are welcome to use and build upon bc2adls, however, you are doing so at your own risk.
+As we are only a small group, our support on this tool is very limited. Please expect delays in responding to your queries or bugs. 
+If the product group releases an officially supported data export feature, bc2adls will be deprecated. In that case, we will update this page to reflect this. 
 
 ## How to file issues and get help  
 
