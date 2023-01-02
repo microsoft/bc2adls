@@ -27,12 +27,14 @@ codeunit 82569 "ADLSE Execution"
         ADLSESetup: Codeunit "ADLSE Setup";
         ADLSECommunication: Codeunit "ADLSE Communication";
         ADLSESessionManager: Codeunit "ADLSE Session Manager";
+        ADLSEExecution: Codeunit "ADLSE Execution";
         Counter: Integer;
         Started: Integer;
     begin
         ADLSESetup.CheckSetup(ADLSESetupRec);
         EmitTelemetry := ADLSESetupRec."Emit telemetry";
         ADLSECurrentSession.CleanupSessions();
+        ADLSEExecution.ClearTrackedDeletedRecords();
         ADLSECommunication.SetupBlobStorage();
         ADLSESessionManager.Init();
 
