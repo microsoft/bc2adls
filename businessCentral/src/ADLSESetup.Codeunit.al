@@ -40,6 +40,15 @@ codeunit 82560 "ADLSE Setup"
         Page.RunModal(Page::"ADLSE Setup Fields", ADLSEField, ADLSEField.Enabled);
     end;
 
+    [TryFunction]
+    procedure CanFieldBeExported(TableID: Integer; FieldID: Integer)
+    var
+        Field: Record Field;
+    begin
+        Field.Get(TableID, FieldID);
+        CheckFieldCanBeExported(Field);
+    end;
+
     procedure CheckFieldCanBeExported(Fld: Record Field)
     begin
         if Fld.Class <> Fld.Class::Normal then

@@ -205,6 +205,8 @@ page 82561 "ADLSE Setup Tables"
             Rec.Modify();
         end;
         ADLSERun.GetLastRunDetails(Rec."Table ID", LastRunState, LastStarted, LastRunError);
+
+        IssueNotificationIfInvalidFieldsConfiguredToBeExported();
     end;
 
     var
@@ -218,6 +220,7 @@ page 82561 "ADLSE Setup Tables"
         LastStarted: DateTime;
         LastRunError: Text[2048];
         NoExportInProgress: Boolean;
+        InvalidFieldConfiguredMsg: Label 'The following fields have been incorrectly enabled for exports in the table %1: %2', Comment = '%1 = table name; %2 = List of invalid field names';
 
     local procedure DoChooseFields()
     var
@@ -225,5 +228,19 @@ page 82561 "ADLSE Setup Tables"
     begin
         ADLSESetup.ChooseFieldsToExport(Rec);
         CurrPage.Update();
+    end;
+
+    local procedure IssueNotificationIfInvalidFieldsConfiguredToBeExported()
+    var
+        ADLSEUtil: Codeunit "ADLSE Util";
+        InvalidFieldNotification: Notification;
+        InvalidFieldList: List of [Text];
+    begin
+        InvalidFieldList := Rec.ListInvalidFieldsBeingExported();
+        if InvalidFieldList.Count() = 0 then
+            exit;
+        InvalidFieldNotification.Message := StrSubstNo(InvalidFieldConfiguredMsg, TableCaptionValue, ADLSEUtil.Concatenate(InvalidFieldList));
+        InvalidFieldNotification.Scope := NotificationScope::LocalScope;
+        InvalidFieldNotification.Send();
     end;
 }

@@ -24,6 +24,11 @@ table 82561 "ADLSE Table"
         {
             Editable = false;
             Caption = 'Enabled';
+
+            trigger OnValidate()
+            begin
+                CheckExportsOnlyValidFields();
+            end;
         }
         field(5; LastError; Text[2048])
         {
@@ -138,7 +143,6 @@ table 82561 "ADLSE Table"
             Error(TableExportingDataErr, ADLSEUtil.GetTableCaption(Rec."Table ID"));
     end;
 
-
     local procedure GetLastRunState(): enum "ADLSE Run State"
     var
         ADLSERun: Record "ADLSE Run";
@@ -169,5 +173,36 @@ table 82561 "ADLSE Table"
                 Counter += 1;
             until Rec.Next() = 0;
         Message(TablesResetTxt, Counter);
+    end;
+
+    local procedure CheckExportsOnlyValidFields()
+    var
+        ADLSEField: Record "ADLSE Field";
+        Field: Record Field;
+        ADLSESetup: Codeunit "ADLSE Setup";
+    begin
+        ADLSEField.SetRange("Table ID", Rec."Table ID");
+        ADLSEField.SetRange(Enabled, true);
+        if ADLSEField.FindSet() then
+            repeat
+                Field.Get(ADLSEField."Table ID", ADLSEField."Field ID");
+                ADLSESetup.CheckFieldCanBeExported(Field);
+            until ADLSEField.Next() = 0;
+    end;
+
+    procedure ListInvalidFieldsBeingExported() FieldList: List of [Text]
+    var
+        ADLSEField: Record "ADLSE Field";
+        ADLSESetup: Codeunit "ADLSE Setup";
+    begin
+        ADLSEField.SetRange("Table ID", Rec."Table ID");
+        ADLSEField.SetRange(Enabled, true);
+        if ADLSEField.FindSet() then
+            repeat
+                if not ADLSESetup.CanFieldBeExported(ADLSEField."Table ID", ADLSEField."Field ID") then begin
+                    ADLSEField.CalcFields(FieldCaption);
+                    FieldList.Add(ADLSEField.FieldCaption);
+                end;
+            until ADLSEField.Next() = 0;
     end;
 }

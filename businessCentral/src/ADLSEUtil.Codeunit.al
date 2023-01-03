@@ -13,12 +13,21 @@ codeunit 82564 "ADLSE Util"
         DateTimeExpandedFormatTok: Label '%1, %2 %3 %4 %5:%6:%7 GMT', Comment = '%1: weekday, %2: day, %3: month, %4: year, %5: hour, %6: minute, %7: second';
         QuotedTextTok: Label '"%1"', Comment = '%1: text to be double- quoted';
         CommaPrefixedTok: Label ',%1', Comment = '%1: text to be prefixed';
+        CommaSuffixedTok: Label '%1, ', Comment = '%1: text to be suffixed';
         WholeSecondsTok: Label ':%1Z', Comment = '%1: seconds';
         FractionSecondsTok: Label ':%1.%2Z', Comment = '%1: seconds, %2: milliseconds';
 
     procedure ToText(GuidValue: Guid): Text
     begin
         exit(Format(GuidValue).TrimStart('{').TrimEnd('}'));
+    end;
+
+    procedure Concatenate(List: List of [Text]) Result: Text
+    var
+        Item: Text;
+    begin
+        foreach Item in List do
+            Result += StrSubstNo(CommaSuffixedTok, Item);
     end;
 
     procedure GetCurrentDateTimeInGMTFormat(): Text
