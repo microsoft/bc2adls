@@ -51,6 +51,7 @@ codeunit 82571 "ADLSE Installer"
             ADLSETable.Enabled := false;
             ADLSETable.Modify();
 
+            Clear(CustomDimensions);
             CustomDimensions.Add('Entity', ADLSEUtil.GetTableCaption(TableID));
             CustomDimensions.Add('ListOfInvalidFields', ADLSEUtil.Concatenate(InvalidFieldsMap.Get(TableID)));
             ADLSEExecution.Log('ADLSE-31', 'Table is disabled for export because it exports invalid fields.', Verbosity::Warning, CustomDimensions);

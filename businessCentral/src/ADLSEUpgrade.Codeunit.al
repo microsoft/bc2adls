@@ -30,7 +30,7 @@ codeunit 82572 "ADLSE Upgrade"
     end;
 
     var
-        TableFieldsTok: Label '[%1]: %2\\', Comment = '%1: table caption, %2: list of field captions', Locked = true;
+        TableFieldsTok: Label '[%1]: %2', Comment = '%1: table caption, %2: list of field captions', Locked = true;
 
     local procedure ConcatenateTableFieldPairs(TableIDFieldNameList: Dictionary of [Integer, List of [Text]]) Result: Text
     var
