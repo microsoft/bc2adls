@@ -27,7 +27,7 @@ table 82561 "ADLSE Table"
 
             trigger OnValidate()
             begin
-                CheckExportsOnlyValidFields();
+                CheckExportingOnlyValidFields();
             end;
         }
         field(5; LastError; Text[2048])
@@ -121,12 +121,11 @@ table 82561 "ADLSE Table"
 
     local procedure CheckTableOfTypeNormal(TableID: Integer)
     var
-        AllObj: Record AllObjWithCaption;
         TableMetadata: Record "Table Metadata";
+        ADLSEUtil: Codeunit "ADLSE Util";
         TableCaption: Text;
     begin
-        AllObj.Get(AllObj."Object Type"::Table, TableID);
-        TableCaption := AllObj."Object Caption";
+        TableCaption := ADLSEUtil.GetTableCaption(TableID);
 
         TableMetadata.SetRange(ID, TableID);
         TableMetadata.FindFirst();
@@ -175,7 +174,7 @@ table 82561 "ADLSE Table"
         Message(TablesResetTxt, Counter);
     end;
 
-    local procedure CheckExportsOnlyValidFields()
+    local procedure CheckExportingOnlyValidFields()
     var
         ADLSEField: Record "ADLSE Field";
         Field: Record Field;
@@ -194,6 +193,9 @@ table 82561 "ADLSE Table"
     var
         ADLSEField: Record "ADLSE Field";
         ADLSESetup: Codeunit "ADLSE Setup";
+        ADLSEUtil: Codeunit "ADLSE Util";
+        ADLSEExecution: Codeunit "ADLSE Execution";
+        CustomDimensions: Dictionary of [Text, Text];
     begin
         ADLSEField.SetRange("Table ID", Rec."Table ID");
         ADLSEField.SetRange(Enabled, true);
@@ -204,5 +206,9 @@ table 82561 "ADLSE Table"
                     FieldList.Add(ADLSEField.FieldCaption);
                 end;
             until ADLSEField.Next() = 0;
+        CustomDimensions.Add('Entity', ADLSEUtil.GetTableCaption(Rec."Table ID"));
+        CustomDimensions.Add('ListOfFields', ADLSEUtil.Concatenate(FieldList));
+        ADLSEExecution.Log('ADLSE-029', 'The following invalid fields are configured to be exported from the table.',
+            Verbosity::Warning, CustomDimensions);
     end;
 }
