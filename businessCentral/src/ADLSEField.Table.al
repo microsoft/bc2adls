@@ -24,7 +24,8 @@ table 82562 "ADLSE Field"
 
             trigger OnValidate()
             begin
-                Rec.CheckFieldToBeEnabled();
+                if Rec.Enabled then
+                    Rec.CheckFieldToBeEnabled();
             end;
         }
         field(100; FieldCaption; Text[80])

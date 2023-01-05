@@ -27,7 +27,8 @@ table 82561 "ADLSE Table"
 
             trigger OnValidate()
             begin
-                CheckExportingOnlyValidFields();
+                if Rec.Enabled then
+                    CheckExportingOnlyValidFields();
             end;
         }
         field(5; LastError; Text[2048])
@@ -206,6 +207,7 @@ table 82561 "ADLSE Table"
                     FieldList.Add(ADLSEField.FieldCaption);
                 end;
             until ADLSEField.Next() = 0;
+
         CustomDimensions.Add('Entity', ADLSEUtil.GetTableCaption(Rec."Table ID"));
         CustomDimensions.Add('ListOfFields', ADLSEUtil.Concatenate(FieldList));
         ADLSEExecution.Log('ADLSE-029', 'The following invalid fields are configured to be exported from the table.',
