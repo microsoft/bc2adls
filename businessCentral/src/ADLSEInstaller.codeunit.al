@@ -35,12 +35,21 @@ codeunit 82571 "ADLSE Installer"
     local procedure DisableTablesExportingInvalidFields()
     var
         ADLSETable: Record "ADLSE Table";
+        ADLSEUtil: Codeunit "ADLSE Util";
+        ADLSEExecution: Codeunit "ADLSE Execution";
+        InvalidFieldsMap: Dictionary of [Integer, List of [Text]];
+        CustomDimensions: Dictionary of [Text, Text];
         TableID: Integer;
     begin
-        foreach TableID in ListInvalidFieldsBeingExported().Keys() do begin
+        InvalidFieldsMap := ListInvalidFieldsBeingExported();
+        foreach TableID in InvalidFieldsMap.Keys() do begin
             ADLSETable.Get(TableID);
             ADLSETable.Enabled := false;
             ADLSETable.Modify();
+
+            CustomDimensions.Add('Entity', ADLSEUtil.GetTableCaption(TableID));
+            CustomDimensions.Add('ListOfInvalidFields', ADLSEUtil.Concatenate(InvalidFieldsMap.Get(TableID)));
+            ADLSEExecution.Log('ADLSE-31', 'Table is disabled for export because it exports invalid fields.', Verbosity::Warning, CustomDimensions);
         end;
     end;
 }

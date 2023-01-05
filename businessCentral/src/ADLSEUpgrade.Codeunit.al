@@ -6,12 +6,16 @@ codeunit 82572 "ADLSE Upgrade"
     trigger OnCheckPreconditionsPerDatabase()
     var
         ADLSEInstaller: Codeunit "ADLSE Installer";
+        ADLSEExecution: Codeunit "ADLSE Execution";
         InvalidFieldsMap: Dictionary of [Integer, List of [Text]];
     begin
         InvalidFieldsMap := ADLSEInstaller.ListInvalidFieldsBeingExported();
-        if InvalidFieldsMap.Count() > 0 then
+        if InvalidFieldsMap.Count() > 0 then begin
+            ADLSEExecution.Log('ADLSE-30',
+                'Upgrade preconditions not met as there are invalid fields enabled for export. Please see previous telemetry.', Verbosity::Error);
             // raise error on encountering invalid fields so user can react to these errors and fix the export configuration
             Error(InvalidFieldsBeingExportedErr, ConcatenateTableFieldPairs(InvalidFieldsMap));
+        end;
     end;
 
     trigger OnUpgradePerDatabase()
