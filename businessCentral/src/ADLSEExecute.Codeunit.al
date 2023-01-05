@@ -150,11 +150,13 @@ codeunit 82561 "ADLSE Execute"
         ADLSEExecution: Codeunit "ADLSE Execution";
         Rec: RecordRef;
         TimeStampField: FieldRef;
+        Field: FieldRef;
         CustomDimensions: Dictionary of [Text, Text];
         TableCaption: Text;
         EntityCount: Text;
         FlushedTimeStamp: BigInteger;
         FieldId: Integer;
+        SystemCreatedAt: DateTime;
     begin
         SetFilterForUpdates(TableID, UpdatedLastTimeStamp, Rec, TimeStampField);
 
@@ -174,6 +176,12 @@ codeunit 82561 "ADLSE Execute"
             end;
 
             repeat
+                // Records created before SystemCreatedAt field was introduced, have null values. Initialize with 01 Jan 1900
+                Field := Rec.Field(Rec.SystemCreatedAtNo());
+                SystemCreatedAt := Field.Value();
+                if SystemCreatedAt = 0DT then
+                    Field.Value(CreateDateTime(DMY2Date(1, 1, 1900), 0T));
+
                 if ADLSECommunication.TryCollectAndSendRecord(Rec, TimeStampField.Value(), FlushedTimeStamp) then
                     UpdatedLastTimeStamp := FlushedTimeStamp
                 else
