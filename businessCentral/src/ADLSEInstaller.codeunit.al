@@ -6,6 +6,10 @@ codeunit 82571 "ADLSE Installer"
     trigger OnInstallAppPerDatabase()
     begin
         DisableTablesExportingInvalidFields();
+    end;
+
+    trigger OnInstallAppPerCompany()
+    begin
         AddAllowedTables();
     end;
 

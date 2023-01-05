@@ -18,7 +18,7 @@ codeunit 82572 "ADLSE Upgrade"
         end;
     end;
 
-    trigger OnUpgradePerDatabase()
+    trigger OnUpgradePerCompany()
     var
         ADLSEInstaller: Codeunit "ADLSE Installer";
         UpgradeTag: Codeunit "Upgrade Tag";
