@@ -191,10 +191,8 @@ page 82560 "ADLSE Setup"
                 Enabled = TrackedDeletedRecordsExist;
 
                 trigger OnAction()
-                var
-                    ADLSEExecution: Codeunit "ADLSE Execution";
                 begin
-                    ADLSEExecution.ClearTrackedDeletedRecords();
+                    Codeunit.Run(Codeunit::"ADLSE Clear Tracked Deletions");
                     CurrPage.Update();
                 end;
             }
