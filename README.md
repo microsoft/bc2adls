@@ -30,6 +30,7 @@ More details:
 
 Pull request | Changes
 --------------- | ---
+[79](https://github.com/microsoft/bc2adls/pull/79) | The step to clean up tracked deleted records from the export process has now been removed to make exports more efficient. This clean up step can instead be performed either by clicking on the action **Clear tracked deleted records** on the main setup page, or by invoking the new codeunit **ADLSE Clear Tracked Deletions** through a low- frequency custom job queue entry.
 [56](https://github.com/microsoft/bc2adls/pull/56) | The table ADLSE Run has now been added to the retention policy so that the logs for the executions can be cleared periodically, thus taking up less space in the database.
 [55](https://github.com/microsoft/bc2adls/pull/55) | A much awaited request to allow the BC extension to read from the replica database saves up resources that can otherwise be dedicated to normal ERP operations, has now been implemented. This change is dependent on the version 21 of the application.
 [59](https://github.com/microsoft/bc2adls/pull/59) | The default rounding principles caused the consolidated data to have a maximum of two decimal places even though the data in the `deltas` may have had higher decimal precision. Added an applied trait to all decimal fields so that they account for up to 5 decimal places. 
