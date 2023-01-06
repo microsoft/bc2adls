@@ -24,6 +24,12 @@ table 82561 "ADLSE Table"
         {
             Editable = false;
             Caption = 'Enabled';
+
+            trigger OnValidate()
+            begin
+                if Rec.Enabled then
+                    CheckExportingOnlyValidFields();
+            end;
         }
         field(5; LastError; Text[2048])
         {
@@ -116,12 +122,11 @@ table 82561 "ADLSE Table"
 
     local procedure CheckTableOfTypeNormal(TableID: Integer)
     var
-        AllObj: Record AllObjWithCaption;
         TableMetadata: Record "Table Metadata";
+        ADLSEUtil: Codeunit "ADLSE Util";
         TableCaption: Text;
     begin
-        AllObj.Get(AllObj."Object Type"::Table, TableID);
-        TableCaption := AllObj."Object Caption";
+        TableCaption := ADLSEUtil.GetTableCaption(TableID);
 
         TableMetadata.SetRange(ID, TableID);
         TableMetadata.FindFirst();
@@ -137,7 +142,6 @@ table 82561 "ADLSE Table"
         if GetLastRunState() = "ADLSE Run State"::InProcess then
             Error(TableExportingDataErr, ADLSEUtil.GetTableCaption(Rec."Table ID"));
     end;
-
 
     local procedure GetLastRunState(): enum "ADLSE Run State"
     var
@@ -169,5 +173,44 @@ table 82561 "ADLSE Table"
                 Counter += 1;
             until Rec.Next() = 0;
         Message(TablesResetTxt, Counter);
+    end;
+
+    local procedure CheckExportingOnlyValidFields()
+    var
+        ADLSEField: Record "ADLSE Field";
+        Field: Record Field;
+        ADLSESetup: Codeunit "ADLSE Setup";
+    begin
+        ADLSEField.SetRange("Table ID", Rec."Table ID");
+        ADLSEField.SetRange(Enabled, true);
+        if ADLSEField.FindSet() then
+            repeat
+                Field.Get(ADLSEField."Table ID", ADLSEField."Field ID");
+                ADLSESetup.CheckFieldCanBeExported(Field);
+            until ADLSEField.Next() = 0;
+    end;
+
+    procedure ListInvalidFieldsBeingExported() FieldList: List of [Text]
+    var
+        ADLSEField: Record "ADLSE Field";
+        ADLSESetup: Codeunit "ADLSE Setup";
+        ADLSEUtil: Codeunit "ADLSE Util";
+        ADLSEExecution: Codeunit "ADLSE Execution";
+        CustomDimensions: Dictionary of [Text, Text];
+    begin
+        ADLSEField.SetRange("Table ID", Rec."Table ID");
+        ADLSEField.SetRange(Enabled, true);
+        if ADLSEField.FindSet() then
+            repeat
+                if not ADLSESetup.CanFieldBeExported(ADLSEField."Table ID", ADLSEField."Field ID") then begin
+                    ADLSEField.CalcFields(FieldCaption);
+                    FieldList.Add(ADLSEField.FieldCaption);
+                end;
+            until ADLSEField.Next() = 0;
+
+        CustomDimensions.Add('Entity', ADLSEUtil.GetTableCaption(Rec."Table ID"));
+        CustomDimensions.Add('ListOfFields', ADLSEUtil.Concatenate(FieldList));
+        ADLSEExecution.Log('ADLSE-029', 'The following invalid fields are configured to be exported from the table.',
+            Verbosity::Warning, CustomDimensions);
     end;
 }
