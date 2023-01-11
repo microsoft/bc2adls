@@ -63,6 +63,7 @@ table 82566 "ADLSE Run"
     var
         ExportRunNotFoundErr: Label 'No export process running for table %1.', Comment = '%1 = caption of the table';
         ExportStoppedDueToCancelledSessionTxt: Label 'Export stopped as session was cancelled. Please check state of the export on the data lake before enabling this.';
+        CouldNotUpdateExportRunStatusErr: Label 'Could not update the status of the export run for %1 to %2.', Comment = '%1: table caption, %2: New status';
 
     procedure GetLastRunDetails(TableID: Integer; var Status: enum "ADLSE Run State"; var StartedTime: DateTime; var ErrorIfAny: Text[2048])
     begin
@@ -95,8 +96,10 @@ table 82566 "ADLSE Run"
         LastErrorMessage: Text;
         LastErrorStack: Text;
     begin
-        if not FindLastRun(TableID) then
-            Error(ExportRunNotFoundErr, ADLSEUtil.GetTableCaption(TableID));
+        if not FindLastRun(TableID) then begin
+            ADLSEExecution.Log('ADLSE-034', StrSubstNo(ExportRunNotFoundErr, ADLSEUtil.GetTableCaption(TableID)), Verbosity::Error);
+            exit;
+        end;
         if Rec.State <> "ADLSE Run State"::InProcess then
             exit;
         LastErrorMessage := GetLastErrorText();
@@ -114,7 +117,8 @@ table 82566 "ADLSE Run"
         end else
             Rec.State := "ADLSE Run State"::Success;
         Rec.Ended := CurrentDateTime();
-        Rec.Modify();
+        if not Rec.Modify() then
+            ADLSEExecution.Log('ADLSE-035', StrSubstNo(CouldNotUpdateExportRunStatusErr, ADLSEUtil.GetTableCaption(TableID), Rec.State), Verbosity::Error);
     end;
 
     procedure CancelAllRuns()

@@ -45,6 +45,10 @@ table 82564 "ADLSE Table Last Timestamp"
         }
     }
 
+    var
+        SaveUpsertLastTimestampFailedErr: Label 'Could not save the last time stamp for the upserts on table %1.', Comment = '%1: table caption';
+        SaveDeletionLastTimestampFailedErr: Label 'Could not save the last time stamp for the deletions on table %1.', Comment = '%1: table caption';
+
     procedure ExistsUpdatedLastTimestamp(TableID: Integer): Boolean
     begin
         exit(Rec.Get(GetCompanyNameToLookFor(TableID), TableID));
@@ -62,48 +66,72 @@ table 82564 "ADLSE Table Last Timestamp"
             exit(Rec."Deleted Last Entry No.");
     end;
 
-    [TryFunction]
-    procedure TrySaveUpdatedLastTimestamp(TableID: Integer; Timestamp: BigInteger)
+    procedure TrySaveUpdatedLastTimestamp(TableID: Integer; Timestamp: BigInteger; EmitTelemetry: Boolean) Result: Boolean
+    var
+        ADLSEExecution: Codeunit "ADLSE Execution";
+        ADLSEUtil: Codeunit "ADLSE Util";
     begin
-        SaveUpdatedLastTimestamp(TableID, Timestamp);
+        Result := RecordUpsertLastTimestamp(TableID, Timestamp);
+        if EmitTelemetry and (not Result) then
+            ADLSEExecution.Log('ADLSE-032', StrSubstNo(SaveUpsertLastTimestampFailedErr, ADLSEUtil.GetTableCaption(TableID)), Verbosity::Error);
     end;
 
     procedure SaveUpdatedLastTimestamp(TableID: Integer; Timestamp: BigInteger)
+    var
+        ADLSEUtil: Codeunit "ADLSE Util";
     begin
-        RecordLastTimestamp(TableID, Timestamp, true);
+        if not RecordUpsertLastTimestamp(TableID, Timestamp) then
+            Error(SaveUpsertLastTimestampFailedErr, ADLSEUtil.GetTableCaption(TableID));
     end;
 
-    [TryFunction]
-    procedure TrySaveDeletedLastEntryNo(TableID: Integer; Timestamp: BigInteger)
+    local procedure RecordUpsertLastTimestamp(TableID: Integer; Timestamp: BigInteger): Boolean
     begin
-        SaveDeletedLastEntryNo(TableID, Timestamp);
+        exit(RecordLastTimestamp(TableID, Timestamp, true));
+    end;
+
+    procedure TrySaveDeletedLastEntryNo(TableID: Integer; Timestamp: BigInteger; EmitTelemetry: Boolean) Result: Boolean
+    var
+        ADLSEExecution: Codeunit "ADLSE Execution";
+        ADLSEUtil: Codeunit "ADLSE Util";
+    begin
+        Result := RecordDeletedLastTimestamp(TableID, Timestamp);
+        if EmitTelemetry and (not Result) then
+            ADLSEExecution.Log('ADLSE-033', StrSubstNo(SaveDeletionLastTimestampFailedErr, ADLSEUtil.GetTableCaption(TableID)), Verbosity::Error);
     end;
 
     procedure SaveDeletedLastEntryNo(TableID: Integer; Timestamp: BigInteger)
+    var
+        ADLSEUtil: Codeunit "ADLSE Util";
     begin
-        RecordLastTimestamp(TableID, Timestamp, false);
+        if not RecordDeletedLastTimestamp(TableID, Timestamp) then
+            Error(SaveDeletionLastTimestampFailedErr, ADLSEUtil.GetTableCaption(TableID));
     end;
 
-    local procedure RecordLastTimestamp(TableID: Integer; Timestamp: BigInteger; Update: Boolean)
+    local procedure RecordDeletedLastTimestamp(TableID: Integer; Timestamp: BigInteger): Boolean
+    begin
+        exit(RecordLastTimestamp(TableID, Timestamp, false));
+    end;
+
+    local procedure RecordLastTimestamp(TableID: Integer; Timestamp: BigInteger; Upsert: Boolean): Boolean
     var
         Company: Text;
     begin
         Company := GetCompanyNameToLookFor(TableID);
         if Rec.Get(Company, TableID) then begin
-            ChangeLastTimestamp(Timestamp, Update);
-            Rec.Modify();
+            ChangeLastTimestamp(Timestamp, Upsert);
+            exit(Rec.Modify());
         end else begin
             Rec.Init();
             Rec."Company Name" := CopyStr(Company, 1, 30);
             Rec."Table ID" := TableID;
-            ChangeLastTimestamp(Timestamp, Update);
-            Rec.Insert();
-        end
+            ChangeLastTimestamp(Timestamp, Upsert);
+            exit(Rec.Insert());
+        end;
     end;
 
-    local procedure ChangeLastTimestamp(Timestamp: BigInteger; Update: Boolean)
+    local procedure ChangeLastTimestamp(Timestamp: BigInteger; Upsert: Boolean)
     begin
-        if Update then
+        if Upsert then
             Rec."Updated Last Timestamp" := Timestamp
         else
             Rec."Deleted Last Entry No." := Timestamp;
