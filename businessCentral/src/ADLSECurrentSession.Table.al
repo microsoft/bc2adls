@@ -69,7 +69,7 @@ table 82565 "ADLSE Current Session"
         if not Rec.Get(ADLSETableID, CompanyName()) then
             exit;
         if not Rec.Delete() then
-            ADLSEExecution.Log('ADLSE-035', StrSubstNo(CouldNotStopSessionErr, Rec."Session ID", ADLSEUtil.GetTableCaption(ADLSETableID), CompanyName()), Verbosity::Error);
+            ADLSEExecution.Log('ADLSE-036', StrSubstNo(CouldNotStopSessionErr, Rec."Session ID", ADLSEUtil.GetTableCaption(ADLSETableID), CompanyName()), Verbosity::Error);
     end;
 
     procedure CheckForNoActiveSessions()

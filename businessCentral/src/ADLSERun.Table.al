@@ -97,7 +97,7 @@ table 82566 "ADLSE Run"
         LastErrorStack: Text;
     begin
         if not FindLastRun(TableID) then begin
-            ADLSEExecution.Log('ADLSE-033', StrSubstNo(ExportRunNotFoundErr, ADLSEUtil.GetTableCaption(TableID)), Verbosity::Error);
+            ADLSEExecution.Log('ADLSE-034', StrSubstNo(ExportRunNotFoundErr, ADLSEUtil.GetTableCaption(TableID)), Verbosity::Error);
             exit;
         end;
         if Rec.State <> "ADLSE Run State"::InProcess then
@@ -118,7 +118,7 @@ table 82566 "ADLSE Run"
             Rec.State := "ADLSE Run State"::Success;
         Rec.Ended := CurrentDateTime();
         if not Rec.Modify() then
-            ADLSEExecution.Log('ADLSE-034', StrSubstNo(CouldNotUpdateExportRunStatusErr, ADLSEUtil.GetTableCaption(TableID), Rec.State), Verbosity::Error);
+            ADLSEExecution.Log('ADLSE-035', StrSubstNo(CouldNotUpdateExportRunStatusErr, ADLSEUtil.GetTableCaption(TableID), Rec.State), Verbosity::Error);
     end;
 
     procedure CancelAllRuns()
