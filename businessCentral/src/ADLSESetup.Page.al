@@ -182,7 +182,7 @@ page 82560 "ADLSE Setup"
             {
                 ApplicationArea = All;
                 Caption = 'Clear tracked deleted records';
-                Tooltip = 'Removes the entries in the deleted record list that have already been exported. This should be done periodically to free up storage space.';
+                Tooltip = 'Removes the entries in the deleted record list that have already been exported. This should be done periodically to free up storage space. The codeunit ADLSE Clear Tracked Deletions may be invoked using a job queue entry for the same end.';
                 Promoted = true;
                 PromotedIsBig = true;
                 PromotedCategory = Process;
@@ -191,10 +191,8 @@ page 82560 "ADLSE Setup"
                 Enabled = TrackedDeletedRecordsExist;
 
                 trigger OnAction()
-                var
-                    ADLSEExecution: Codeunit "ADLSE Execution";
                 begin
-                    ADLSEExecution.ClearTrackedDeletedRecords();
+                    Codeunit.Run(Codeunit::"ADLSE Clear Tracked Deletions");
                     CurrPage.Update();
                 end;
             }
