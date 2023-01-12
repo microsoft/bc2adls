@@ -69,11 +69,11 @@ codeunit 82561 "ADLSE Execute"
         // check if anything exported at all
         if (UpdatedLastTimestamp > OldUpdatedLastTimestamp) or (DeletedLastEntryNo > OldDeletedLastEntryNo) then begin
             // update the last timestamps of the record
-            if not ADLSETableLastTimestamp.TrySaveUpdatedLastTimestamp(Rec."Table ID", UpdatedLastTimestamp) then begin
+            if not ADLSETableLastTimestamp.TrySaveUpdatedLastTimestamp(Rec."Table ID", UpdatedLastTimestamp, EmitTelemetry) then begin
                 SetStateFinished(Rec);
                 exit;
             end;
-            if not ADLSETableLastTimestamp.TrySaveDeletedLastEntryNo(Rec."Table ID", DeletedLastEntryNo) then begin
+            if not ADLSETableLastTimestamp.TrySaveDeletedLastEntryNo(Rec."Table ID", DeletedLastEntryNo, EmitTelemetry) then begin
                 SetStateFinished(Rec);
                 exit;
             end;
@@ -272,10 +272,11 @@ codeunit 82561 "ADLSE Execute"
     local procedure SetStateFinished(var ADLSETable: Record "ADLSE Table")
     var
         ADLSERun: Record "ADLSE Run";
+        ADLSECurrentSession: Record "ADLSE Current Session";
         ADLSESessionManager: Codeunit "ADLSE Session Manager";
     begin
-        if not TrySetStateFinished(ADLSETable."Table ID") then
-            ADLSERun.RegisterEnded(ADLSETable."Table ID", EmitTelemetry);
+        ADLSERun.RegisterEnded(ADLSETable."Table ID", EmitTelemetry);
+        ADLSECurrentSession.Stop(ADLSETable."Table ID", EmitTelemetry);
         Commit();
 
         // This export session is soon going to end. Start up a new one from 
@@ -289,15 +290,5 @@ codeunit 82561 "ADLSE Execute"
         // exports being skipped. But they may become active in the next export 
         // batch. 
         ADLSESessionManager.StartExportFromPendingTables();
-    end;
-
-    [TryFunction]
-    local procedure TrySetStateFinished(ADLSETableIDRunning: Integer)
-    var
-        ADLSERun: Record "ADLSE Run";
-        ADLSECurrentSession: Record "ADLSE Current Session";
-    begin
-        ADLSERun.RegisterEnded(ADLSETableIDRunning, EmitTelemetry);
-        ADLSECurrentSession.Stop(ADLSETableIDRunning);
     end;
 }
