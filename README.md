@@ -26,15 +26,9 @@ More details:
 - [Creating shared metadata tables](/.assets/SharedMetadataTables.md)
 - [Watch the webinar on bc2adls from Jan 2022](https://www.microsoft.com/en-us/videoplayer/embed/RWSHHG)
 
-## Latest notable changes
+## Changelog
 
-Pull request | Changes
---------------- | ---
-[78](https://github.com/microsoft/bc2adls/pull/78) | Upgrading to new versions may lead the export configuration to enter an incorrect state, say, if a field that was being exported before gets obsoleted in the new version. This fix prevents such an occurence by raising an error during the upgrade process. If corrective actions, say, disabling such fields are not taken after multiple upgrade attempts, the bc2adls extension is uninstalled and upgrade is forced. A subsequent re-install of the extension will then disable such tables from being exported, so that the user can then react to the change in schema later on.     
-[56](https://github.com/microsoft/bc2adls/pull/56) | The table ADLSE Run has now been added to the retention policy so that the logs for the executions can be cleared periodically, thus taking up less space in the database.
-[55](https://github.com/microsoft/bc2adls/pull/55) | A much awaited request to allow the BC extension to read from the replica database saves up resources that can otherwise be dedicated to normal ERP operations, has now been implemented. This change is dependent on the version 21 of the application.
-
-A complete list of changes can be found in the [changelog](/.assets/Changelog.md).
+This project is constantly receiving new features and fixes. Find a complete list of updates in the [changelog](/.assets/Changelog.md).
 
 ## Contributing
 
