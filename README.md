@@ -28,7 +28,7 @@ More details:
 
 ## Changelog
 
-This project is constantly receiving new features and fixes. Find a complete list of updates in the [changelog](/.assets/Changelog.md).
+This project is constantly receiving new features and fixes. Find a list of all major updates in the [changelog](/.assets/Changelog.md).
 
 ## Contributing
 
