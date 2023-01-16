@@ -26,27 +26,9 @@ More details:
 - [Creating shared metadata tables](/.assets/SharedMetadataTables.md)
 - [Watch the webinar on bc2adls from Jan 2022](https://www.microsoft.com/en-us/videoplayer/embed/RWSHHG)
 
-## Latest notable changes
+## Changelog
 
-Pull request | Changes
---------------- | ---
-[79](https://github.com/microsoft/bc2adls/pull/79) | The step to clean up tracked deleted records from the export process has now been removed to make exports more efficient. This clean up step can instead be performed either by clicking on the action **Clear tracked deleted records** on the main setup page, or by invoking the new codeunit **ADLSE Clear Tracked Deletions** through a low- frequency custom job queue entry.
-[78](https://github.com/microsoft/bc2adls/pull/78) | Upgrading to new versions may lead the export configuration to enter an incorrect state, say, if a field that was being exported before gets obsoleted in the new version. This fix prevents such an occurence by raising an error during the upgrade process. If corrective actions, say, disabling such fields are not taken after multiple upgrade attempts, the bc2adls extension is uninstalled and upgrade is forced. A subsequent re-install of the extension will then disable such tables from being exported, so that the user can then react to the change in schema later on.     
-[56](https://github.com/microsoft/bc2adls/pull/56) | The table ADLSE Run has now been added to the retention policy so that the logs for the executions can be cleared periodically, thus taking up less space in the database.
-[55](https://github.com/microsoft/bc2adls/pull/55) | A much awaited request to allow the BC extension to read from the replica database saves up resources that can otherwise be dedicated to normal ERP operations, has now been implemented. This change is dependent on the version 21 of the application.
-[59](https://github.com/microsoft/bc2adls/pull/59) | The default rounding principles caused the consolidated data to have a maximum of two decimal places even though the data in the `deltas` may have had higher decimal precision. Added an applied trait to all decimal fields so that they account for up to 5 decimal places. 
-[54](https://github.com/microsoft/bc2adls/pull/54) | Fixes irregularities on the System Audit fields. (1) Very old records do not appear in the lake sometimes because the `SystemCreatedAt` field is set to null. This field is now artificaly initialized to a date so that it appears in the lake, and (2) The `SystemID` field may be repeated over different records belonging to different companies in the same table. Thus, the uniqueness contraint has been fixed. The `SystemCreatedAt` field was being incorrectly initialized for deleted records- this was fixed in a later pull request, [77](https://github.com/microsoft/bc2adls/pull/77). 
-[49](https://github.com/microsoft/bc2adls/pull/49) | Entities using the Parquet file format can now automatically be registered as a shared metadata table that is managed in Spark but can also be queried using Serverless SQL. You can find the full feature guide [here](/.assets/SharedMetadataTables.md).
-[47](https://github.com/microsoft/bc2adls/pull/47) | The ability to simultaneously export data from multiple companies has been introduced. This is expected to save time and effort in cases which required users to sequence the runs for different companies one after the other.  
-[43](https://github.com/microsoft/bc2adls/pull/43) | Intermediate staging data is no longer saved in CDM format. This eliminates potential conflicts during concurrent updates to the manifest. This does not affect the final data output, which continues to be in CDM format.
-[33](https://github.com/microsoft/bc2adls/pull/33) | Fixing issue related to localizations of booleans and options/ enums. 
-[31](https://github.com/microsoft/bc2adls/pull/31) | Permissions corrected to direct permissions.
-[28](https://github.com/microsoft/bc2adls/pull/28) | The AL app is upgraded to Dynamics 365 Business Central version 20. An archive has been created to keep the older versions at [the archived folder](/archived/).
-[23](https://github.com/microsoft/bc2adls/pull/23) | The setting in [Consolidation_OneEntity](/synapse/pipeline/Consolidation_OneEntity.json) that limited concurrent execution of the pipeline to one instance has been removed. Now, an infinite number of pipeline instances is allowed to run concurrently. 
-[20](https://github.com/microsoft/bc2adls/pull/20) | Data on the lake can be chosen to be stored on the [Parquet](https://docs.microsoft.com/en-us/azure/data-factory/format-parquet) format, thus improving its fidelity to its original in Business Central.
-[16](https://github.com/microsoft/bc2adls/pull/16) | The [Consolidation_CheckForDeltas](/synapse/pipeline/Consolidation_CheckForDeltas.json) pipeline now contains a fail activity that is triggered when no directory is found in `/deltas/` for an entity listed in the `deltas.manifest.cdm.json`. This may occur when no new deltas have been exported since the last execution of the consolidation pipeline. Other parallel pipeline runs are not affected.
-[14](https://github.com/microsoft/bc2adls/pull/14) | It is possible now to select all fields in a table for export. Those fields that are not allowed to be exported, say flow fields, are not selected.
-[13](https://github.com/microsoft/bc2adls/pull/13) | A template is inserted in the `OnAfterOnDatabaseDelete` procedure, so that deletions of archive table records, are not synchronized to the data lake. This helps in selected tables in the data lake continuing to hold on to records that may be removed from the BC database, for house-keeping purposes. This is especialy relevant for ledger entry tables.
+This project is constantly receiving new features and fixes. Find a list of all major updates in the [changelog](/.assets/Changelog.md).
 
 ## Contributing
 
