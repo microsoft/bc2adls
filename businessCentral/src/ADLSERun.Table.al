@@ -61,9 +61,9 @@ table 82566 "ADLSE Run"
     }
 
     var
-        ExportRunNotFoundErr: Label 'No export process running for table %1.', Comment = '%1 = caption of the table';
+        ExportRunNotFoundErr: Label 'No export process running for table.';
         ExportStoppedDueToCancelledSessionTxt: Label 'Export stopped as session was cancelled. Please check state of the export on the data lake before enabling this.';
-        CouldNotUpdateExportRunStatusErr: Label 'Could not update the status of the export run for %1 to %2.', Comment = '%1: table caption, %2: New status';
+        CouldNotUpdateExportRunStatusErr: Label 'Could not update the status of the export run for table to %1.', Comment = '%1: New status';
 
     procedure GetLastRunDetails(TableID: Integer; var Status: enum "ADLSE Run State"; var StartedTime: DateTime; var ErrorIfAny: Text[2048])
     begin
@@ -88,16 +88,16 @@ table 82566 "ADLSE Run"
         Rec.Insert();
     end;
 
-    procedure RegisterEnded(TableID: Integer; EmitTelemetry: Boolean)
+    procedure RegisterEnded(TableID: Integer; EmitTelemetry: Boolean; TableCaption: Text)
     var
-        ADLSEUtil: Codeunit "ADLSE Util";
         ADLSEExecution: Codeunit "ADLSE Execution";
-        CustomDimension: Dictionary of [Text, Text];
+        CustomDimensions: Dictionary of [Text, Text];
         LastErrorMessage: Text;
         LastErrorStack: Text;
     begin
+        CustomDimensions.Add('Entity', TableCaption);
         if not FindLastRun(TableID) then begin
-            ADLSEExecution.Log('ADLSE-034', StrSubstNo(ExportRunNotFoundErr, ADLSEUtil.GetTableCaption(TableID)), Verbosity::Error);
+            ADLSEExecution.Log('ADLSE-034', ExportRunNotFoundErr, Verbosity::Error, CustomDimensions);
             exit;
         end;
         if Rec.State <> "ADLSE Run State"::InProcess then
@@ -109,16 +109,18 @@ table 82566 "ADLSE Run"
             Rec.State := "ADLSE Run State"::Failed;
 
             if EmitTelemetry then begin
-                CustomDimension.Add('Error text', LastErrorMessage);
-                CustomDimension.Add('Error stack', LastErrorStack);
-                ADLSEExecution.Log('ADLSE-008', 'Error occured during execution', Verbosity::Error, CustomDimension);
+                CustomDimensions.Add('Error text', LastErrorMessage);
+                CustomDimensions.Add('Error stack', LastErrorStack);
+                ADLSEExecution.Log('ADLSE-008', 'Error occured during execution', Verbosity::Error, CustomDimensions);
             end;
             ClearLastError();
         end else
             Rec.State := "ADLSE Run State"::Success;
         Rec.Ended := CurrentDateTime();
         if not Rec.Modify() then
-            ADLSEExecution.Log('ADLSE-035', StrSubstNo(CouldNotUpdateExportRunStatusErr, ADLSEUtil.GetTableCaption(TableID), Rec.State), Verbosity::Error);
+            ADLSEExecution.Log('ADLSE-035', StrSubstNo(CouldNotUpdateExportRunStatusErr, Rec.State), Verbosity::Error, CustomDimensions)
+        else
+            ADLSEExecution.Log('ADLSE-038', 'The export run was registered as ended.', Verbosity::Normal, CustomDimensions);
     end;
 
     procedure CancelAllRuns()

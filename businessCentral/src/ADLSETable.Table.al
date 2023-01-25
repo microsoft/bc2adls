@@ -208,9 +208,11 @@ table 82561 "ADLSE Table"
                 end;
             until ADLSEField.Next() = 0;
 
-        CustomDimensions.Add('Entity', ADLSEUtil.GetTableCaption(Rec."Table ID"));
-        CustomDimensions.Add('ListOfFields', ADLSEUtil.Concatenate(FieldList));
-        ADLSEExecution.Log('ADLSE-029', 'The following invalid fields are configured to be exported from the table.',
-            Verbosity::Warning, CustomDimensions);
+        if FieldList.Count() > 0 then begin
+            CustomDimensions.Add('Entity', ADLSEUtil.GetTableCaption(Rec."Table ID"));
+            CustomDimensions.Add('ListOfFields', ADLSEUtil.Concatenate(FieldList));
+            ADLSEExecution.Log('ADLSE-029', 'The following invalid fields are configured to be exported from the table.',
+                Verbosity::Warning, CustomDimensions);
+        end;
     end;
 }
