@@ -53,7 +53,7 @@ codeunit 82561 "ADLSE Execute"
         OldUpdatedLastTimestamp := UpdatedLastTimestamp;
         OldDeletedLastEntryNo := DeletedLastEntryNo;
         if not TryExportTableData(Rec."Table ID", ADLSECommunication, UpdatedLastTimestamp, DeletedLastEntryNo, EntityJsonNeedsUpdate, ManifestJsonsNeedsUpdate) then begin
-            SetStateFinished(Rec);
+            SetStateFinished(Rec, TableCaption);
             exit;
         end;
         if EmitTelemetry then begin
@@ -70,11 +70,11 @@ codeunit 82561 "ADLSE Execute"
         if (UpdatedLastTimestamp > OldUpdatedLastTimestamp) or (DeletedLastEntryNo > OldDeletedLastEntryNo) then begin
             // update the last timestamps of the record
             if not ADLSETableLastTimestamp.TrySaveUpdatedLastTimestamp(Rec."Table ID", UpdatedLastTimestamp, EmitTelemetry) then begin
-                SetStateFinished(Rec);
+                SetStateFinished(Rec, TableCaption);
                 exit;
             end;
             if not ADLSETableLastTimestamp.TrySaveDeletedLastEntryNo(Rec."Table ID", DeletedLastEntryNo, EmitTelemetry) then begin
-                SetStateFinished(Rec);
+                SetStateFinished(Rec, TableCaption);
                 exit;
             end;
             if EmitTelemetry then begin
@@ -87,14 +87,14 @@ codeunit 82561 "ADLSE Execute"
 
         // update Jsons
         if not ADLSECommunication.TryUpdateCdmJsons(EntityJsonNeedsUpdate, ManifestJsonsNeedsUpdate) then begin
-            SetStateFinished(Rec);
+            SetStateFinished(Rec, TableCaption);
             exit;
         end;
         if EmitTelemetry then
             ADLSEExecution.Log('ADLSE-007', 'Jsons have been updated', Verbosity::Normal, CustomDimensions);
 
         // Finalize
-        SetStateFinished(Rec);
+        SetStateFinished(Rec, TableCaption);
         if EmitTelemetry then
             ADLSEExecution.Log('ADLSE-005', 'Export completed without error', Verbosity::Normal, CustomDimensions);
     end;
@@ -269,14 +269,18 @@ codeunit 82561 "ADLSE Execute"
         ADLSEUtil.AddSystemFields(FieldIdList);
     end;
 
-    local procedure SetStateFinished(var ADLSETable: Record "ADLSE Table")
+    local procedure SetStateFinished(var ADLSETable: Record "ADLSE Table"; TableCaption: Text)
     var
         ADLSERun: Record "ADLSE Run";
         ADLSECurrentSession: Record "ADLSE Current Session";
         ADLSESessionManager: Codeunit "ADLSE Session Manager";
+        ADLSEExecution: Codeunit "ADLSE Execution";
+        CustomDimensions: Dictionary of [Text, Text];
     begin
-        ADLSERun.RegisterEnded(ADLSETable."Table ID", EmitTelemetry);
-        ADLSECurrentSession.Stop(ADLSETable."Table ID", EmitTelemetry);
+        ADLSERun.RegisterEnded(ADLSETable."Table ID", EmitTelemetry, TableCaption);
+        ADLSECurrentSession.Stop(ADLSETable."Table ID", EmitTelemetry, TableCaption);
+        CustomDimensions.Add('Entity', TableCaption);
+        ADLSEExecution.Log('ADLSE-037', 'Finished the export process', Verbosity::Normal, CustomDimensions);
         Commit();
 
         // This export session is soon going to end. Start up a new one from 
