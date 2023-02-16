@@ -37,6 +37,7 @@ codeunit 82569 "ADLSE Execution"
 
         if EmitTelemetry then
             Log('ADLSE-022', 'Starting export for all tables', Verbosity::Normal);
+        ADLSETable.SetRange(Enabled, true);
         if ADLSETable.FindSet(false) then
             repeat
                 Counter += 1;
