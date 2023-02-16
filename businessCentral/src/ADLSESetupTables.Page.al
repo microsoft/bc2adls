@@ -221,11 +221,16 @@ page 82561 "ADLSE Setup Tables"
         LastRunError: Text[2048];
         NoExportInProgress: Boolean;
         InvalidFieldConfiguredMsg: Label 'The following fields have been incorrectly enabled for exports in the table %1: %2', Comment = '%1 = table name; %2 = List of invalid field names';
+        WarnOfSchemaChangeQst: Label 'Data may have been exported from this table before. Changing the export schema now may cause unexpected side- effects. You may reset the table first so all the data shall be exported afresh. Do you still wish to continue?';
 
     local procedure DoChooseFields()
     var
+        ADLSETableLastTimestamp: Record "ADLSE Table Last Timestamp";
         ADLSESetup: Codeunit "ADLSE Setup";
     begin
+        if ADLSETableLastTimestamp.ExistsUpdatedLastTimestamp(Rec."Table ID") then
+            if not Confirm(WarnOfSchemaChangeQst, false) then
+                exit;
         ADLSESetup.ChooseFieldsToExport(Rec);
         CurrPage.Update();
     end;
