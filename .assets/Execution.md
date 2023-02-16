@@ -4,7 +4,7 @@ Now that the steps to setup the tool are complete, let's look at how to run it. 
 The export process makes incremental updates to the data lake, based on the amount of changes (adds/ modifies/ deletes) made in BC since the last run. Open the `Page 82560 - Export to Azure Data Lake Storage` and add some tables that should be exported at the bottom grid of [the page](/.assets/bcAdlsePage.png). Do not forget to explicitly (and judiciously) select the fields in the table that should be exported.
 
 > **<em>Note</em>** 
-> 1. BLOB, Flow and Filter fields as well as the fields that have been Obsoleted or disabled are not supported.
+> 1. BLOB, Flow and Filter fields as well as the fields that have been Obsoleted or disabled are not supported. Furthermore, fields that are actually marked by an [Access Property](https://learn.microsoft.com/en-us/dynamics365/business-central/dev-itpro/developer/properties/devenv-access-property) other than `Public` will not be exported either. 
 > 2. Records created before the time when [the `SystemCreatedAt` audit field](https://learn.microsoft.com/en-us/dynamics365/business-central/dev-itpro/developer/devenv-table-system-fields#audit) was introduced, have the field set to null. When exporting, there is an artificial value of 01 Jan 1900 set on the field notwithstanding the timezone of the deployment. 
 
 Click on the `Export` action at the top of the page. This spawns multiple sessions that export each table in parallel and uploads only the incremental updates to the data since the last export. When none of the table rows have a `Last exported status` of `In process`, it indicates that the export process has completed. You should be able to see the data through the CDM endpoint: `deltas.cdm.manifest.json`.
