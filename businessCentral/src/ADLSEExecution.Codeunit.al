@@ -112,7 +112,7 @@ codeunit 82569 "ADLSE Execution"
         Session.LogMessage(EventId, Message, Verbosity, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, CustomDimensions);
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::GlobalTriggerManagement, 'OnAfterGetDatabaseTableTriggerSetup', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::GlobalTriggerManagement, 'OnAfterGetDatabaseTableTriggerSetup', '', true, true)]
     local procedure GetDatabaseTableTriggerSetup(TableId: Integer; var OnDatabaseInsert: Boolean; var OnDatabaseModify: Boolean; var OnDatabaseDelete: Boolean; var OnDatabaseRename: Boolean)
     var
         ADLSETableLastTimestamp: Record "ADLSE Table Last Timestamp";
@@ -125,7 +125,7 @@ codeunit 82569 "ADLSE Execution"
             OnDatabaseDelete := true;
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::GlobalTriggerManagement, 'OnAfterOnDatabaseDelete', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::GlobalTriggerManagement, 'OnAfterOnDatabaseDelete', '', true, true)]
     local procedure OnAfterOnDatabaseDelete(RecRef: RecordRef)
     var
         ADLSETableLastTimestamp: Record "ADLSE Table Last Timestamp";
