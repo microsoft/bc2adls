@@ -28,7 +28,7 @@ Follow the instructions at [Pipeline execution and triggers in Azure Data Factor
 > **<em>Note</em>** Ensure that the pipeline is not triggered for an Azure data lake container in which data is either being exported from BC or another pipeline is consolidating data.
 
 # Consuming the CDM data
-There are multiple ways of consuming the resulting CDM data, for example using Power BI. To do so, create a new Power BI report and select **Get data**, then select **Azure Data Lake Storage Gen2** and **Connect**.
+There are [multiple ways](https://learn.microsoft.com/en-us/power-query/connectors/data-lake-storage) of consuming the resulting CDM data, for example using Power BI. To do so, create a new Power BI report and select **Get data**, then select **Azure Data Lake Storage Gen2** and **Connect**.
 
 ![](/.assets/PowerBI_get_data.png "Connect to an Azure Data Lake")
 
