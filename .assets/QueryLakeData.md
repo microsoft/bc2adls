@@ -73,6 +73,6 @@ On the main setup page of the `bc2adls` extension, you will note a new fast tab 
 ![Screenshot](/.assets/QueryDataInTheLake.png "bc2adls setup page") 
 
 ## Making queries in AL
-Phew, that was a lengthy configuration but it is finally time to query the lake! Open Visual Studio Code and go the place in our code where you want to query the lake and follow the examples given in the documentation for the two façades,
+Phew, that was a lengthy configuration but it is finally time to query the lake! Open Visual Studio Code and go the place in your code where you want to query the lake and follow the examples given in the documentation for the two façades,
 1. [`ADLSE Query`](/businessCentral/src/Query/ADLSEQuery.Codeunit.al) used for any tabular data and
 1. [`ADLSE Query Table`](/businessCentral/src/Query/ADLSEQueryTable.Codeunit.al) used for BC tables.
