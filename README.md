@@ -24,6 +24,7 @@ More details:
 - [Installation and configuration](/.assets/Setup.md)
 - [Executing the export and pipeline](/.assets/Execution.md)
 - [Creating shared metadata tables](/.assets/SharedMetadataTables.md)
+- [Querying data residing in the lake with bc2adls](/.assets/QueryLakeData.md)
 - [Watch the webinar on bc2adls from Jan 2022](https://www.microsoft.com/en-us/videoplayer/embed/RWSHHG)
 
 ## Changelog

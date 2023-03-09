@@ -29,26 +29,26 @@ Currently the funcionality only supports,
 - You have configured [shared metadata tables](/.assets/SharedMetadataTables.md) for your data on the lake. This may include tables that are unknown to BC.
 - You have sufficient access to create Azure Function Apps on your subscription.
 
-### Step 1. Create and deploy function app to Azure
+### Create and deploy function app to Azure
 Start Visual Studio Code and open the folder [`AdlsProxy`](/AdlsProxy/). Follow the instructions given in [the documentation](https://learn.microsoft.com/en-us/azure/azure-functions/create-first-function-vs-code-csharp?tabs=in-process). I used the runtime stack as .NET 7 Isolated. Let's say you chose to name the Function App to `AdlsProxyX`.
 
-### Step 2. Take note of the function app URL
+### Take note of the function app URL
 Open the newly created Function App `AdlsProxyX` in the Azure portal, under **Overview**, take a note of the value in the **URL** field. This should be the format `https://adlsproxyx.azurewebsites.net`.
 
-### Step 3. Add a system managed identity for the Azure function
+### Add a system managed identity for the Azure function
 In the Azure function app, and follow [the instructions](https://learn.microsoft.com/en-us/azure/app-service/overview-managed-identity?tabs=portal%2Chttp#add-a-system-assigned-identity) to add a system managed identity. This would create an identity named (usually) the same as the Function App.
 
-### Step 4. Protect your function app using new AAD credentials
+### Protect your function app using new AAD credentials
 In the Azure function app, follow the instructions at [Create a new app registration automatically](https://learn.microsoft.com/en-us/azure/app-service/configure-authentication-provider-aad#--option-1-create-a-new-app-registration-automatically). This should create a brand new App registration that can be used to make requests on the function app. Take a note of the following values as they will be required later on,
 - the `App (Client) ID` field, as well as 
 - the newly created client secret stored as the [application setting](https://learn.microsoft.com/en-us/azure/azure-functions/functions-how-to-use-azure-function-app-settings?tabs=portal) named `MICROSOFT_PROVIDER_AUTHENTICATION_SECRET`. Of course, you may just as well create a new secret on the app registration and use it instead!
 
-### Step 5. Take a note of the function keys
+### Take a note of the function keys
 In the Azure function app, under **Functions**, you will notice a few functions that have been created. Go inside each of the functions and under `Function Keys`, make a note of the full text of the respective function key. 
 > It is recommended to go through the documentation at [Securing Azure functions](https://learn.microsoft.com/en-us/azure/azure-functions/security-concepts) in order to fully understand the different ways to authenticate and authorize functions. This may be handy if, say, you want only some credentials to access entity A, while everyone can access entity B etc. 
 
-### Step 6. Authorize the created system managed identity to query the data on the serverless SQL endpoint
-1. Open the SQL query editor from the lake database in the Synapse studio opened from your Synapse workspace and execute the following query,
+### Authorize the created system managed identity to query the data on the serverless SQL endpoint
+Open the SQL query editor from the lake database in the Synapse studio opened from your Synapse workspace and execute the following query,
 
     CREATE LOGIN [AdlsProxyX] FROM EXTERNAL PROVIDER;
     CREATE USER AdlsProxyX FROM LOGIN [AdlsProxyX];
@@ -56,10 +56,10 @@ In the Azure function app, under **Functions**, you will notice a few functions 
 
 This will ensure that the function app has the necessary privileges to run SQL queries in the database. Please make sure that the above query has run in the context of the right database, and that you have replaced the word `AdlsProxyX` with the correct name of the system managed identity of the function app. 
 
-### Step 7. Authorize the created system managed identity to read the data on the lake
+### Authorize the created system managed identity to read the data on the lake
 The query from the Azure function will be executed in the context of the system managed identity (not the app registration service principal) of the function app. Therefore, it needs to be assigned the **Storage Blob Data Reader** role on the storage account with the data files.
 
-### Step 8. Enable BC to send queries to the function app 
+### Enable BC to send queries to the function app 
 On the main setup page of the `bc2adls` extension, you will note a new fast tab called **Query data in the lake**. Fill out the fields in the following way,
 - **Synapse Serverless SQL endpoint** Locate the Synapse workspace resource on the Azure portal and fill this with the value of the field **Serverless SQL endpoint** under **Overview**.
 - **SQL Database Name** The name of the lake database that was created at the [Creating shared metadata tables](/.assets/SharedMetadataTables.md).
