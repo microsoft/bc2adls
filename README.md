@@ -17,6 +17,7 @@ The following diagram illustrates the flow of data through a usage scenario- the
 	- CDM: via the `data.cdm.manifest.json manifest`
 	- CSV/Parquet: via the underlying files for each individual entity inside the `data` folder
 	- Spark/SQL: via [shared metadata tables](/.assets/SharedMetadataTables.md)
+- The reverse flow is also possible now where data in the lake can be read into BC via AL constructs.
 	
 ![Architecture](/.assets/architecture.png "Flow of data")
 
