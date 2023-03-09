@@ -57,7 +57,7 @@ Open the SQL query editor from the lake database in the Synapse studio opened fr
 This will ensure that the function app has the necessary privileges to run SQL queries in the database. Please make sure that the above query has run in the context of the right database, and that you have replaced the word `AdlsProxyX` with the correct name of the system managed identity of the function app. 
 
 ### Authorize the created system managed identity to read the data on the lake
-The query from the Azure function will be executed in the context of the system managed identity (not the app registration service principal you created in the [Protect your function app using new AAD credentials](#Protect-your-function-app-using-new-aad-credentials) step of the function app. Therefore, it needs to be assigned the **Storage Blob Data Reader** role on the storage account with the data files.
+The query from the Azure function will be executed in the context of the system managed identity of the function app (not the app registration service principal you created in the [Protect your function app using new AAD credentials](#Protect-your-function-app-using-new-aad-credentials) step). Therefore, it needs to be assigned the **Storage Blob Data Reader** role on the storage account with the data files.
 
 ### Enable BC to send queries to the function app 
 On the main setup page of the `bc2adls` extension, you will note a new fast tab called **Query data in the lake**. Fill out the fields in the following way,
