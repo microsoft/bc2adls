@@ -1,6 +1,6 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
-codeunit 82565 "ADLSE Credentials"
+codeunit 82565 "ADLSE Credentials" implements "ADLSE ICredentials"
 {
     Access = Internal;
     // The max sizes of the fields are determined based on the recommendations listed at 
@@ -51,10 +51,19 @@ codeunit 82565 "ADLSE Credentials"
         CheckValueExists(ClientSecretKeyNameTok, ClientSecret);
     end;
 
-    [NonDebuggable]
     procedure GetTenantID(): Text
     begin
         exit(StorageTenantID);
+    end;
+
+    procedure GetResource(): Text
+    begin
+        exit('https://storage.azure.com/');
+    end;
+
+    procedure GetScope(): Text
+    begin
+        exit('https://storage.azure.com/user_impersonation');
     end;
 
     [NonDebuggable]

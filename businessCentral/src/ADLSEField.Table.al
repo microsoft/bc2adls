@@ -91,13 +91,14 @@ table 82562 "ADLSE Field"
 
     procedure CheckFieldToBeEnabled()
     var
-        Fld: Record Field;
+        Field: Record Field;
         ADLSESetup: Codeunit "ADLSE Setup";
         ADLSEUtil: Codeunit "ADLSE Util";
     begin
-        Fld.Get(Rec."Table ID", Rec."Field ID");
-        ADLSEUtil.CheckFieldTypeForExport(Fld);
-        ADLSESetup.CheckFieldCanBeExported(Fld);
+        Field.Get(Rec."Table ID", Rec."Field ID");
+        if not ADLSEUtil.CheckFieldTypeForExport(Field.Type) then
+            ADLSEUtil.RaiseFieldTypeNotSupportedError(Field.FieldName, Field.Type);
+        ADLSESetup.CheckFieldCanBeExported(Field);
     end;
 
     [TryFunction]

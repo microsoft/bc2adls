@@ -31,6 +31,8 @@ Let us take a look at the settings show in the sample screenshot below,
 - **Emit telemetry** The flag to enable or disable operational telemetry from this extension. It is set to True by default. 
 - **Multi- company export** The flag to allow exporting data from multiple companies at the same time. You should enable this only after the export schema is finalized- in other words, ensure that at least one export for a company has been successful with all the desired tables and the desired fields in those tables. We recommend that the json files are manually checked in the outbound container before enabling this flag. Changes to the export schema (adding or removing tables as well as changing the field set to be exported) are not allowed as long as this flag is checked.
 
+The fast tab **Query data in the lake** handles configuration in case you want to read (not export) data from the lake. Please refer to [Querying data residing in the lake with bc2adls](/.assets/QueryLakeData.md) for more details.
+
 ![The Export to Azure Data Lake Storage page](/.assets/bcAdlsePage.png)
 
 > **<em>Note</em>** 

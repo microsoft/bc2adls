@@ -75,6 +75,21 @@ table 82560 "ADLSE Setup"
                 ADLSECurrentSession.CheckForNoActiveSessions();
             end;
         }
+
+        field(25; "Serverless SQL Endpoint"; Text[2048])
+        {
+            Caption = 'Synapse Serverless SQL Endpoint';
+        }
+
+        field(26; "SQL Database"; Text[2048])
+        {
+            Caption = 'SQL Database Name';
+        }
+
+        field(27; "Function App Url"; Text[2048])
+        {
+            Caption = 'Function App Url';
+        }
     }
 
     keys

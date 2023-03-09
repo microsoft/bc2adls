@@ -9,6 +9,7 @@ codeunit 82564 "ADLSE Util"
         AlphabetsUpperTxt: Label 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
         NumeralsTxt: Label '1234567890';
         FieldTypeNotSupportedErr: Label 'The field %1 of type %2 is not supported.', Comment = '%1 = field name, %2 = field type';
+        TypeOfFieldNotSupportedErr: Label 'The type of field %1 is not supported.', Comment = '%1 = field name';
         ConcatNameIdTok: Label '%1-%2', Comment = '%1: Name, %2: ID';
         DateTimeExpandedFormatTok: Label '%1, %2 %3 %4 %5:%6:%7 GMT', Comment = '%1: weekday, %2: day, %3: month, %4: year, %5: hour, %6: minute, %7: second';
         QuotedTextTok: Label '"%1"', Comment = '%1: text to be double- quoted';
@@ -16,6 +17,7 @@ codeunit 82564 "ADLSE Util"
         CommaSuffixedTok: Label '%1, ', Comment = '%1: text to be suffixed';
         WholeSecondsTok: Label ':%1Z', Comment = '%1: seconds';
         FractionSecondsTok: Label ':%1.%2Z', Comment = '%1: seconds, %2: milliseconds';
+        UnmatchedEnumNameErr: Label 'No enum or option match in the field %1 found for the text %2.', Comment = '%1 is the field name, %2 is the text value for enum that failed parsing.';
 
     procedure ToText(GuidValue: Guid): Text
     begin
@@ -130,6 +132,14 @@ codeunit 82564 "ADLSE Util"
         exit(RecRef.Caption());
     end;
 
+    procedure GetTableName(TableID: Integer) TableName: Text
+    var
+        RecRef: RecordRef;
+    begin
+        RecRef.Open(TableID);
+        TableName := RecRef.Name;
+    end;
+
     procedure GetDataLakeCompliantTableName(TableID: Integer) TableName: Text
     var
         OrigTableName: Text;
@@ -144,12 +154,12 @@ codeunit 82564 "ADLSE Util"
         exit(StrSubstNo(ConcatNameIdTok, GetDataLakeCompliantName(FieldName), FieldID));
     end;
 
-    procedure GetTableName(TableID: Integer) TableName: Text
+    procedure GetDataLakeCompliantFieldName(TableID: Integer; FieldID: Integer): Text
     var
-        RecRef: RecordRef;
+        Field: Record Field;
     begin
-        RecRef.Open(TableID);
-        TableName := RecRef.Name;
+        Field.Get(TableID, FieldID);
+        exit(GetDataLakeCompliantFieldName(Field.FieldName, FieldID));
     end;
 
     procedure GetDataLakeCompliantName(Name: Text) Result: Text
@@ -172,75 +182,226 @@ codeunit 82564 "ADLSE Util"
         Result := ResultBuilder.ToText();
     end;
 
-    procedure CheckFieldTypeForExport(Fld: Record Field)
+    procedure CheckFieldTypeForExport(FieldType: Option): Boolean
+    var
+        Field: Record Field;
     begin
-        case Fld.Type of
-            Fld.Type::BigInteger,
-            Fld.Type::Boolean,
-            Fld.Type::Code,
-            Fld.Type::Date,
-            Fld.Type::DateFormula,
-            Fld.Type::DateTime,
-            Fld.Type::Decimal,
-            Fld.Type::Duration,
-            Fld.Type::Guid,
-            Fld.Type::Integer,
-            Fld.Type::Option,
-            Fld.Type::Text,
-            Fld.Type::Time:
-                exit;
+        case FieldType of
+            Field.Type::BigInteger,
+            Field.Type::Boolean,
+            Field.Type::Code,
+            Field.Type::Date,
+            Field.Type::DateFormula,
+            Field.Type::DateTime,
+            Field.Type::Decimal,
+            Field.Type::Duration,
+            Field.Type::Guid,
+            Field.Type::Integer,
+            Field.Type::Option,
+            Field.Type::Text,
+            Field.Type::Time:
+                exit(true);
         end;
-        Error(FieldTypeNotSupportedErr, Fld."Field Caption", Fld.Type);
+        exit(false);
     end;
 
-    procedure ConvertFieldToText(Fld: FieldRef): Text
+    local procedure ConvertFieldToText(FieldRef: FieldRef): Text
     var
         DateTimeValue: DateTime;
     begin
-        case Fld.Type of
-            Fld.Type::BigInteger,
-            Fld.Type::Date,
-            Fld.Type::DateFormula,
-            Fld.Type::Decimal,
-            Fld.Type::Duration,
-            Fld.Type::Integer,
-            Fld.Type::Time:
-                exit(ConvertNumberToText(Fld.Value()));
-            Fld.Type::DateTime:
+        case FieldRef.Type of
+            FieldRef.Type::BigInteger,
+            FieldRef.Type::Date,
+            FieldRef.Type::DateFormula,
+            FieldRef.Type::Decimal,
+            FieldRef.Type::Duration,
+            FieldRef.Type::Integer,
+            FieldRef.Type::Time,
+            FieldRef.Type::Boolean:
+                exit(ConvertVariantToText(FieldRef.Value()));
+            FieldRef.Type::DateTime:
                 begin
-                    DateTimeValue := Fld.Value();
+                    DateTimeValue := FieldRef.Value();
                     if DateTimeValue = 0DT then
                         exit('');
                     exit(ConvertDateTimeToText(DateTimeValue));
                 end;
-            Fld.Type::Option:
-                exit(Fld.GetEnumValueNameFromOrdinalValue(Fld.Value()));
-            Fld.Type::Boolean:
-                exit(Format(Fld.Value(), 0, 9));
-            Fld.Type::Code,
-            Fld.Type::Guid,
-            Fld.Type::Text:
-                exit(ConvertStringToText(Fld.Value()));
-            else
-                Error(FieldTypeNotSupportedErr, Fld.Name(), Fld.Type);
+            FieldRef.Type::Option:
+                exit(FieldRef.GetEnumValueNameFromOrdinalValue(FieldRef.Value()));
+            FieldRef.Type::Code,
+            FieldRef.Type::Guid,
+            FieldRef.Type::Text:
+                exit(ConvertStringToText(FieldRef.Value()));
         end;
+        RaiseFieldTypeNotSupportedError(FieldRef.Name, FieldRef.Type);
     end;
 
-    local procedure ConvertStringToText(Val: Text): Text
+    local procedure RaiseFieldTypeNotSupportedError(FieldName: Text; FieldType: FieldType)
+    begin
+        Error(FieldTypeNotSupportedErr, FieldName, FieldType);
+    end;
+
+    procedure RaiseFieldTypeNotSupportedError(FieldName: Text; FieldTypeOption: Option)
+    begin
+        Error(FieldTypeNotSupportedErr, FieldName, FieldTypeOption);
+    end;
+
+    procedure RaiseFieldTypeNotSupportedError(FieldName: Text)
+    begin
+        Error(TypeOfFieldNotSupportedErr, FieldName);
+    end;
+
+    procedure ConvertVariantToJson(ValueVariant: Variant; var Result: JsonValue): Boolean
+    var
+        DateFormulaValue: DateFormula;
+        BigIntegerValue: BigInteger;
+        BooleanValue: Boolean;
+        DateValue: Date;
+        DateTimeValue: DateTime;
+        DecimalValue: Decimal;
+        DurationValue: Duration;
+        IntegerValue: Integer;
+        TextValue: Text;
+        TimeValue: Time;
+    begin
+        case true of
+            ValueVariant.IsBigInteger():
+                begin
+                    BigIntegerValue := ValueVariant;
+                    Result.SetValue(BigIntegerValue);
+                    exit(true);
+                end;
+            ValueVariant.IsDate():
+                begin
+                    DateValue := ValueVariant;
+                    Result.SetValue(DateValue);
+                    exit(true);
+                end;
+            ValueVariant.IsDateFormula():
+                begin
+                    DateFormulaValue := ValueVariant;
+                    TextValue := ConvertVariantToText(DateFormulaValue);
+                    Result.SetValue(TextValue);
+                    exit(true);
+                end;
+            ValueVariant.IsDecimal():
+                begin
+                    DecimalValue := ValueVariant;
+                    Result.SetValue(DecimalValue);
+                    exit(true);
+                end;
+            ValueVariant.IsDuration():
+                begin
+                    DurationValue := ValueVariant;
+                    Result.SetValue(DurationValue);
+                    exit(true);
+                end;
+            ValueVariant.IsInteger():
+                begin
+                    IntegerValue := ValueVariant;
+                    Result.SetValue(IntegerValue);
+                    exit(true);
+                end;
+            ValueVariant.IsTime():
+                begin
+                    TimeValue := ValueVariant;
+                    Result.SetValue(TimeValue);
+                    exit(true);
+                end;
+            ValueVariant.IsDateTime():
+                begin
+                    DateTimeValue := ValueVariant;
+                    Result.SetValue(DateTimeValue);
+                    exit(true);
+                end;
+            ValueVariant.IsBoolean():
+                begin
+                    BooleanValue := ValueVariant;
+                    Result.SetValue(BooleanValue);
+                    exit(true);
+                end;
+            ValueVariant.IsByte(),
+            ValueVariant.IsChar(),
+            ValueVariant.IsCode(),
+            ValueVariant.IsGuid(),
+            ValueVariant.IsText():
+                begin
+                    TextValue := ValueVariant;
+                    Result.SetValue(TextValue);
+                    exit(true);
+                end;
+            ValueVariant.IsOption():
+                ;// Option should be passed as Text
+        end;
+        exit(false);
+    end;
+
+    procedure ConvertJsonToVariant(FieldRef: FieldRef; Value: JsonValue): Variant
+    var
+        DataFormulaVal: DateFormula;
+        DateTimeVal: DateTime;
+        TxtVal: Text;
+        GuidVal: Guid;
+        EnumIndex: Integer;
+    begin
+        case FieldRef.Type of
+            FieldType::BigInteger:
+                exit(Value.AsBigInteger());
+            FieldType::Boolean:
+                exit(Value.AsBoolean());
+            FieldType::Code:
+                exit(Value.AsCode());
+            FieldType::Date:
+                begin
+                    DateTimeVal := Value.AsDateTime();
+                    exit(DT2Date(DateTimeVal));
+                end;
+            FieldType::DateFormula:
+                begin
+                    TxtVal := Value.AsText();
+                    Evaluate(DataFormulaVal, TxtVal, 9);
+                    exit(DataFormulaVal);
+                end;
+            FieldType::DateTime:
+                exit(Value.AsDateTime());
+            FieldType::Decimal:
+                exit(Value.AsDecimal());
+            FieldType::Duration:
+                exit(Value.AsDuration());
+            FieldType::Guid:
+                begin
+                    TxtVal := Value.AsText();
+                    Evaluate(GuidVal, TxtVal, 9);
+                    exit(GuidVal);
+                end;
+            FieldType::Integer:
+                exit(Value.AsInteger());
+            FieldType::Option:
+                begin
+                    TxtVal := Value.AsText();
+                    for EnumIndex := 1 to FieldRef.EnumValueCount() do
+                        if TxtVal = FieldRef.GetEnumValueName(EnumIndex) then
+                            exit(FieldRef.GetEnumValueOrdinal(EnumIndex));
+                    Error(UnmatchedEnumNameErr, FieldRef.Name, TxtVal);
+                end;
+            FieldType::Text:
+                exit(Value.AsText());
+            FieldType::Time:
+                exit(Value.AsTime());
+        end;
+        RaiseFieldTypeNotSupportedError(FieldRef.Name, FieldRef.Type);
+    end;
+
+    procedure ConvertStringToText(Val: Text): Text
     begin
         Val := Val.Replace('\', '\\'); // escape the escape character
         Val := Val.Replace('"', '\"'); // escape the quote character
         exit(StrSubstNo(QuotedTextTok, Val));
     end;
 
-    procedure ConvertNumberToText(Val: Integer): Text
+    procedure ConvertVariantToText(VariantVal: Variant): Text
     begin
-        exit(Format(Val, 0, 9));
-    end;
-
-    local procedure ConvertNumberToText(Val: Variant): Text
-    begin
-        exit(Format(Val, 0, 9));
+        exit(Format(VariantVal, 0, 9));
     end;
 
     local procedure ConvertDateTimeToText(Val: DateTime) Result: Text
