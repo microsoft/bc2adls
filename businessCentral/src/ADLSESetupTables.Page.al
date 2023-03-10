@@ -28,8 +28,7 @@ page 82561 "ADLSE Setup Tables"
                 {
                     ApplicationArea = All;
                     Editable = true;
-                    Caption = 'Enabled for export';
-                    Tooltip = 'Specifies the state of the table. Set this checkmark to export this table, otherwise not.';
+                    Tooltip = 'Specifies if the data in this table should be exported.';
                 }
                 field(FieldsChosen; NumberFieldsChosenValue)
                 {

@@ -18,16 +18,16 @@ Currently the funcionality only supports,
 - checking if there are any records in the lake, similar to the [IsEmpty](https://learn.microsoft.com/en-us/dynamics365/business-central/dev-itpro/developer/methods-auto/recordref/recordref-isempty-method) call.
 
 > **<em>Note</em>** 
-> 1. The approach suggested will **only work for tabular data** that have been structured into shared metadata tables as described in [Creating shared metadata tables](/.assets/SharedMetadataTables.md). For data that was not created through the `bc2adls` export, you may need to create such tables manually as explained.
+> 1. The approach suggested will **only work for tabular data** that have been structured into shared metadata tables as described in [Creating shared metadata tables](/.assets/SharedMetadataTables.md). For tables that are meant to be imported only (and not exported to the lake), set the `Enabled for export` field to be false. For data that was not created through the `bc2adls` export, you may need to create such tables manually, as explained.
 > 1. Since querying from BC requires a number of Azure components to work in tandem, please use this approach only for **non- business critical** processes that allow for network or process latency. 
 > 1. The architecture allows for a limited amount of data to be queried from the serverless SQL endpoint. You may get errors if the response is too large for BC to process. Therefore, it is highly recommended that you apply filtering to narrow the results and only fetch the fields that you require.
 
 ## Setting it all up
 
 ### Pre-requisites
-- You have [installed and configured](/.assets/Setup.md) `bc2adls`, and the tables and fields in BC to be queried from the lake have been added. This is, of course, only relevant if you wish to read BC data from the lake via the [`ADLSE Query Table`](/businessCentral/src/Query/ADLSEQueryTable.Codeunit.al) façade.
 - You have configured [shared metadata tables](/.assets/SharedMetadataTables.md) for your data on the lake. This may include tables that are unknown to BC.
-- You have sufficient access to create Azure Function Apps on your subscription.
+- You have sufficient access to create Azure function apps on your subscription.
+- You have [installed and configured](/.assets/Setup.md) `bc2adls`, and the tables and fields in BC to be queried from the lake have been added as per [these instructions](/.assets/Execution.md#exporting-data-from-bc). This step is, of course, only relevant if you wish to read BC data from the lake via the [`ADLSE Query Table`](/businessCentral/src/Query/ADLSEQueryTable.Codeunit.al) façade.
 
 ### Create and deploy function app to Azure
 Start Visual Studio Code and open the folder [`adlsProxy`](/adlsProxy/). Follow the instructions given in [the documentation](https://learn.microsoft.com/en-us/azure/azure-functions/create-first-function-vs-code-csharp?tabs=in-process). I used the runtime stack as .NET 7 Isolated. Let's say you chose to name the Function App as `AdlsProxyX`.
