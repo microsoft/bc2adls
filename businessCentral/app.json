@@ -3,7 +3,7 @@
   "name":  "Azure Data Lake Storage Export",
   "publisher":  "The bc2adls team, Microsoft Denmark",
   "brief":  "Sync data from Business Central to the Azure storage",
-  "description":  "Exports (and enables reading of) data in chosen tables to the Azure Data Lake and keeps it in sync by incremental updates. Before you use this tool, please read the SUPPORT.md file at https://github.com/microsoft/bc2adls.",
+  "description":  "Exports and enables reading of data in chosen tables to the Azure Data Lake and keeps it in sync by incremental updates. Before you use this tool, please read the SUPPORT.md file at https://github.com/microsoft/bc2adls.",
   "version":  "2.0.0.0",
   "privacyStatement":  "https://go.microsoft.com/fwlink/?LinkId=724009",
   "EULA":  "https://go.microsoft.com/fwlink/?linkid=2009120",
