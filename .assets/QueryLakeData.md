@@ -41,11 +41,11 @@ In the Azure function app, and follow [the instructions](https://learn.microsoft
 ### Protect your function app using new AAD credentials
 In the Azure function app, follow the instructions at [Create a new app registration automatically](https://learn.microsoft.com/en-us/azure/app-service/configure-authentication-provider-aad#--option-1-create-a-new-app-registration-automatically). This should create a brand new App registration that can be used to make requests on the function app. Take a note of the following values as they will be required later on,
 - the `App (Client) ID` field, as well as,
-- the newly created client secret stored as the [application setting](https://learn.microsoft.com/en-us/azure/azure-functions/functions-how-to-use-azure-function-app-settings?tabs=portal) named `MICROSOFT_PROVIDER_AUTHENTICATION_SECRET`. Of course, you may just as well create a new secret on the new app registration and use it instead!
+- the newly created client secret stored as the [application setting](https://learn.microsoft.com/en-us/azure/azure-functions/functions-how-to-use-azure-function-app-settings?tabs=portal#settings) named `MICROSOFT_PROVIDER_AUTHENTICATION_SECRET`. Of course, you may just as well create a new secret on the new app registration and use it instead!
 
 ### Take a note of the function keys
 In the Azure function app, under **Functions**, you will notice a few functions that have been created. Go inside each of the functions and under `Function Keys`, make a note of the full text of the respective function key. 
-> It is recommended to go through the documentation at [Securing Azure functions](https://learn.microsoft.com/en-us/azure/azure-functions/security-concepts) in order to fully understand the different ways to authenticate and authorize functions. This may be handy if, say, you want only some credentials to access entity A, while everyone can access entity B etc. 
+> It is recommended to go through the documentation at [Securing Azure functions](https://learn.microsoft.com/en-us/azure/azure-functions/security-concepts) in order to fully understand the different ways to authenticate and authorize functions. This may be handy if, say, you want only some credentials to access entity A, while some others can access entity B, but everyone can access entity C, etc. 
 
 ### Authorize the created system managed identity to query the data on the serverless SQL endpoint
 Open the SQL query editor from the lake database in the Synapse studio opened from your Synapse workspace and execute the following query,
