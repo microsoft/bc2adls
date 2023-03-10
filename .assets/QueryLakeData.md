@@ -4,7 +4,7 @@ It is often desirable to query the data residing in the lake and use it inside D
 
 Let's go through a few use cases that are enabled by this feature.
 1. Data from BC that has been previously exported and archived into the lake may need to be looked up by the system or a user to see historical entities.
-1. Data created on the lake by external systems (such as IoT devices) need to be looked up in BC and fed into control systems to make relevant calculations.
+1. Data created on the lake by external systems (such as IoT devices or [Azure Synapse Link for Dataverse](https://learn.microsoft.com/en-us/power-apps/maker/data-platform/export-to-data-lake)) need to be looked up in BC to make relevant calculations.
 1. Data lake can now be used as a cheaper single- storage solution for miscellaneous tabular data that can be queried by BC on- demand.
 
 ## How it works
