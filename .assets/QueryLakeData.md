@@ -1,14 +1,14 @@
 # Querying data residing in the lake with bc2adls 
 
-It is often desirable to query the data residing in the lake and use it inside Dynamics 365 Business Central (BC). Such data may either have been exported previously out of BC through the `bc2adls` tool, or general tabular data that has been sourced from external systems. The following steps helps you establish a mechanism by means of which you may query such data directly inside BC through the AL constructs. 
+It is often desirable to query the data residing in the lake and use it inside Dynamics 365 Business Central (BC). Such data may either have been exported previously out of BC through the `bc2adls` tool, or general tabular data that has been sourced from external systems. The following steps help you establish a mechanism to query such data directly inside BC through the AL constructs.
 
 Let's go through a few use cases that are enabled by this feature.
 1. Data from BC that has been previously exported and archived into the lake may need to be looked up by the system or a user to see historical entities.
 1. Data created on the lake by external systems (such as IoT devices) need to be looked up in BC and fed into control systems to make relevant calculations.
-1. Data lake can now be used as a cheaper one- store solution for miscellaneous tabular data that can be queried by BC on- demand.
+1. Data lake can now be used as a cheaper single- storage solution for miscellaneous tabular data that can be queried by BC on- demand.
 
 ## How it works
-**Note the arrows that point from the lake database into the BC in the diagram below.** Using the new façades [`ADLSE Query`](/businessCentral/src/Query/ADLSEQuery.Codeunit.al) and [`ADLSE Query Table`](/businessCentral/src/Query/ADLSEQueryTable.Codeunit.al), the AL developer issues a REST API call to the `AdlsProxy` Azure function app while passing information like the table and specific fields to be queried, filters to be applied, etc. The function app then formulates the request as an SQL query to the lake database, which in turn gets the relevant data from the `data` CDM folder in the storage account. The result is then returned as a Json response to BC so that records and corresponding fields in those records can be individually read via the AL language. Please see the documentation of the above façades for more details.
+**Note the arrows that point from the lake database into BC in the diagram below.** Using the new façades [`ADLSE Query`](/businessCentral/src/Query/ADLSEQuery.Codeunit.al) and [`ADLSE Query Table`](/businessCentral/src/Query/ADLSEQueryTable.Codeunit.al), the AL developer issues a REST API call to the `AdlsProxy` Azure function app while passing information like the table and specific fields to be queried, filters to be applied, etc. The function app then formulates the request as an SQL query to the lake database, which in turn gets the relevant data from the `data` CDM folder in the storage account. The result is then returned as a Json response to BC so that records and corresponding fields in those records can be individually read via the AL language. Please see the documentation of the above façades for more details.
 
 ![Architecture](/.assets/architecture.png "Flow of data") 
 
@@ -73,6 +73,8 @@ On the main setup page of the `bc2adls` extension, you will note a new fast tab 
 ![Screenshot](/.assets/QueryDataInTheLake.png "bc2adls setup page") 
 
 ## Making queries in AL
-Phew, that was a lengthy configuration but it is finally time to query the lake! Open Visual Studio Code and go the place in your code where you want to query the lake and follow the examples given in the documentation for the two façades,
-1. [`ADLSE Query`](/businessCentral/src/Query/ADLSEQuery.Codeunit.al) used for any tabular data and
+Phew, that was a lengthy configuration but it is finally time to query the lake! Open Visual Studio Code and go the place in your AL code where you want to query the lake and follow the examples given in the documentation for the two façades,
+1. [`ADLSE Query`](/businessCentral/src/Query/ADLSEQuery.Codeunit.al) used for any tabular data, and
 1. [`ADLSE Query Table`](/businessCentral/src/Query/ADLSEQueryTable.Codeunit.al) used for BC tables.
+
+Any errors that happen during the course of the Rest Api call to the function app are thrown up on the AL side. To troubleshoot further on the function app, it is recommended that you follow instructions at [Monitor executions in Azure functions](https://learn.microsoft.com/en-us/azure/azure-functions/functions-monitoring).

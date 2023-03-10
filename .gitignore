@@ -349,11 +349,12 @@ MigrationBackup/
 # Ionide (cross platform F# VS Code tools) working folder
 .ionide/
 
+# VSCode related
+**/.vscode/*
+
 # AL related
 **/*.app
-businessCentral/.vscode/*
 
 # AdlsProxy related
-adlsProxy/.vscode/*
 adlsProxy/bin/
 adlsProxy/obj/
