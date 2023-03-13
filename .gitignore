@@ -358,3 +358,4 @@ MigrationBackup/
 # AdlsProxy related
 adlsProxy/bin/
 adlsProxy/obj/
+adlsProxy/local.settings.json

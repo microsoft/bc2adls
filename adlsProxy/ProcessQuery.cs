@@ -10,7 +10,7 @@ namespace AdlsProxy
 {
     internal static class ProcessQuery
     {
-        public static HttpResponseData Process(Func<JObject, JToken, JToken, string> queryCreate, Func<SqlDataReader, JToken> resultCreate, HttpRequestData req, ILogger logger)
+        public static HttpResponseData Process(Func<JObject, JToken, JToken, string> queryCreate, Func<ILogger, SqlDataReader, JToken> resultCreate, HttpRequestData req, ILogger logger)
         {
             try
             {
@@ -63,7 +63,7 @@ namespace AdlsProxy
                     // execute query
                     using (SqlDataReader reader = command.ExecuteReader())
                     {
-                        output.Add("result", resultCreate(reader));
+                        output.Add("result", resultCreate(logger, reader));
                     }
                 }
 

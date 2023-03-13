@@ -5,7 +5,7 @@ It is often desirable to query the data residing in the lake and use it inside D
 Let's go through a few use cases that are enabled by this feature.
 1. Data from BC that has been previously exported and archived into the lake may need to be looked up by the system or a user to see historical entities.
 1. Data created on the lake by external systems (such as IoT devices or [Azure Synapse Link for Dataverse](https://learn.microsoft.com/en-us/power-apps/maker/data-platform/export-to-data-lake)) need to be looked up in BC to make relevant calculations.
-1. Data lake can now be used as a cheaper single- storage solution for miscellaneous tabular data that can be queried by BC on- demand.
+1. Data lake can now be used as a cheaper single-storage solution for miscellaneous tabular data that can be queried by BC on-demand.
 
 ## How it works
 **Note the arrows that point from the lake database into BC in the diagram below.** Using the new façades [`ADLSE Query`](/businessCentral/src/Query/ADLSEQuery.Codeunit.al) and [`ADLSE Query Table`](/businessCentral/src/Query/ADLSEQueryTable.Codeunit.al), the AL developer issues a REST API call to the `AdlsProxy` Azure function app while passing information like the table and specific fields to be queried, filters to be applied, etc. The function app then formulates the request as an SQL query to the lake database, which in turn gets the relevant data from the `data` CDM folder in the storage account. The result is then returned as a Json response to BC so that records and corresponding fields in those records can be individually read via the AL language. Please see the documentation of the above façades for more details.
@@ -62,7 +62,7 @@ As queries from the Azure function will be executed in the context of the system
 ### Enable BC to send queries to the function app 
 On the main setup page of the `bc2adls` extension, you will note a new fast tab called **Query data in the lake**. Fill out the fields in the following way,
 - **Synapse Serverless SQL endpoint** Locate the Synapse workspace resource on the Azure portal and fill this with the value of the field **Serverless SQL endpoint** under **Overview**.
-- **SQL Database Name** The name of the lake database that was created at the [Creating shared metadata tables](/.assets/SharedMetadataTables.md).
+- **SQL Database Name** The name of the lake database that got created at the [Creating shared metadata tables](/.assets/SharedMetadataTables.md).
 - **Client ID** The value of the app (client) id from the step [Protect your function app using new AAD credentials](#protect-your-function-app-using-new-aad-credentials) above.
 - **Client secret** The value of the client secret from the step [Protect your function app using new AAD credentials](#protect-your-function-app-using-new-aad-credentials) above.
 - **Function app url** The value of the url from the step [Take note of the function app URL](#take-note-of-the-function-app-url) above.
