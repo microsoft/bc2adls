@@ -36,19 +36,19 @@ Here are a few examples of what our users are saying ...
 
 > “After careful consideration we, as Magnus Digital, advised VolkerWessels Telecom, a large Dutch telecom company, to use and exploit the features of BC2ADLS. We see BC2ADLS currently as the only viable way to export data from Business Central to Azure Data Lake at large scale and over multiple administrations within BC. By the good help of Soumya and Henri, we were able to build a modern data warehouse in Azure Synapse with a happy customer as result.” 
 
-&mdash; Bas Bonekamp <div style="max-width:200px; max-height:200px">![Magnus](/.assets/logos/MagnusDigitalPB.png "Magnus logo")</div>
+&mdash; Bas Bonekamp, [Magnus Digital](https://www.magnus.nl/) <br/><br/>
 
 > “With the bc2adls we have found a way to export huge amount of data from Business Central to a data warehouse solution. This helps us allot to unburden big customers to move to Business Central Online. Also it is easy to use for our customers so they can define their own set of tables and fields and schedule the exports.”
 
-&mdash; Bert Verbeek <div style="max-width:200px; max-height:200px; background-color: black;">![4PS](/.assets/logos/4PS_logo_RGB.png "4PS")</div>
+&mdash; Bert Verbeek, [4PS](https://www.4ps.nl/)<br/><br/>
 
 > “I can't believe how simple and powerful loading data from  Business Central is now. It's like night and day—I'm loving it!”
 
-&mdash; Mathias Halkjær Petersen <div style="max-width:200px; max-height:200px">![Fellowmind](/.assets/logos/Fellowmind.png "Fellowmind logo")</div>
+&mdash; Mathias Halkjær Petersen, [Fellowmind](https://www.fellowmindcompany.com/)<br/><br/>
 
 > “At Kapacity we have utilized the bc2adls tool at several customer projects. These customer cases span from small a project with data extract from 1-3 companies in Dynamics Business Central SaaS (BC) to an enterprise solution with data extract from 150 companies in BC. bc2adls exports multicompany data from BC til Azure Data Lake Storage effectively with incremental updates. The bc2adls extension for BC is easy to configure and maintain. The customer can add new entities (tables and fields) to an existing configuration and even extend the data extract to include new company setup. We have transformed data with the Azure Synapse pipelines using the preconfigured templates from the bc2adls team. The data analyst queries this solution in Power BI using the Shared Metadata db on Serverless SQL. In the enterprise project we did the data transformation using Azure Databricks. Thanks to the bc2adls team providing these tools and great support enabling us to incorporate this tool in our data platform.”
 
-&mdash; Jens Ole Taisbak <div style="max-width:200px; max-height:200px">![twoday kapacity](/.assets/logos/TwoDayKapacity.png "twoday logo")</div>
+&mdash; Jens Ole Taisbak, [TwoDay Kapacity](https://www.kapacity.com/)<br/><br/>
 
 ## Contributing
 
