@@ -25,6 +25,7 @@ More details:
 - [Executing the export and pipeline](/.assets/Execution.md)
 - [Creating shared metadata tables](/.assets/SharedMetadataTables.md)
 - [Watch the webinar on bc2adls from Jan 2022](https://www.microsoft.com/en-us/videoplayer/embed/RWSHHG)
+- [Frequently asked questions](/.assets/FAQs.md)
 
 ## Changelog
 
