@@ -30,7 +30,6 @@ codeunit 82562 "ADLSE Communication"
         NotAllowedOnSimultaneousExportTxt: Label 'This is not allowed when exports are configured to occur simultaneously. Please uncheck Multi- company export, export the data at least once, and try again.';
         EntitySchemaChangedErr: Label 'The schema of the table %1 has changed. %2', Comment = '%1 = Entity name, %2 = NotAllowedOnSimultaneousExportTxt';
         CdmSchemaChangedErr: Label 'There may have been a change in the tables to export. %1', Comment = '%1 = NotAllowedOnSimultaneousExportTxt';
-        ManifestJsonsNotUpdatedErr: Label 'Could not update the CDM manifest files because of a race condition. Please try again later.';
 
     procedure SetupBlobStorage()
     var
@@ -143,6 +142,7 @@ codeunit 82562 "ADLSE Communication"
         ADLSEGen2Util.CreateDataBlob(GetBaseUrl() + DataBlobPath, ADLSECredentials);
         if EmitTelemetry then begin
             CustomDimension.Add('Entity', EntityName);
+            CustomDimension.Add('DataBlobPath', DataBlobPath);
             ADLSEExecution.Log('ADLSE-012', 'Created new blob to hold the data to be exported', Verbosity::Verbose, CustomDimension);
         end;
     end;
@@ -269,20 +269,13 @@ codeunit 82562 "ADLSE Communication"
         if ManifestJsonsNeedsUpdate then begin
             // Expected that multiple sessions that export data from different tables will be competing for writing to 
             // manifest. Semaphore applied.
-            if not AcquireLockonADLSESetup(ADLSESetup) then
-                Error(ManifestJsonsNotUpdatedErr);
+            ADLSESetup.LockTable(true);
+            ADLSESetup.GetSingleton();
 
             UpdateManifest(GetBaseUrl() + StrSubstNo(CorpusJsonPathTxt, DataCdmManifestNameTxt), 'data', ADLSESetup.DataFormat);
             UpdateManifest(GetBaseUrl() + StrSubstNo(CorpusJsonPathTxt, DeltaCdmManifestNameTxt), 'deltas', "ADLSE CDM Format"::Csv);
             Commit(); // to release the lock above
         end;
-    end;
-
-    [TryFunction]
-    local procedure AcquireLockonADLSESetup(var ADLSESetup: Record "ADLSE Setup")
-    begin
-        ADLSESetup.LockTable(true);
-        ADLSESetup.GetSingleton();
     end;
 
     local procedure UpdateManifest(BlobPath: Text; Folder: Text; ADLSECdmFormat: Enum "ADLSE CDM Format")

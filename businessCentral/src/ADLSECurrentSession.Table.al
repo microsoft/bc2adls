@@ -46,6 +46,7 @@ table 82565 "ADLSE Current Session"
         SessionTerminatedMsg: Label 'Export to data lake session for table %1 terminated by user.', Comment = '%1 is the table name corresponding to the session';
         ExportDataInProgressErr: Label 'An export data process is already running. Please wait for it to finish.';
         InsertFailedErr: Label 'Could not start the export as there is already an active export running for the table %1. If this is not so, please stop all exports and try again.', Comment = '%1 = table caption';
+        CouldNotStopSessionErr: Label 'Could not delete the export table session %1 for table on company %2.', Comment = '%1: session id, %2: company name';
 
     procedure Start(ADLSETableID: Integer)
     var
@@ -60,10 +61,18 @@ table 82565 "ADLSE Current Session"
             Error(InsertFailedErr, ADLSEUtil.GetTableCaption(ADLSETableID));
     end;
 
-    procedure Stop(ADLSETableID: Integer)
+    procedure Stop(ADLSETableID: Integer; EmitTelemetry: Boolean; TableCaption: Text)
+    var
+        ADLSEExecution: Codeunit "ADLSE Execution";
+        CustomDimensions: Dictionary of [Text, Text];
     begin
-        Rec.Get(ADLSETableID, CompanyName());
-        Rec.Delete();
+        if not Rec.Get(ADLSETableID, CompanyName()) then
+            exit;
+        CustomDimensions.Add('Entity', TableCaption);
+        if not Rec.Delete() then
+            ADLSEExecution.Log('ADLSE-036', StrSubstNo(CouldNotStopSessionErr, Rec."Session ID", CompanyName()), Verbosity::Error, CustomDimensions)
+        else
+            ADLSEExecution.Log('ADLSE-039', 'Session ended and was removed', Verbosity::Normal, CustomDimensions);
     end;
 
     procedure CheckForNoActiveSessions()

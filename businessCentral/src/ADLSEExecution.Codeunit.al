@@ -13,7 +13,6 @@ codeunit 82569 "ADLSE Execution"
         EmitTelemetry: Boolean;
         ExportStartedTxt: Label 'Data export started for %1 out of %2 tables. Please refresh this page to see the latest export state for the tables. Only those tables that either have had changes since the last export or failed to export last time have been included. The tables for which the exports could not be started have been queued up for later.', Comment = '%1 = number of tables to start the export for. %2 = total number of tables enabled for export.';
         SuccessfulStopMsg: Label 'The export process was stopped successfully.';
-        TrackedDeletedRecordsRemovedMsg: Label 'Representations of deleted records that have been exported previously have been deleted.';
         JobCategoryCodeTxt: Label 'ADLSE';
         JobCategoryDescriptionTxt: Label 'Export to Azure Data Lake';
         JobScheduledTxt: Label 'The job has been scheduled. Please go to the Job Queue Entries page to locate it and make further changes.';
@@ -27,19 +26,18 @@ codeunit 82569 "ADLSE Execution"
         ADLSESetup: Codeunit "ADLSE Setup";
         ADLSECommunication: Codeunit "ADLSE Communication";
         ADLSESessionManager: Codeunit "ADLSE Session Manager";
-        ADLSEExecution: Codeunit "ADLSE Execution";
         Counter: Integer;
         Started: Integer;
     begin
         ADLSESetup.CheckSetup(ADLSESetupRec);
         EmitTelemetry := ADLSESetupRec."Emit telemetry";
         ADLSECurrentSession.CleanupSessions();
-        ADLSEExecution.ClearTrackedDeletedRecords();
         ADLSECommunication.SetupBlobStorage();
         ADLSESessionManager.Init();
 
         if EmitTelemetry then
             Log('ADLSE-022', 'Starting export for all tables', Verbosity::Normal);
+        ADLSETable.SetRange(Enabled, true);
         if ADLSETable.FindSet(false) then
             repeat
                 Counter += 1;
@@ -102,24 +100,6 @@ codeunit 82569 "ADLSE Execution"
         JobQueueEntry."Expiration Date/Time" := CurrentDateTime() + (7 * 24 * 60 * 60 * 1000); // 7 days from now
     end;
 
-    procedure ClearTrackedDeletedRecords()
-    var
-        ADLSETable: Record "ADLSE Table";
-        ADLSETableLastTimestamp: Record "ADLSE Table Last Timestamp";
-        ADLSEDeletedRecord: Record "ADLSE Deleted Record";
-    begin
-        ADLSETable.SetLoadFields("Table ID");
-        if ADLSETable.FindSet() then
-            repeat
-                ADLSEDeletedRecord.SetRange("Table ID", ADLSETable."Table ID");
-                ADLSEDeletedRecord.SetFilter("Entry No.", '<=%1', ADLSETableLastTimestamp.GetDeletedLastEntryNo(ADLSETable."Table ID"));
-                ADLSEDeletedRecord.DeleteAll();
-
-                ADLSETableLastTimestamp.SaveDeletedLastEntryNo(ADLSETable."Table ID", 0);
-            until ADLSETable.Next() = 0;
-        Message(TrackedDeletedRecordsRemovedMsg);
-    end;
-
     internal procedure Log(EventId: Text; Message: Text; Verbosity: Verbosity)
     var
         CustomDimensions: Dictionary of [Text, Text];
@@ -129,10 +109,10 @@ codeunit 82569 "ADLSE Execution"
 
     internal procedure Log(EventId: Text; Message: Text; Verbosity: Verbosity; CustomDimensions: Dictionary of [Text, Text])
     begin
-        Session.LogMessage(EventId, Message, Verbosity, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, CustomDimensions);
+        Session.LogMessage(EventId, Message, Verbosity, DataClassification::SystemMetadata, TelemetryScope::All, CustomDimensions);
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::GlobalTriggerManagement, 'OnAfterGetDatabaseTableTriggerSetup', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::GlobalTriggerManagement, 'OnAfterGetDatabaseTableTriggerSetup', '', true, true)]
     local procedure GetDatabaseTableTriggerSetup(TableId: Integer; var OnDatabaseInsert: Boolean; var OnDatabaseModify: Boolean; var OnDatabaseDelete: Boolean; var OnDatabaseRename: Boolean)
     var
         ADLSETableLastTimestamp: Record "ADLSE Table Last Timestamp";
@@ -145,7 +125,7 @@ codeunit 82569 "ADLSE Execution"
             OnDatabaseDelete := true;
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::GlobalTriggerManagement, 'OnAfterOnDatabaseDelete', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::GlobalTriggerManagement, 'OnAfterOnDatabaseDelete', '', true, true)]
     local procedure OnAfterOnDatabaseDelete(RecRef: RecordRef)
     var
         ADLSETableLastTimestamp: Record "ADLSE Table Last Timestamp";
