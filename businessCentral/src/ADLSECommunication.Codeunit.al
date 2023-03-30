@@ -142,6 +142,7 @@ codeunit 82562 "ADLSE Communication"
         ADLSEGen2Util.CreateDataBlob(GetBaseUrl() + DataBlobPath, ADLSECredentials);
         if EmitTelemetry then begin
             CustomDimension.Add('Entity', EntityName);
+            CustomDimension.Add('DataBlobPath', DataBlobPath);
             ADLSEExecution.Log('ADLSE-012', 'Created new blob to hold the data to be exported', Verbosity::Verbose, CustomDimension);
         end;
     end;
