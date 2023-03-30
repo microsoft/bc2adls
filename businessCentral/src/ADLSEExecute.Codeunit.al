@@ -139,8 +139,9 @@ codeunit 82561 "ADLSE Execute"
     local procedure SetFilterForUpdates(TableID: Integer; UpdatedLastTimeStamp: BigInteger; var Rec: RecordRef; var TimeStampField: FieldRef)
     begin
         Rec.Open(TableID);
-        Rec.SetView(TimestampAscendingSortViewTxt);
         TimeStampField := Rec.Field(0); // 0 is the TimeStamp field
+        // if UpdatedLastTimeStamp = 0 then exit;
+        Rec.SetView(TimestampAscendingSortViewTxt);
         TimeStampField.SetFilter('>%1', UpdatedLastTimestamp);
     end;
 
