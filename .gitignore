@@ -351,4 +351,4 @@ MigrationBackup/
 
 # AL related
 **/*.app
-businessCentral/.vscode/*
+**/.vscode/*
