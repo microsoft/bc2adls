@@ -75,6 +75,12 @@ table 82560 "ADLSE Setup"
                 ADLSECurrentSession.CheckForNoActiveSessions();
             end;
         }
+
+        field(20; "Skip Timestamp Sorting On Recs"; Boolean)
+        {
+            Caption = 'Skip row version sorting';
+            InitValue = false;
+        }
     }
 
     keys

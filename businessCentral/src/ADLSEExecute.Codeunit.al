@@ -22,6 +22,7 @@ codeunit 82561 "ADLSE Execute"
         OldDeletedLastEntryNo: BigInteger;
         EntityJsonNeedsUpdate: Boolean;
         ManifestJsonsNeedsUpdate: Boolean;
+        ExportSuccess: Boolean;
     begin
         ADLSESetup.GetSingleton();
         EmitTelemetry := ADLSESetup."Emit telemetry";
@@ -52,10 +53,10 @@ codeunit 82561 "ADLSE Execute"
         // Perform the export 
         OldUpdatedLastTimestamp := UpdatedLastTimestamp;
         OldDeletedLastEntryNo := DeletedLastEntryNo;
-        if not TryExportTableData(Rec."Table ID", ADLSECommunication, UpdatedLastTimestamp, DeletedLastEntryNo, EntityJsonNeedsUpdate, ManifestJsonsNeedsUpdate) then begin
-            SetStateFinished(Rec, TableCaption);
-            exit;
-        end;
+        ExportSuccess := TryExportTableData(Rec."Table ID", ADLSECommunication, UpdatedLastTimestamp, DeletedLastEntryNo, EntityJsonNeedsUpdate, ManifestJsonsNeedsUpdate);
+        if not ExportSuccess then
+            ADLSERun.RegisterErrorInProcess(Rec."Table ID", EmitTelemetry, TableCaption);
+
         if EmitTelemetry then begin
             Clear(CustomDimensions);
             CustomDimensions.Add('Entity', TableCaption);
@@ -96,7 +97,10 @@ codeunit 82561 "ADLSE Execute"
         // Finalize
         SetStateFinished(Rec, TableCaption);
         if EmitTelemetry then
-            ADLSEExecution.Log('ADLSE-005', 'Export completed without error', Verbosity::Normal, CustomDimensions);
+            if ExportSuccess then
+                ADLSEExecution.Log('ADLSE-005', 'Export completed without error', Verbosity::Normal, CustomDimensions)
+            else
+                ADLSEExecution.Log('ADLSE-040', 'Export completed with errors', Verbosity::Warning, CustomDimensions);
     end;
 
     var
@@ -132,20 +136,22 @@ codeunit 82561 "ADLSE Execute"
         Rec: RecordRef;
         TimeStampField: FieldRef;
     begin
-        SetFilterForUpdates(TableID, UpdatedLastTimeStamp, Rec, TimeStampField);
+        SetFilterForUpdates(TableID, UpdatedLastTimeStamp, false, Rec, TimeStampField);
         exit(ADLSESeekData.RecordsExist(Rec));
     end;
 
-    local procedure SetFilterForUpdates(TableID: Integer; UpdatedLastTimeStamp: BigInteger; var Rec: RecordRef; var TimeStampField: FieldRef)
+    local procedure SetFilterForUpdates(TableID: Integer; UpdatedLastTimeStamp: BigInteger; SkipTimestampSorting: Boolean; var Rec: RecordRef; var TimeStampField: FieldRef)
     begin
         Rec.Open(TableID);
-        Rec.SetView(TimestampAscendingSortViewTxt);
+        if not SkipTimestampSorting then
+            Rec.SetView(TimestampAscendingSortViewTxt);
         TimeStampField := Rec.Field(0); // 0 is the TimeStamp field
         TimeStampField.SetFilter('>%1', UpdatedLastTimestamp);
     end;
 
     local procedure ExportTableUpdates(TableID: Integer; FieldIdList: List of [Integer]; ADLSECommunication: Codeunit "ADLSE Communication"; var UpdatedLastTimeStamp: BigInteger)
     var
+        ADLSESetup: Record "ADLSE Setup";
         ADLSESeekData: Report "ADLSE Seek Data";
         ADLSEExecution: Codeunit "ADLSE Execution";
         Rec: RecordRef;
@@ -158,7 +164,8 @@ codeunit 82561 "ADLSE Execute"
         FieldId: Integer;
         SystemCreatedAt: DateTime;
     begin
-        SetFilterForUpdates(TableID, UpdatedLastTimeStamp, Rec, TimeStampField);
+        ADLSESetup.GetSingleton();
+        SetFilterForUpdates(TableID, UpdatedLastTimeStamp, ADLSESetup."Skip Timestamp Sorting On Recs", Rec, TimeStampField);
 
         foreach FieldId in FieldIdList do
             Rec.AddLoadFields(FieldID);
@@ -182,15 +189,17 @@ codeunit 82561 "ADLSE Execute"
                 if SystemCreatedAt = 0DT then
                     Field.Value(CreateDateTime(DMY2Date(1, 1, 1900), 0T));
 
-                if ADLSECommunication.TryCollectAndSendRecord(Rec, TimeStampField.Value(), FlushedTimeStamp) then
-                    UpdatedLastTimeStamp := FlushedTimeStamp
-                else
+                if ADLSECommunication.TryCollectAndSendRecord(Rec, TimeStampField.Value(), FlushedTimeStamp) then begin
+                    if UpdatedLastTimeStamp < FlushedTimeStamp then // sample the highest timestamp, to cater to the eventuality that the records do not appear sorted per timestamp
+                        UpdatedLastTimeStamp := FlushedTimeStamp;
+                end else
                     Error('%1%2', GetLastErrorText(), GetLastErrorCallStack());
             until Rec.Next() = 0;
 
-            if ADLSECommunication.TryFinish(FlushedTimeStamp) then
-                UpdatedLastTimeStamp := FlushedTimeStamp
-            else
+            if ADLSECommunication.TryFinish(FlushedTimeStamp) then begin
+                if UpdatedLastTimeStamp < FlushedTimeStamp then // sample the highest timestamp, to cater to the eventuality that the records do not appear sorted per timestamp
+                    UpdatedLastTimeStamp := FlushedTimeStamp
+            end else
                 Error('%1%2', GetLastErrorText(), GetLastErrorCallStack());
         end;
         if EmitTelemetry then

@@ -56,6 +56,8 @@ codeunit 82562 "ADLSE Communication"
     var
         ADLSESetup: Record "ADLSE Setup";
         ADLSEUtil: Codeunit "ADLSE Util";
+        ADLSEExecution: Codeunit "ADLSE Execution";
+        CustomDimensions: Dictionary of [Text, Text];
     begin
         TableID := TableIDValue;
         FieldIdList := FieldIdListValue;
@@ -67,6 +69,11 @@ codeunit 82562 "ADLSE Communication"
         ADLSESetup.GetSingleton();
         MaxSizeOfPayloadMiB := ADLSESetup.MaxPayloadSizeMiB;
         EmitTelemetry := EmitTelemetryValue;
+        if EmitTelemetry then begin
+            CustomDimensions.Add('Entity', EntityName);
+            CustomDimensions.Add('Last flushed time stamp', Format(LastFlushedTimeStampValue));
+            ADLSEExecution.Log('ADLSE-041', 'Initialized ADLSE Communication to write to the lake.', Verbosity::Verbose);
+        end;
     end;
 
     procedure CheckEntity(CdmDataFormat: Enum "ADLSE CDM Format"; var EntityJsonNeedsUpdate: Boolean; var ManifestJsonsNeedsUpdate: Boolean)
