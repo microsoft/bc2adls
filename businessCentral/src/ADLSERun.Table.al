@@ -136,6 +136,7 @@ table 82566 "ADLSE Run"
     begin
         LastErrorStack := GetLastErrorCallStack();
         Rec.Error := CopyStr(LastErrorMessage + LastErrorStack, 1, 2048); // 2048 is the max size of the field 
+        Rec.Modify();
 
         if EmitTelemetry then begin
             CustomDimensions.Add('Error text', LastErrorMessage);
