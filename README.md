@@ -26,8 +26,11 @@ More details:
 - [Executing the export and pipeline](/.assets/Execution.md)
 - [Creating shared metadata tables](/.assets/SharedMetadataTables.md)
 - [Querying data residing in the lake with bc2adls](/.assets/QueryLakeData.md)
-- [Watch the webinar on bc2adls from Jan 2022](https://www.microsoft.com/en-us/videoplayer/embed/RWSHHG)
 - [Frequently asked questions](/.assets/FAQs.md)
+- Webinars
+    - [[Jan 2022] Webinar introducing bc2adls](https://www.microsoft.com/en-us/videoplayer/embed/RWSHHG)
+    - [[Mar 2023] Enhancements to bc2adls - CloudChampion](https://www.cloudchampion.dk/c/dynamics-365-business-central-azure-data-lake/)
+
 
 ## Changelog
 
