@@ -226,6 +226,8 @@ page 82560 "ADLSE Setup"
         ADLSECredentials.Init();
         StorageTenantID := ADLSECredentials.GetTenantID();
         StorageAccount := ADLSECredentials.GetStorageAccount();
+        ClientID := ADLSECredentials.GetClientID();
+        ClientSecret := ADLSECredentials.GetClientSecret();
     end;
 
     trigger OnAfterGetRecord()
