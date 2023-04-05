@@ -104,6 +104,13 @@ codeunit 82565 "ADLSE Credentials"
     end;
 
     [NonDebuggable]
+    internal procedure IsClientSecret(): Boolean
+    begin
+        If GetClientSecret() <> '' then
+            exit(true);
+    end;
+
+    [NonDebuggable]
     local procedure GetSecret(KeyName: Text) Secret: Text
     begin
         if not IsolatedStorage.Contains(KeyName, IsolatedStorageDataScope()) then

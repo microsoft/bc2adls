@@ -219,6 +219,8 @@ page 82560 "ADLSE Setup"
             }
         }
     }
+    var
+        ClientSecretLbl: Label 'Secret not shown';
 
     trigger OnInit()
     begin
@@ -227,7 +229,8 @@ page 82560 "ADLSE Setup"
         StorageTenantID := ADLSECredentials.GetTenantID();
         StorageAccount := ADLSECredentials.GetStorageAccount();
         ClientID := ADLSECredentials.GetClientID();
-        ClientSecret := ADLSECredentials.GetClientSecret();
+        if ADLSECredentials.IsClientSecret then
+            ClientSecret := ClientSecretLbl;
     end;
 
     trigger OnAfterGetRecord()
