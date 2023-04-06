@@ -91,6 +91,12 @@ codeunit 82565 "ADLSE Credentials"
     end;
 
     [NonDebuggable]
+    procedure IsClientIDSet(): Boolean
+    begin
+        exit(GetClientId() <> '');
+    end;
+
+    [NonDebuggable]
     procedure GetClientSecret(): Text
     begin
         exit(ClientSecret);
@@ -104,10 +110,9 @@ codeunit 82565 "ADLSE Credentials"
     end;
 
     [NonDebuggable]
-    internal procedure IsClientSecret(): Boolean
+    procedure IsClientSecretSet(): Boolean
     begin
-        If GetClientSecret() <> '' then
-            exit(true);
+        exit(GetClientSecret() <> '');
     end;
 
     [NonDebuggable]
