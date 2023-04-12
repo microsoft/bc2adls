@@ -100,6 +100,12 @@ codeunit 82565 "ADLSE Credentials" implements "ADLSE ICredentials"
     end;
 
     [NonDebuggable]
+    procedure IsClientIDSet(): Boolean
+    begin
+        exit(GetClientId() <> '');
+    end;
+
+    [NonDebuggable]
     procedure GetClientSecret(): Text
     begin
         exit(ClientSecret);
@@ -110,6 +116,12 @@ codeunit 82565 "ADLSE Credentials" implements "ADLSE ICredentials"
     begin
         ClientSecret := NewClientSecretValue;
         SetSecret(ClientSecretKeyNameTok, NewClientSecretValue);
+    end;
+
+    [NonDebuggable]
+    procedure IsClientSecretSet(): Boolean
+    begin
+        exit(GetClientSecret() <> '');
     end;
 
     [NonDebuggable]
