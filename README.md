@@ -54,6 +54,10 @@ Here are a few examples of what our users are saying ...
 
 &mdash; Jens Ole Taisbak, [TwoDay Kapacity](https://www.kapacity.com/)<br/><br/>
 
+> “We have had great success using the BC2ADL tool. It is well thought out and straightforward to implement and configure. The Microsoft team that develops the tool continues to add new features and functionality that has made it a great asset to our clients. We looked to the BC2ADL tool to solve a performance issue in reporting for Business Central. Using the BC2ADL tool along with Synapse Serverless SQL we have been able to remove the primary reporting load from the BC transactional database, which has helped alleviate a bottleneck in the environment. When the BC2ADL tool was updated to export from the replicated BC database we were able to really take full advantage of the process and provide intraday updates of the Azure Data Lake with no noticeable affect on BC performance. The Microsoft team has been extremely helpful and responsive to requests from the community on feature requests and support.”
+
+&mdash; Tom Link, [Stoneridge Software](https://stoneridgesoftware.com/)<br/><br/>
+
 ## Contributing
 
 This project welcomes contributions and suggestions.  Most contributions require you to agree to a
