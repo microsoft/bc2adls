@@ -9,9 +9,10 @@ page 82565 "ADLSE Table API"
     EntityName = 'adlseTable';
     EntitySetName = 'adlseTable';
     SourceTable = "ADLSE Table";
-    InsertAllowed = false;
-    DeleteAllowed = false;
-    ModifyAllowed = false;
+    InsertAllowed = true;
+    ModifyAllowed = true;
+    DeleteAllowed = true;
+    DelayedInsert = true;
     ODataKeyFields = SystemId;
 
     layout
@@ -21,7 +22,10 @@ page 82565 "ADLSE Table API"
             repeater(GroupName)
             {
                 field(tableId; Rec."Table ID") { }
-                field(enabled; Rec.Enabled) { }
+                field(enabled; Rec.Enabled)
+                {
+                    Editable = false;
+                }
                 field(systemId; Rec.SystemId)
                 {
                     Editable = false;
@@ -30,6 +34,16 @@ page 82565 "ADLSE Table API"
                 {
                     Editable = false;
                 }
+                field(systemRowVersion; Rec.SystemRowVersion)
+                {
+                    Editable = false;
+                }
+            }
+            part(adlseField; "ADLSE Field API")
+            {
+                EntityName = 'adlseField';
+                EntitySetName = 'adlseField';
+                SubPageLink = "Table ID" = Field("Table ID");
             }
         }
     }
