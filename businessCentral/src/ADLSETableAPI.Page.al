@@ -32,26 +32,39 @@ page 82565 "ADLSE Table API"
 
     [ServiceEnabled]
     procedure Reset(var ActionContext: WebServiceActionContext)
+    var
+        SelectedADLSETable: Record "ADLSE Table";
     begin
-        Rec.Mark(true);
-        Rec.MarkedOnly();
-        Rec.ResetSelected();
+        CurrPage.SetSelectionFilter(SelectedADLSETable);
+        SelectedADLSETable.ResetSelected();
         SetActionResponse(ActionContext, Rec.SystemId);
     end;
 
     [ServiceEnabled]
     procedure Enable(var ActionContext: WebServiceActionContext)
+    var
+        SelectedADLSETable: Record "ADLSE Table";
     begin
-        Rec.Validate(Enabled, true);
-        Rec.Modify(true);
+        CurrPage.SetSelectionFilter(SelectedADLSETable);
+        if SelectedADLSETable.FindSet(true) then
+            repeat
+                SelectedADLSETable.Validate(Enabled, true);
+                SelectedADLSETable.Modify(true);
+            until SelectedADLSETable.Next() = 0;
         SetActionResponse(ActionContext, Rec.SystemId);
     end;
 
     [ServiceEnabled]
     procedure Disable(var ActionContext: WebServiceActionContext)
+    var
+        SelectedADLSETable: Record "ADLSE Table";
     begin
-        Rec.Validate(Enabled, false);
-        Rec.Modify(true);
+        CurrPage.SetSelectionFilter(SelectedADLSETable);
+        if SelectedADLSETable.FindSet(true) then
+            repeat
+                SelectedADLSETable.Validate(Enabled, false);
+                SelectedADLSETable.Modify(true);
+            until SelectedADLSETable.Next() = 0;
         SetActionResponse(ActionContext, Rec.SystemId);
     end;
 
