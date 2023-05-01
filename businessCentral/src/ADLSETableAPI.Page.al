@@ -7,7 +7,7 @@ page 82565 "ADLSE Table API"
     APIGroup = 'bc2adls';
     APIVersion = 'v1.0';
     EntityName = 'adlseTable';
-    EntitySetName = 'adlseTable';
+    EntitySetName = 'adlseTables';
     SourceTable = "ADLSE Table";
     InsertAllowed = false;
     DeleteAllowed = false;
@@ -26,10 +26,6 @@ page 82565 "ADLSE Table API"
                 {
                     Editable = false;
                 }
-                field(lastModifiedDateTime; Rec.SystemModifiedAt)
-                {
-                    Editable = false;
-                }
             }
         }
     }
@@ -37,8 +33,26 @@ page 82565 "ADLSE Table API"
     [ServiceEnabled]
     procedure Reset(var ActionContext: WebServiceActionContext)
     begin
-        Rec.reset();
-        SetActionResponse(ActionContext, Rec."SystemId");
+        Rec.Mark(true);
+        Rec.MarkedOnly();
+        Rec.ResetSelected();
+        SetActionResponse(ActionContext, Rec.SystemId);
+    end;
+
+    [ServiceEnabled]
+    procedure Enable(var ActionContext: WebServiceActionContext)
+    begin
+        Rec.Validate(Enabled, true);
+        Rec.Modify(true);
+        SetActionResponse(ActionContext, Rec.SystemId);
+    end;
+
+    [ServiceEnabled]
+    procedure Disable(var ActionContext: WebServiceActionContext)
+    begin
+        Rec.Validate(Enabled, false);
+        Rec.Modify(true);
+        SetActionResponse(ActionContext, Rec.SystemId);
     end;
 
     local procedure SetActionResponse(var ActionContext: WebServiceActionContext; AdlsId: Guid)
