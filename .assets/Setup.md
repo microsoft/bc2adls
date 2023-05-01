@@ -85,8 +85,10 @@ This is the step that would create the analytics pipelines in the above workspac
     |9|[`Consolidation_OneEntity`](/synapse/pipeline/Consolidation_OneEntity.json)|`Integrate`|`Pipeline`|[Create a pipeline](https://learn.microsoft.com/en-us/azure/data-factory/tutorial-copy-data-portal#create-a-pipeline)|
     |10|[`Consolidation_CheckForDeltas`](/synapse/pipeline/Consolidation_CheckForDeltas.json)|`Integrate`|`Pipeline`|[Create a pipeline](https://learn.microsoft.com/en-us/azure/data-factory/tutorial-copy-data-portal#create-a-pipeline)|
     |11|[`Consolidation_AllEntities`](/synapse/pipeline/Consolidation_AllEntities.json)|`Integrate`|`Pipeline`|[Create a pipeline](https://learn.microsoft.com/en-us/azure/data-factory/tutorial-copy-data-portal#create-a-pipeline)|
-    |12|[`CreateParquetTable`](/synapse/notebook/CreateParquetTable.ipynb) [[Optional](/.assets/SharedMetadataTables.md)]|`Develop`|`Notebook`|[Create a notebook](https://learn.microsoft.com/en-us/azure/synapse-analytics/spark/apache-spark-development-using-notebooks#create-a-notebook)|
-    
+
+
+    [[Optional](/.assets/SharedMetadataTables.md)] The [`CreateParquetTable`](/synapse/notebook/CreateParquetTable.ipynb) notebook can also be [imported directly from the file](https://learn.microsoft.com/en-us/azure/synapse-analytics/spark/apache-spark-development-using-notebooks#create-a-notebook).
+
 
     > **Example showing how to add a Synapse component**
     > 
