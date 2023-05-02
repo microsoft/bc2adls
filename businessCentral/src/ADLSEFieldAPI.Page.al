@@ -7,10 +7,10 @@ page 82567 "ADLSE Field API"
     APIGroup = 'bc2adls';
     APIVersion = 'v1.0';
     EntityName = 'adlseField';
-    EntitySetName = 'adlseField';
+    EntitySetName = 'adlseFields';
     SourceTable = "ADLSE Field";
     InsertAllowed = true;
-    ModifyAllowed = true;
+    ModifyAllowed = false;
     DeleteAllowed = true;
     DelayedInsert = true;
     ODataKeyFields = SystemId;
@@ -21,17 +21,7 @@ page 82567 "ADLSE Field API"
         {
             repeater(GroupName)
             {
-                field(tableId; Rec."Table ID")
-                {
-                    trigger OnValidate()
-                    var
-                        ADLSETable: Record "ADLSE Table";
-                        ErrorLbl: Label 'Table ID does not exist';
-                    begin
-                        if not ADLSETable.Get(Rec."Table ID") then
-                            Error(ErrorLbl);
-                    end;
-                }
+                field(tableId; Rec."Table ID") { }
                 field(fieldId; Rec."Field ID") { }
                 field(enabled; Rec.Enabled) { }
                 field(systemId; Rec.SystemId)

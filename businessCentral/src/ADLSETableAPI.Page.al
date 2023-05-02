@@ -7,10 +7,10 @@ page 82565 "ADLSE Table API"
     APIGroup = 'bc2adls';
     APIVersion = 'v1.0';
     EntityName = 'adlseTable';
-    EntitySetName = 'adlseTable';
+    EntitySetName = 'adlseTables';
     SourceTable = "ADLSE Table";
     InsertAllowed = true;
-    ModifyAllowed = true;
+    ModifyAllowed = false;
     DeleteAllowed = true;
     DelayedInsert = true;
     ODataKeyFields = SystemId;
@@ -42,7 +42,7 @@ page 82565 "ADLSE Table API"
             part(adlseField; "ADLSE Field API")
             {
                 EntityName = 'adlseField';
-                EntitySetName = 'adlseField';
+                EntitySetName = 'adlseFields';
                 SubPageLink = "Table ID" = Field("Table ID");
             }
         }
@@ -50,9 +50,40 @@ page 82565 "ADLSE Table API"
 
     [ServiceEnabled]
     procedure Reset(var ActionContext: WebServiceActionContext)
+    var
+        SelectedADLSETable: Record "ADLSE Table";
     begin
-        Rec.reset();
-        SetActionResponse(ActionContext, Rec."SystemId");
+        CurrPage.SetSelectionFilter(SelectedADLSETable);
+        SelectedADLSETable.ResetSelected();
+        SetActionResponse(ActionContext, Rec.SystemId);
+    end;
+
+    [ServiceEnabled]
+    procedure Enable(var ActionContext: WebServiceActionContext)
+    var
+        SelectedADLSETable: Record "ADLSE Table";
+    begin
+        CurrPage.SetSelectionFilter(SelectedADLSETable);
+        if SelectedADLSETable.FindSet(true) then
+            repeat
+                SelectedADLSETable.Validate(Enabled, true);
+                SelectedADLSETable.Modify(true);
+            until SelectedADLSETable.Next() = 0;
+        SetActionResponse(ActionContext, Rec.SystemId);
+    end;
+
+    [ServiceEnabled]
+    procedure Disable(var ActionContext: WebServiceActionContext)
+    var
+        SelectedADLSETable: Record "ADLSE Table";
+    begin
+        CurrPage.SetSelectionFilter(SelectedADLSETable);
+        if SelectedADLSETable.FindSet(true) then
+            repeat
+                SelectedADLSETable.Validate(Enabled, false);
+                SelectedADLSETable.Modify(true);
+            until SelectedADLSETable.Next() = 0;
+        SetActionResponse(ActionContext, Rec.SystemId);
     end;
 
     local procedure SetActionResponse(var ActionContext: WebServiceActionContext; AdlsId: Guid)
