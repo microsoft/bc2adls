@@ -11,7 +11,7 @@ page 82567 "ADLSE Field API"
     SourceTable = "ADLSE Field";
     InsertAllowed = true;
     ModifyAllowed = false;
-    DeleteAllowed = true;
+    DeleteAllowed = false;
     DelayedInsert = true;
     ODataKeyFields = SystemId;
 
