@@ -30,7 +30,7 @@ page 82564 "ADLSE Setup API"
                 {
                     Editable = false;
                 }
-                field(lastModifiedDateTime; Rec.SystemModifiedAt)
+                field(systemRowVersion; Rec.SystemRowVersion)
                 {
                     Editable = false;
                 }

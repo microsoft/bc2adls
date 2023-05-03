@@ -28,10 +28,6 @@ page 82567 "ADLSE Field API"
                 {
                     Editable = false;
                 }
-                field(lastModifiedDateTime; Rec.SystemModifiedAt)
-                {
-                    Editable = false;
-                }
                 field(systemRowVersion; Rec.SystemRowVersion)
                 {
                     Editable = false;
