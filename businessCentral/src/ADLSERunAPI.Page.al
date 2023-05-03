@@ -31,7 +31,7 @@ page 82566 "ADLSE Run API"
                 {
                     Editable = false;
                 }
-                field(lastModifiedDateTime; Rec.SystemModifiedAt)
+                field(systemRowVersion; Rec.SystemRowVersion)
                 {
                     Editable = false;
                 }
