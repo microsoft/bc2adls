@@ -12,6 +12,15 @@ table 82562 "ADLSE Field"
         {
             Editable = false;
             Caption = 'Table ID';
+            TableRelation = "ADLSE Table"."Table ID";
+
+            trigger OnValidate()
+            var
+                ADLSETable: Record "ADLSE Table";
+            begin
+                if not ADLSETable.Get(Rec."Table ID") then
+                    Error(TableDoesNotExistErr, Rec."Table ID")
+            end;
         }
         field(2; "Field ID"; Integer)
         {
@@ -69,6 +78,9 @@ table 82562 "ADLSE Field"
     begin
         ADLSESetup.CheckNoSimultaneousExportsAllowed();
     end;
+
+    var
+        TableDoesNotExistErr: Label 'Table with ID %1 has not been set to be exported.', Comment = '%1 is the table ID';
 
     procedure InsertForTable(ADLSETable: Record "ADLSE Table")
     var
