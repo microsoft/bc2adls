@@ -7,11 +7,12 @@ page 82565 "ADLSE Table API"
     APIGroup = 'bc2adls';
     APIVersion = 'v1.0';
     EntityName = 'adlseTable';
-    EntitySetName = 'adlseTable';
+    EntitySetName = 'adlseTables';
     SourceTable = "ADLSE Table";
-    InsertAllowed = false;
-    DeleteAllowed = false;
+    InsertAllowed = true;
     ModifyAllowed = false;
+    DeleteAllowed = false;
+    DelayedInsert = true;
     ODataKeyFields = SystemId;
 
     layout
@@ -21,24 +22,64 @@ page 82565 "ADLSE Table API"
             repeater(GroupName)
             {
                 field(tableId; Rec."Table ID") { }
-                field(enabled; Rec.Enabled) { }
+                field(enabled; Rec.Enabled)
+                {
+                    Editable = false;
+                }
                 field(systemId; Rec.SystemId)
                 {
                     Editable = false;
                 }
-                field(lastModifiedDateTime; Rec.SystemModifiedAt)
+                field(systemRowVersion; Rec.SystemRowVersion)
                 {
                     Editable = false;
                 }
+            }
+            part(adlseField; "ADLSE Field API")
+            {
+                EntityName = 'adlseField';
+                EntitySetName = 'adlseFields';
+                SubPageLink = "Table ID" = Field("Table ID");
             }
         }
     }
 
     [ServiceEnabled]
     procedure Reset(var ActionContext: WebServiceActionContext)
+    var
+        SelectedADLSETable: Record "ADLSE Table";
     begin
-        Rec.reset();
-        SetActionResponse(ActionContext, Rec."SystemId");
+        CurrPage.SetSelectionFilter(SelectedADLSETable);
+        SelectedADLSETable.ResetSelected();
+        SetActionResponse(ActionContext, Rec.SystemId);
+    end;
+
+    [ServiceEnabled]
+    procedure Enable(var ActionContext: WebServiceActionContext)
+    var
+        SelectedADLSETable: Record "ADLSE Table";
+    begin
+        CurrPage.SetSelectionFilter(SelectedADLSETable);
+        if SelectedADLSETable.FindSet(true) then
+            repeat
+                SelectedADLSETable.Validate(Enabled, true);
+                SelectedADLSETable.Modify(true);
+            until SelectedADLSETable.Next() = 0;
+        SetActionResponse(ActionContext, Rec.SystemId);
+    end;
+
+    [ServiceEnabled]
+    procedure Disable(var ActionContext: WebServiceActionContext)
+    var
+        SelectedADLSETable: Record "ADLSE Table";
+    begin
+        CurrPage.SetSelectionFilter(SelectedADLSETable);
+        if SelectedADLSETable.FindSet(true) then
+            repeat
+                SelectedADLSETable.Validate(Enabled, false);
+                SelectedADLSETable.Modify(true);
+            until SelectedADLSETable.Next() = 0;
+        SetActionResponse(ActionContext, Rec.SystemId);
     end;
 
     local procedure SetActionResponse(var ActionContext: WebServiceActionContext; AdlsId: Guid)
