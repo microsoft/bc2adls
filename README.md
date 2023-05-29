@@ -2,12 +2,12 @@
 
 # Project
 
-> **This tool is an <u>experiment</u> on Dynamics 365 Business Central with the sole purpose of discovering the possibilities of having data exported to an Azure Data Lake. To see the details of how this tool is supported, please visit [the Support page](./SUPPORT.md). In case you wish to use this tool for your next project and engage with us, you are welcome to write to bc2adls@microsoft.com. As we are a small team, please expect delays in getting back to you.**
+> **This tool is an <u>experiment</u> on Dynamics 365 Business Central with the sole purpose of discovering the possibilities of having data synced to and from an Azure Data Lake. To see the details of how this tool is supported, please visit [the Support page](./SUPPORT.md). In case you wish to use this tool for your next project and engage with us, you are welcome to write to bc2adls@microsoft.com. As we are a small team, please expect delays in getting back to you.**
 
 ## Introduction
 
-The **bc2adls** tool is used to export data from [Dynamics 365 Business Central](https://dynamics.microsoft.com/en-us/business-central/overview/) (BC) to [Azure Data Lake Storage](https://docs.microsoft.com/en-us/azure/storage/blobs/data-lake-storage-introduction) and expose it in the [CDM folder](https://docs.microsoft.com/en-us/common-data-model/data-lake) format. The components involved are the following,
-- the **[businessCentral](/tree/main/businessCentral/)** folder holds a [BC extension](https://docs.microsoft.com/en-gb/dynamics365/business-central/ui-extensions) called `Azure Data Lake Storage Export` (ADLSE) which enables export of incremental data updates to a container on the data lake. The increments are stored in the CDM folder format described by the `deltas.cdm.manifest.json manifest`.
+The **bc2adls** tool is used to exchange data between [Dynamics 365 Business Central](https://dynamics.microsoft.com/en-us/business-central/overview/) (BC) and [Azure Data Lake Storage](https://docs.microsoft.com/en-us/azure/storage/blobs/data-lake-storage-introduction) and expose it in the [CDM folder](https://docs.microsoft.com/en-us/common-data-model/data-lake) format in the lake. The components involved are the following,
+- the **[businessCentral](/tree/main/businessCentral/)** folder holds a [BC extension](https://docs.microsoft.com/en-gb/dynamics365/business-central/ui-extensions) called `Azure Data Lake Storage Export` (ADLSE) which enables export of incremental data updates to a container on the data lake. The increments are stored in the CDM folder format described by the `deltas.cdm.manifest.json manifest`. It also provides a library to read the tabular data existing on the lake, including non- BC data. 
 - the **[synapse](/tree/main/synapse/)** folder holds the templates needed to create an [Azure Synapse](https://azure.microsoft.com/en-gb/services/synapse-analytics/) pipeline that consolidates the increments into a final `data` CDM folder.
 
 The following diagram illustrates the flow of data through a usage scenario- the main points being,
@@ -17,6 +17,7 @@ The following diagram illustrates the flow of data through a usage scenario- the
 	- CDM: via the `data.cdm.manifest.json manifest`
 	- CSV/Parquet: via the underlying files for each individual entity inside the `data` folder
 	- Spark/SQL: via [shared metadata tables](/.assets/SharedMetadataTables.md)
+- The reverse flow is also possible whereby data in the lake can be read into BC via AL constructs.
 	
 ![Architecture](/.assets/architecture.png "Flow of data")
 
@@ -24,6 +25,7 @@ More details:
 - [Installation and configuration](/.assets/Setup.md)
 - [Executing the export and pipeline](/.assets/Execution.md)
 - [Creating shared metadata tables](/.assets/SharedMetadataTables.md)
+- [Querying data residing in the lake with bc2adls](/.assets/QueryLakeData.md)
 - [Frequently asked questions](/.assets/FAQs.md)
 - Webinars
     - [[Jan 2022] Webinar introducing bc2adls](https://www.microsoft.com/en-us/videoplayer/embed/RWSHHG)

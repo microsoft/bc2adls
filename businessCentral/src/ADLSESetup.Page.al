@@ -8,7 +8,7 @@ page 82560 "ADLSE Setup"
     SourceTable = "ADLSE Setup";
     InsertAllowed = false;
     DeleteAllowed = false;
-    Caption = 'Export to Azure Data Lake Storage';
+    Caption = 'Data sync to Azure Data Lake Storage';
 
     layout
     {
@@ -19,7 +19,7 @@ page 82560 "ADLSE Setup"
                 Caption = 'Setup';
                 group(Account)
                 {
-                    Caption = 'Account';
+                    Caption = 'Storage account';
                     field(Container; Rec.Container)
                     {
                         ApplicationArea = All;
@@ -105,6 +105,11 @@ page 82560 "ADLSE Setup"
                     }
 
                 }
+            }
+            part(Lookup; "ADLSE Setup Query")
+            {
+                ApplicationArea = All;
+                UpdatePropagation = Both;
             }
             part(Tables; "ADLSE Setup Tables")
             {
@@ -259,6 +264,7 @@ page 82560 "ADLSE Setup"
         ClientID: Text;
         [NonDebuggable]
         ClientSecret: Text;
+
         OldLogsExist: Boolean;
         FailureNotificationID: Guid;
         ExportFailureNotificationMsg: Label 'Data from one or more tables failed to export on the last run. Please check the tables below to see the error(s).';

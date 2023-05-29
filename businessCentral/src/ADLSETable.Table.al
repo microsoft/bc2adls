@@ -23,7 +23,7 @@ table 82561 "ADLSE Table"
         field(3; Enabled; Boolean)
         {
             Editable = false;
-            Caption = 'Enabled';
+            Caption = 'Enabled for export';
 
             trigger OnValidate()
             begin

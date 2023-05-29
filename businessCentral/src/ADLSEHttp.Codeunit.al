@@ -5,7 +5,7 @@ codeunit 82563 "ADLSE Http"
     Access = Internal;
 
     var
-        Credentials: Codeunit "ADLSE Credentials";
+        Credentials: Interface "ADLSE ICredentials";
         HttpMethod: Enum "ADLSE Http Method";
         Url: Text;
         Body: Text;
@@ -18,7 +18,7 @@ codeunit 82563 "ADLSE Http"
         UnsupportedMethodErr: Label 'Unsupported method: %1', Comment = '%1: http method name';
         OAuthTok: Label 'https://login.microsoftonline.com/%1/oauth2/token', Comment = '%1: tenant id';
         BearerTok: Label 'Bearer %1', Comment = '%1: access token';
-        AcquireTokenBodyTok: Label 'resource=%1&scope=%2&client_id=%3&client_secret=%4&client_info=1&grant_type=client_credentials', Comment = '%1: encoded url, %2: encoded user impersonation, %3: client ID, %4: client secret';
+        AcquireTokenBodyTok: Label 'resource=%1&scope=%2&client_id=%3&client_secret=%4&client_info=1&grant_type=client_credentials', Comment = '%1: resource, %2: scope, %3: client ID, %4: client secret';
 
     procedure SetMethod(HttpMethodValue: Enum "ADLSE Http Method")
     begin
@@ -39,7 +39,7 @@ codeunit 82563 "ADLSE Http"
     var
         ADLSEUtil: Codeunit "ADLSE Util";
     begin
-        AdditionalRequestHeaders.Add(HeaderKey, ADLSEUtil.ConvertNumberToText(HeaderValue));
+        AdditionalRequestHeaders.Add(HeaderKey, ADLSEUtil.ConvertVariantToText(HeaderValue));
     end;
 
     procedure SetBody(BodyValue: Text)
@@ -62,9 +62,9 @@ codeunit 82563 "ADLSE Http"
         exit(ContentTypePlainTextTok);
     end;
 
-    procedure SetAuthorizationCredentials(ADLSECredentials: Codeunit "ADLSE Credentials")
+    procedure SetAuthorizationCredentials(ADLSEICredentials: Interface "ADLSE ICredentials")
     begin
-        Credentials := ADLSECredentials;
+        Credentials := ADLSEICredentials;
     end;
 
     procedure GetResponseHeaderValue(HeaderKey: Text) Result: List of [Text]
@@ -91,7 +91,7 @@ codeunit 82563 "ADLSE Http"
     var
         Client: HttpClient;
         Headers: HttpHeaders;
-        RequestMsg: HttpRequestMessage;
+        // RequestMsg: HttpRequestMessage;
         ResponseMsg: HttpResponseMessage;
         Content: HttpContent;
         HeaderKey: Text;
@@ -108,19 +108,23 @@ codeunit 82563 "ADLSE Http"
                 Headers.Add(HeaderKey, HeaderValue);
             end;
         end;
-
         case HttpMethod of
             "ADLSE Http Method"::Get:
                 Client.Get(Url, ResponseMsg);
             "ADLSE Http Method"::Put:
                 begin
-                    RequestMsg.Method('PUT');
-                    RequestMsg.SetRequestUri(Url);
+                    // RequestMsg.Method('PUT');
+                    // RequestMsg.SetRequestUri(Url);
                     AddContent(Content);
                     Client.Put(Url, Content, ResponseMsg);
                 end;
-            "ADLSE Http Method"::Delete:
-                Client.Delete(Url, ResponseMsg);
+            "ADLSE Http Method"::Post:
+                begin
+                    // RequestMsg.Method('POST');
+                    // RequestMsg.SetRequestUri(Url);
+                    AddContent(Content);
+                    Client.Post(Url, Content, ResponseMsg);
+                end;
             else
                 Error(UnsupportedMethodErr, HttpMethod);
         end;
@@ -190,8 +194,8 @@ codeunit 82563 "ADLSE Http"
         RequestBody :=
             StrSubstNo(
                 AcquireTokenBodyTok,
-                'https%3A%2F%2Fstorage.azure.com%2F', // url encoded form of https://storage.azure.com/
-                'https%3A%2F%2Fstorage.azure.com%2Fuser_impersonation', // url encoded form of https://storage.azure.com/user_impersonation
+                Credentials.GetResource(),
+                Credentials.GetScope(),
                 Credentials.GetClientID(),
                 Credentials.GetClientSecret());
         Content.WriteFrom(RequestBody);

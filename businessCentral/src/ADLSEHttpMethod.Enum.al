@@ -7,5 +7,5 @@ enum 82561 "ADLSE Http Method"
 
     value(0; Get) { }
     value(1; Put) { }
-    value(2; Delete) { }
+    value(3; Post) { }
 }

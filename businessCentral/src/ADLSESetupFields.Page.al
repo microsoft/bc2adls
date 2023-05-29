@@ -20,21 +20,22 @@ page 82562 "ADLSE Setup Fields"
                 field(FieldCaption; Rec.FieldCaption)
                 {
                     ApplicationArea = All;
-                    Tooltip = 'Specifies the name of the field to be exported';
+                    Tooltip = 'Specifies the name of the field to be exported.';
                 }
 
                 field("Field ID"; Rec."Field ID")
                 {
                     ApplicationArea = All;
                     Caption = 'Number';
-                    Tooltip = 'Specifies the ID of the field to be exported';
+                    Tooltip = 'Specifies the ID of the field to be exported.';
                     Visible = false;
                 }
 
                 field(Enabled; Rec.Enabled)
                 {
                     ApplicationArea = All;
-                    Tooltip = 'Specifies if the field will be exported';
+                    Caption = 'Enabled';
+                    Tooltip = 'Specifies if the field will be exported or imported.';
                 }
 
                 field(ADLSFieldName; ADLSFieldName)
@@ -59,7 +60,7 @@ page 82562 "ADLSE Setup Fields"
                 {
                     ApplicationArea = All;
                     Caption = 'Type';
-                    Tooltip = 'Specifies the field type';
+                    Tooltip = 'Specifies the field type.';
                     Editable = false;
                     Visible = false;
                 }
@@ -69,7 +70,7 @@ page 82562 "ADLSE Setup Fields"
                     ApplicationArea = All;
                     Caption = 'Obsolete State';
                     OptionCaption = 'No,Pending,Removed';
-                    Tooltip = 'Specifies the Obsolete State of the field';
+                    Tooltip = 'Specifies the Obsolete State of the field.';
                     Editable = false;
                     Visible = false;
                 }
@@ -115,7 +116,7 @@ page 82562 "ADLSE Setup Fields"
         ADLSEUtil: Codeunit "ADLSE Util";
     begin
         Fld.Get(Rec."Table ID", Rec."Field ID");
-        ADLSFieldName := ADLSEUtil.GetDataLakeCompliantFieldName(Fld.FieldName, Fld."No.");
+        ADLSFieldName := ADLSEUtil.GetDataLakeCompliantFieldName(Fld.FieldName, Rec."Field ID");
         FieldClassName := Fld.Class;
         FieldTypeName := Fld."Type Name";
         FieldObsoleteState := Fld.ObsoleteState;
