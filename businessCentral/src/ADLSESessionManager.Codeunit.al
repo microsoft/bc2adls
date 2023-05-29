@@ -92,7 +92,7 @@ codeunit 82570 "ADLSE Session Manager"
         Result := Status = "ADLSE Run State"::Failed;
         if Result and EmitTelemetry then begin
             CustomDimensions.Add('Entity', ADLSEUtil.GetTableCaption(TableID));
-            ADLSEExecution.Log('ADLSE-027', 'Last run failed.', Verbosity::Verbose, CustomDimensions);
+            ADLSEExecution.Log('ADLSE-027', 'Last run failed.', Verbosity::Normal, CustomDimensions);
         end;
     end;
 
@@ -107,7 +107,7 @@ codeunit 82570 "ADLSE Session Manager"
 
         if ADLSESetup."Emit telemetry" then begin
             CustomDimensions.Add('PendingTables', Concatenate(GetPendingTablesList()));
-            ADLSEExecution.Log('ADLSE-026', 'Export from pending tables starting', Verbosity::Verbose, CustomDimensions);
+            ADLSEExecution.Log('ADLSE-026', 'Export from pending tables starting', Verbosity::Normal, CustomDimensions);
         end;
 
         // One session freed up. create session from queue
