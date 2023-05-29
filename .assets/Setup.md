@@ -69,28 +69,51 @@ This is the step that would create the analytics pipelines in the above workspac
     - Set the value of the **Service principal key** to be one of the secrets that you must have configured in the **Certificates & secrets** link of the App Registration (see **c)** in the picture at [Step 1](/.assets/Setup.md#step-1-create-an-azure-service-principal)).
     - It is always a good idea to click and verify that the **Test connection** button goes green when clicked. Once verified, click on **Create**.
     ![New linked service](/.assets/synapseNewLinkedService.png)
-5. Let us deploy the pipelines and resources now. Note that for each resource, you will have to create a dummy entry in the Synapse Studio first with the name matching the value in the Name column in the table below. Then the content of the resource should be replaced with the content of the file linked in the table below, after clicking on the curly braces `{}` on the top right corner of the page. The following shows how to create a new dataset, for example. Note that the name of the tab is `Data` and the name of the menu to invoke under the `+` sign is `Integration dataset`.
+5. Let us deploy the pipelines and resources now. Note that for each Synapse component, you will have to create a dummy entry in the Synapse Studio first with the name matching the value in the `Name` column in the table below. Then the content of the resource should be replaced with the content of the file linked in the table below, after clicking on the curly braces `{}` on the top right corner of the page.  
 
-    ![New Dataset](/.assets/synapseNewIntegrationDataset.png)
+    It is important that the components are created in the following sequence:
 
-The [`CreateParquetTable`](/synapse/notebook/CreateParquetTable.ipynb) notebook can also be [imported directly from the file](https://learn.microsoft.com/en-us/azure/synapse-analytics/spark/apache-spark-development-using-notebooks#create-a-notebook).
+    | Sequence # | Name & URL | Tab | Menu to invoke under the `+` sign | Help doc |
+    | ---------- | ---- | --- | ----------------------------------|-----| 
+    |1|[`data_dataset`](/synapse/dataset/data_dataset.json)|`Data`|`Integration dataset`|[Create an integration dataset](https://learn.microsoft.com/en-us/azure/data-factory/concepts-datasets-linked-services?tabs=synapse-analytics#tabpanel_1_synapse-analytics)|
+    |2|[`data_dataset_parquet`](/synapse/dataset/data_dataset_parquet.json)|`Data`|`Integration dataset`|[Create an integration dataset](https://learn.microsoft.com/en-us/azure/data-factory/concepts-datasets-linked-services?tabs=synapse-analytics#tabpanel_1_synapse-analytics)|
+    |3|[`dataManifest_dataset`](/synapse/dataset/dataManifest_dataset.json)|`Data`|`Integration dataset`|[Create an integration dataset](https://learn.microsoft.com/en-us/azure/data-factory/concepts-datasets-linked-services?tabs=synapse-analytics#tabpanel_1_synapse-analytics)|
+    |4|[`deltas_dataset`](/synapse/dataset/deltas_dataset.json)|`Data`|`Integration dataset`|[Create an integration dataset](https://learn.microsoft.com/en-us/azure/data-factory/concepts-datasets-linked-services?tabs=synapse-analytics#tabpanel_1_synapse-analytics)|
+    |5|[`deltasManifest_dataset`](/synapse/dataset/deltasManifest_dataset.json)|`Data`|`Integration dataset`|[Create an integration dataset](https://learn.microsoft.com/en-us/azure/data-factory/concepts-datasets-linked-services?tabs=synapse-analytics#tabpanel_1_synapse-analytics)|
+    |6|[`entity_dataset`](/synapse/dataset/entity_dataset.json)|`Data`|`Integration dataset`|[Create an integration dataset](https://learn.microsoft.com/en-us/azure/data-factory/concepts-datasets-linked-services?tabs=synapse-analytics#tabpanel_1_synapse-analytics)|
+    |7|[`staging_dataset`](/synapse/dataset/staging_dataset.json)|`Data`|`Integration dataset`|[Create an integration dataset](https://learn.microsoft.com/en-us/azure/data-factory/concepts-datasets-linked-services?tabs=synapse-analytics#tabpanel_1_synapse-analytics)|
+    |8|[`Consolidation_flow`](/synapse/dataflow/Consolidation_flow.json)|`Develop`|`Data flow`|[Create a data flow](https://learn.microsoft.com/en-us/azure/synapse-analytics/concepts-data-flow-overview#getting-started)|
+    |9|[`Consolidation_OneEntity`](/synapse/pipeline/Consolidation_OneEntity.json)|`Integrate`|`Pipeline`|[Create a pipeline](https://learn.microsoft.com/en-us/azure/data-factory/tutorial-copy-data-portal#create-a-pipeline)|
+    |10|[`Consolidation_CheckForDeltas`](/synapse/pipeline/Consolidation_CheckForDeltas.json)|`Integrate`|`Pipeline`|[Create a pipeline](https://learn.microsoft.com/en-us/azure/data-factory/tutorial-copy-data-portal#create-a-pipeline)|
+    |11|[`Consolidation_AllEntities`](/synapse/pipeline/Consolidation_AllEntities.json)|`Integrate`|`Pipeline`|[Create a pipeline](https://learn.microsoft.com/en-us/azure/data-factory/tutorial-copy-data-portal#create-a-pipeline)|
 
-It is important that the resources are created in the following sequence:
 
-| Sequence # | Name & Url | Tab | Menu to invoke under the `+` sign | 
-| ---------- | ---- | --- | ----------------------------------| 
-|1|[`data_dataset`](/synapse/dataset/data_dataset.json)|`Data`|`Integration dataset`|
-|2|[`data_dataset_parquet`](/synapse/dataset/data_dataset_parquet.json)|`Data`|`Integration dataset`|
-|3|[`dataManifest_dataset`](/synapse/dataset/dataManifest_dataset.json)|`Data`|`Integration dataset`|
-|4|[`deltas_dataset`](/synapse/dataset/deltas_dataset.json)|`Data`|`Integration dataset`|
-|5|[`deltasManifest_dataset`](/synapse/dataset/deltasManifest_dataset.json)|`Data`|`Integration dataset`|
-|6|[`entity_dataset`](/synapse/dataset/entity_dataset.json)|`Data`|`Integration dataset`|
-|7|[`staging_dataset`](/synapse/dataset/staging_dataset.json)|`Data`|`Integration dataset`|
-|8|[`CreateParquetTable`](/synapse/notebook/CreateParquetTable.ipynb)|`Develop`|`Notebook`|
-|9|[`Consolidation_flow`](/synapse/dataflow/Consolidation_flow.json)|`Develop`|`Data flow`|
-|10|[`Consolidation_OneEntity`](/synapse/pipeline/Consolidation_OneEntity.json)|`Integrate`|`Pipeline`|
-|11|[`Consolidation_CheckForDeltas`](/synapse/pipeline/Consolidation_CheckForDeltas.json)|`Integrate`|`Pipeline`|
-|12|[`Consolidation_AllEntities`](/synapse/pipeline/Consolidation_AllEntities.json)|`Integrate`|`Pipeline`|
+    [[Optional](/.assets/SharedMetadataTables.md)] The [`CreateParquetTable`](/synapse/notebook/CreateParquetTable.ipynb) notebook can also be [imported directly from the file](https://learn.microsoft.com/en-us/azure/synapse-analytics/spark/apache-spark-development-using-notebooks#create-a-notebook).
+
+
+    > **Example showing how to add a Synapse component**
+    > 
+    > The following instruction shows how to create a new dataset. Note that the name of the tab is `Data` and the name of the menu to invoke under the `+` sign is `Integration dataset`.
+    > 
+    > ![New Dataset](/.assets/synapseNewIntegrationDataset.png)
+    > 
+    > Now choose any of the available types of dataset, as it will be overridden by the content of the json when you replace it later. Here I have chosen a dataset of the type `Azure Data Lake Storage Gen2`. Click on `Continue`. 
+    > 
+    > ![Choose dataset type](/.assets/synapseNewIntegrationDataset_chooseType.png)
+    > 
+    > You are then asked to choose the format type of your data. Again, you may choose any. I have chosen the first one shown. Click on `Continue`. 
+    > 
+    > ![Choose format](/.assets/synapseNewIntegrationDataset_chooseFormat.png)
+    > 
+    > Set `Name` property to the name given in the table above. And set `Linked service` property to `AzureDataLakeStorage`. Click `OK`. 
+    > 
+    > ![Set properties](/.assets/synapseNewIntegrationDataset_setProperties.png)
+    > 
+    > Now, click on the curly bracket `{}` button at the top right and replace the content with the corresponding content from the json content in the URL from the table above.  
+    > 
+    > Do the same for the rest of the components in the table. 
+
+
 
 6. At the toolbar of the **Synapse Studio** at the top, you may now click on **Validate all** and if there are no errors, click on **Publish all**.
 

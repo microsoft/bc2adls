@@ -150,7 +150,7 @@ codeunit 82562 "ADLSE Communication"
         if EmitTelemetry then begin
             CustomDimension.Add('Entity', EntityName);
             CustomDimension.Add('DataBlobPath', DataBlobPath);
-            ADLSEExecution.Log('ADLSE-012', 'Created new blob to hold the data to be exported', Verbosity::Verbose, CustomDimension);
+            ADLSEExecution.Log('ADLSE-012', 'Created new blob to hold the data to be exported', Verbosity::Normal, CustomDimension);
         end;
     end;
 
@@ -223,19 +223,19 @@ codeunit 82562 "ADLSE Communication"
 
         if EmitTelemetry then begin
             CustomDimensions.Add('Length of payload', Format(Payload.Length()));
-            ADLSEExecution.Log('ADLSE-013', 'Flushing the payload', Verbosity::Verbose, CustomDimensions);
+            ADLSEExecution.Log('ADLSE-013', 'Flushing the payload', Verbosity::Normal, CustomDimensions);
         end;
 
         BlockID := ADLSEGen2Util.AddBlockToDataBlob(GetBaseUrl() + DataBlobPath, Payload.ToText(), ADLSECredentials);
         if EmitTelemetry then begin
             Clear(CustomDimensions);
             CustomDimensions.Add('Block ID', BlockID);
-            ADLSEExecution.Log('ADLSE-014', 'Block added to blob', Verbosity::Verbose, CustomDimensions);
+            ADLSEExecution.Log('ADLSE-014', 'Block added to blob', Verbosity::Normal, CustomDimensions);
         end;
         DataBlobBlockIDs.Add(BlockID);
         ADLSEGen2Util.CommitAllBlocksOnDataBlob(GetBaseUrl() + DataBlobPath, ADLSECredentials, DataBlobBlockIDs);
         if EmitTelemetry then
-            ADLSEExecution.Log('ADLSE-015', 'Block committed', Verbosity::Verbose);
+            ADLSEExecution.Log('ADLSE-015', 'Block committed', Verbosity::Normal);
 
         LastFlushedTimeStamp := LastRecordOnPayloadTimeStamp;
         Payload.Clear();
@@ -246,7 +246,7 @@ codeunit 82562 "ADLSE Communication"
         if EmitTelemetry then begin
             Clear(CustomDimensions);
             CustomDimensions.Add('Flushed count', Format(NumberOfFlushes));
-            ADLSEExecution.Log('ADLSE-016', 'Flushed the payload', Verbosity::Verbose, CustomDimensions);
+            ADLSEExecution.Log('ADLSE-016', 'Flushed the payload', Verbosity::Normal, CustomDimensions);
         end;
     end;
 

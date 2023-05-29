@@ -61,7 +61,7 @@ codeunit 82569 "ADLSE Execution"
     begin
         ADLSESetup.GetSingleton();
         if ADLSESetup."Emit telemetry" then
-            Log('ADLSE-003', 'Stopping export sessions', Verbosity::Verbose);
+            Log('ADLSE-003', 'Stopping export sessions', Verbosity::Normal);
 
         ADLSECurrentSession.CancelAll();
 
