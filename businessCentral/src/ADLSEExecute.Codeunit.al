@@ -38,7 +38,7 @@ codeunit 82561 "ADLSE Execute"
         ADLSERun.RegisterStarted(Rec."Table ID");
         Commit(); // to release locks on the "ADLSE Current Session" record thus allowing other sessions to check for it being active when they are nearing the last step.
         if EmitTelemetry then
-            ADLSEExecution.Log('ADLSE-018', 'Registered session to export table', Verbosity::Verbose, CustomDimensions);
+            ADLSEExecution.Log('ADLSE-018', 'Registered session to export table', Verbosity::Normal, CustomDimensions);
 
         UpdatedLastTimestamp := ADLSETableLastTimestamp.GetUpdatedLastTimestamp(Rec."Table ID");
         DeletedLastEntryNo := ADLSETableLastTimestamp.GetDeletedLastEntryNo(Rec."Table ID");
@@ -46,7 +46,7 @@ codeunit 82561 "ADLSE Execute"
         if EmitTelemetry then begin
             CustomDimensions.Add('Old Updated Last time stamp', Format(UpdatedLastTimestamp));
             CustomDimensions.Add('Old Deleted Last entry no.', Format(DeletedLastEntryNo));
-            ADLSEExecution.Log('ADLSE-004', 'Exporting with parameters', Verbosity::Verbose, CustomDimensions);
+            ADLSEExecution.Log('ADLSE-004', 'Exporting with parameters', Verbosity::Normal, CustomDimensions);
         end;
 
         // Perform the export 
@@ -63,7 +63,7 @@ codeunit 82561 "ADLSE Execute"
             CustomDimensions.Add('Deleted Last entry no.', Format(DeletedLastEntryNo));
             CustomDimensions.Add('Entity Json needs update', Format(EntityJsonNeedsUpdate));
             CustomDimensions.Add('Manifest Json needs update', Format(ManifestJsonsNeedsUpdate));
-            ADLSEExecution.Log('ADLSE-020', 'Exported to deltas CDM folder', Verbosity::Verbose, CustomDimensions);
+            ADLSEExecution.Log('ADLSE-020', 'Exported to deltas CDM folder', Verbosity::Normal, CustomDimensions);
         end;
 
         // check if anything exported at all
@@ -194,7 +194,7 @@ codeunit 82561 "ADLSE Execute"
                 Error('%1%2', GetLastErrorText(), GetLastErrorCallStack());
         end;
         if EmitTelemetry then
-            ADLSEExecution.Log('ADLSE-009', 'Updated records exported', Verbosity::Verbose);
+            ADLSEExecution.Log('ADLSE-009', 'Updated records exported', Verbosity::Normal);
     end;
 
     procedure DeletedRecordsExist(TableID: Integer; DeletedLastEntryNo: BigInteger): Boolean
