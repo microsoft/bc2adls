@@ -1,6 +1,6 @@
 # Changelog
 
-This page lists all pull requests that made significant changes to bc2adls.
+This page lists all pull requests that made significant changes to bc2adls. To see a full list of all changes, please refer to the [closed pull requests](https://github.com/microsoft/bc2adls/pulls?q=is%3Apr+is%3Aclosed) page.
 
 Pull request | Changes
 --------------- | ---
