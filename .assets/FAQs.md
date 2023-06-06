@@ -3,8 +3,11 @@ Here you will find answers to the most frequently asked questions. Please also r
 ### How do I run the export to the lake in a recurring schedule?
 The [Job Queue](https://learn.microsoft.com/en-us/dynamics365/business-central/admin-job-queues-schedule-tasks) feature in Business Central is used to schedule background tasks in a periodic way. You may invoke the [Codeunit `ADLSE Execution`](https://github.com/microsoft/bc2adls/blob/main/businessCentral/src/ADLSEExecution.Codeunit.al) through the feature to export the data increments to the lake as a scheduled job. You may click `Schedule export` on the main setup page to create this job queue.
 
-### How should I distribute the BC data to my lake?
+### I have many BC environments in the same tenant. How should I distribute the BC data to my lake?
 We recommend that a data lake container holds data only for **only one** Business Central environment. After copying environments, ensure that the export destination on the setup page on the new environment points to a new data lake container.
+
+### How do I export data from multiple companies in the same environment?
+The export process copies the updated data to the lake for ONLY the company it has been invoked from. This is true whether you start the process by a click on the `Export` button or by scheduling a `Job Queue Entry`. Therefore, one should log in and click the button or setup scheduled jobs from the company whose data needs to be exported. A field called `Multi- company export` was added in [Pull Request #47](/pull/47) to improve concurrency for parallel exports from different companies. The field, in and of itself, does not export data from  other companies.
 
 ### Can I export calculated fields into the lake?
 No, only persistent fields on the BC tables can be exported. But, the [issue #88](/issues/88) describes a way to show up those fields when consuming the lake data.
