@@ -95,7 +95,14 @@ page 82560 "ADLSE Setup"
                     {
                         ApplicationArea = All;
                         Enabled = not ExportInProgress;
-                        Tooltip = 'Specifies if simultaneous exports of data from different companies in Business Central to the lake are allowed. Beware that setting this checkmark will prevent you from making any changes to the export schema. We recommend that you set this checkmark only after the last changes to the CDM schema have been exported to the lake successfully.';
+                        ToolTip = 'Specifies if simultaneous exports of data from different companies in Business Central to the lake are allowed. Beware that setting this checkmark will prevent you from making any changes to the export schema. It is recommended that you set this checkmark only after the last changes to the CDM schema have been exported to the lake successfully.';
+                    }
+
+                    field("Skip Timestamp Sorting On Recs"; Rec."Skip Timestamp Sorting On Recs")
+                    {
+                        ApplicationArea = All;
+                        Enabled = not ExportInProgress;
+                        ToolTip = 'Specifies that the records are not sorted as per their row version before exporting them to the lake. Enabling this may interfear with how incremental data is pushed to the lake in subsequent export runs- please refer to the documentation.';
                     }
 
                     field("Emit telemetry"; Rec."Emit telemetry")

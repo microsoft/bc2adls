@@ -93,34 +93,57 @@ table 82566 "ADLSE Run"
         ADLSEExecution: Codeunit "ADLSE Execution";
         CustomDimensions: Dictionary of [Text, Text];
         LastErrorMessage: Text;
-        LastErrorStack: Text;
     begin
         CustomDimensions.Add('Entity', TableCaption);
-        if not FindLastRun(TableID) then begin
-            ADLSEExecution.Log('ADLSE-034', ExportRunNotFoundErr, Verbosity::Error, CustomDimensions);
+        if not FindLastRunInProcess(TableID, CustomDimensions) then
             exit;
-        end;
-        if Rec.State <> "ADLSE Run State"::InProcess then
-            exit;
+
         LastErrorMessage := GetLastErrorText();
-        if LastErrorMessage <> '' then begin
-            LastErrorStack := GetLastErrorCallStack();
-            Rec.Error := CopyStr(LastErrorMessage + LastErrorStack, 1, 2048); // 2048 is the max size of the field 
+        if LastErrorMessage <> '' then
+            if Rec.Error = '' then // do not overwrite a previous error message
+                FillErrorDetails(LastErrorMessage, EmitTelemetry, CustomDimensions);
+
+        if Rec.Error = '' then
+            Rec.State := "ADLSE Run State"::Success
+        else
             Rec.State := "ADLSE Run State"::Failed;
 
-            if EmitTelemetry then begin
-                CustomDimensions.Add('Error text', LastErrorMessage);
-                CustomDimensions.Add('Error stack', LastErrorStack);
-                ADLSEExecution.Log('ADLSE-008', 'Error occured during execution', Verbosity::Error, CustomDimensions);
-            end;
-            ClearLastError();
-        end else
-            Rec.State := "ADLSE Run State"::Success;
         Rec.Ended := CurrentDateTime();
         if not Rec.Modify() then
             ADLSEExecution.Log('ADLSE-035', StrSubstNo(CouldNotUpdateExportRunStatusErr, Rec.State), Verbosity::Error, CustomDimensions)
         else
             ADLSEExecution.Log('ADLSE-038', 'The export run was registered as ended.', Verbosity::Normal, CustomDimensions);
+    end;
+
+    procedure RegisterErrorInProcess(TableID: Integer; EmitTelemetry: Boolean; TableCaption: Text)
+    var
+        CustomDimensions: Dictionary of [Text, Text];
+        LastErrorMessage: Text;
+    begin
+        CustomDimensions.Add('Entity', TableCaption);
+        if not FindLastRunInProcess(TableID, CustomDimensions) then
+            exit;
+
+        LastErrorMessage := GetLastErrorText();
+        if LastErrorMessage <> '' then
+            FillErrorDetails(LastErrorMessage, EmitTelemetry, CustomDimensions);
+    end;
+
+    local procedure FillErrorDetails(LastErrorMessage: Text; EmitTelemetry: Boolean; CustomDimensions: Dictionary of [Text, Text])
+    var
+        ADLSEExecution: Codeunit "ADLSE Execution";
+        LastErrorStack: Text;
+    begin
+        LastErrorStack := GetLastErrorCallStack();
+        Rec.Error := CopyStr(LastErrorMessage + LastErrorStack, 1, 2048); // 2048 is the max size of the field 
+        Rec.Modify();
+
+        if EmitTelemetry then begin
+            CustomDimensions.Add('Error text', LastErrorMessage);
+            CustomDimensions.Add('Error stack', LastErrorStack);
+            ADLSEExecution.Log('ADLSE-008', 'Error occured during execution', Verbosity::Error, CustomDimensions);
+        end;
+        ClearLastError();
     end;
 
     procedure CancelAllRuns()
@@ -156,6 +179,17 @@ table 82566 "ADLSE Run"
         Rec.SetRange("Table ID", TableID);
         Rec.SetRange("Company Name", CompanyName());
         Found := Rec.FindFirst();
+    end;
+
+    local procedure FindLastRunInProcess(TableID: Integer; CustomDimensions: Dictionary of [Text, Text]): Boolean
+    var
+        ADLSEExecution: Codeunit "ADLSE Execution";
+    begin
+        if not FindLastRun(TableID) then begin
+            ADLSEExecution.Log('ADLSE-034', ExportRunNotFoundErr, Verbosity::Error, CustomDimensions);
+            exit(false);
+        end;
+        exit(Rec.State = "ADLSE Run State"::InProcess);
     end;
 
     local procedure CommmonFilterOnOldRuns()
