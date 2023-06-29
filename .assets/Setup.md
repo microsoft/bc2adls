@@ -17,7 +17,14 @@ Now you must configure the above storage account to allow changes by the credent
 ![Sample storage account](/.assets/storageAccount.png)
 
 ## Configuring the Dynamics 365 Business Central
-Install the extension into BC using the code given in the [businessCentral](/businessCentral) folder using the general guidance for [developing extensions in Visual Studio code](https://docs.microsoft.com/en-us/dynamics365/business-central/dev-itpro/developer/devenv-dev-overview#developing-extensions-in-visual-studio-code). Once you have the `Azure Data Lake Storage Export` extension deployed, open the `Page 82560 - Export to Azure data lake Storage`. In order to export the data from inside BC to the data lake, you will need to add a configuration to make BC aware of the location in the data lake.
+Install the extension into BC using the code given in the [businessCentral](/businessCentral) folder using the general guidance for [developing extensions in Visual Studio code](https://docs.microsoft.com/en-us/dynamics365/business-central/dev-itpro/developer/devenv-dev-overview#developing-extensions-in-visual-studio-code). 
+
+The app exposes [3 permission sets](/businessCentral/permissions/) for different user roles that work with this app. Remember to assign the right permission set to the user, based on the scope of their tasks:
+1. `ADLSE - Setup`- The permission set to be used when administering the Azure Data Lake Storage export tool.
+1. `ADLSE - Execute`- The permission set to be used when running the Azure Data Lake Storage export tool.
+1. `ADLSE - Track Delete`- The permission set used to register the deletion of any record, so that the information of it being deleted can be conveyed to the Azure data lake. A user who deleting a table that is configured for export by `bc2adls` should have this permission.
+
+Once you have the `Azure Data Lake Storage Export` extension deployed, open the `Page 82560 - Export to Azure data lake Storage`. In order to export the data from inside BC to the data lake, you will need to add a configuration to make BC aware of the location in the data lake.
 
 ### Step 4. Enter the BC settings
 Let us take a look at the settings show in the sample screenshot below,
