@@ -28,7 +28,7 @@ Table fields that are obsoleted already cannot be configured to be exported but 
 
 Having said that, here is a suggestion that could be adopted by those who feel comfortable with both BC as well as Azure Synapse. **This approach has inherent risks of corrupting the CDM folder and making the data lake inaccessible. Therefore, please exercise caution and attempt it only if you are confident of possessing the right skills.**
 1. First, [consolidate all the files](/.assets/Execution.md#running-the-integration-pipeline) in the `deltas` folder of the  entities whose schemas have changed (either fields have been added to or obsoleted from them).
-1. Archive the data files in the lake for the corresponding entities, perhaps, to a different container. Remove them from your main container. Copy the old jsons as well so that the new container is still a fully functional CDM folder.
+1. Archive the `data` files in the lake for the corresponding entities, perhaps, to a different container. Remove them from your main container. Copy the old jsons as well so that the new container is still a fully functional CDM folder.
 1. Now, go to BC and visit the setup page and ensure that the export schema includes the new fields and excludes the old ones. Export data only from the necessary entities (by disabling other entities), making sure that the `Multi- company export` field is unchecked. This should result in new entity and manifest jsons on the data lake.
 1. In order to bring the archived data into the data folder, create a new Synapse pipeline calling a dataflow that,
     * reads the old CDM data from the archive container as source
