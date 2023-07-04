@@ -1,4 +1,4 @@
-Here you will find answers to the most frequently asked questions. Please also refer to the [issues](/../issues) site to know more or to ask your own questions in the community. 
+Here you will find answers to the most frequently asked questions. Please also refer to the [issues](https://github.com/microsoft/bc2adls/issues/) site to know more or to ask your own questions in the community. 
 
 ### How do I run the export to the lake in a recurring schedule?
 The [Job Queue](https://learn.microsoft.com/en-us/dynamics365/business-central/admin-job-queues-schedule-tasks) feature in Business Central is used to schedule background tasks in a periodic way. You may invoke the [Codeunit `ADLSE Execution`](/businessCentral/src/ADLSEExecution.Codeunit.al) through the feature to export the data increments to the lake as a scheduled job. You may click `Schedule export` on the main setup page to create this job queue.
@@ -7,16 +7,16 @@ The [Job Queue](https://learn.microsoft.com/en-us/dynamics365/business-central/a
 We recommend that a data lake container holds data only for **only one** Business Central environment. After copying environments, ensure that the export destination on the setup page on the new environment points to a new data lake container.
 
 ### How do I export data from multiple companies in the same environment?
-The export process copies the updated data to the lake for ONLY the company it has been invoked from. This is true whether you start the process by a click on the `Export` button or by scheduling a `Job Queue Entry`. Therefore, one should log in and click the button or setup scheduled jobs from the company whose data needs to be exported. A field called `Multi- company export` was added in [Pull Request #47](/../pull/47) to improve concurrency for parallel exports from different companies. The field, in and of itself, does not export data from  other companies.
+The export process copies the updated data to the lake for ONLY the company it has been invoked from. This is true whether you start the process by a click on the `Export` button or by scheduling a `Job Queue Entry`. Therefore, one should log in and click the button or setup scheduled jobs from the company whose data needs to be exported. A field called `Multi- company export` was added in [Pull Request #47](https://github.com/microsoft/bc2adls/pull/47) to improve concurrency for parallel exports from different companies. The field, in and of itself, does not export data from  other companies.
 
 ### Can I export calculated fields into the lake?
-No, only persistent fields on the BC tables can be exported. But, the [issue #88](/../issues/88) describes a way to show up those fields when consuming the lake data.
+No, only persistent fields on the BC tables can be exported. But, the [issue #88](https://github.com/microsoft/bc2adls/issues/88) describes a way to show up those fields when consuming the lake data.
 
 ### How can I export BLOB data to the lake?
 Data from blob fields in tables are not exported today to the lake. It should be possible however to convert the (possibly, binary) data to text using the [Codeunit `Base64 Convert`](https://learn.microsoft.com/en-us/dynamics365/business-central/application/reference/system%20application/codeunit/system_application_codeunit_base64_convert) and then store it as a separate field in a new table and exporting it to the lake using the bc2adls solution.
 
 ### How do I export some tables at a different frequency than the rest?
-Normally, all the tables that are setup for export will export at the same time. However you may invoke exports of selected tables by using the API pages available. The [issue #87](/../issues/87) describes this possibility in more detail.
+Normally, all the tables that are setup for export will export at the same time. However you may invoke exports of selected tables by using the API pages available. The [issue #87](https://github.com/microsoft/bc2adls/issues/87) describes this possibility in more detail.
 
 ### How do I track the files in the `deltas` folder in my data lake container?
 Incremental exports create files in the `deltas` folder in the lake container. Each such file has a `Modified` field that indicates the time when it was last updated, in other words, when the export process finished with that file. Each export process for an entity and in a company logs its execution on the  [`ADLSE Run`](/businessCentral/src/ADLSERun.Table.al) table using the `Started` and `Ended` fields. Thus you may tally the value in the `Modified` field of the file to these fields and determine which run resulted in creation of that file. You may also use telemetry to determine which run created which file.
@@ -31,9 +31,9 @@ Having said that, here is a suggestion that could be adopted by those who feel c
 1. Archive the data files in the lake for the corresponding entities, perhaps, to a different container. Remove them from your main container. Copy the old jsons as well so that the new container is still a fully functional CDM folder.
 1. Now, go to BC and visit the setup page and ensure that the export schema includes the new fields and excludes the old ones. Export data only from the necessary entities (by disabling other entities), making sure that the `Multi- company export` field is unchecked. This should result in new entity and manifest jsons on the data lake.
 1. In order to bring the archived data into the data folder, create a new Synapse pipeline calling a dataflow that,
-    1. reads the old CDM data from the archive container as source
-    1. if a new field has replaced the obsolete field in BC, adds the new field with the calculation of the new value derived from looking at the upgrade logic for the change
-    1. writes the data into the CDM entity in the main container as the sink, having mapped all the relevant columns manually 
+    * reads the old CDM data from the archive container as source
+    * if a new field has replaced the obsolete field in BC, adds the new field with the calculation of the new value derived from looking at the upgrade logic for the change
+    * writes the data into the CDM entity in the main container as the sink, having mapped all the relevant columns manually 
 Read more [here](https://learn.microsoft.com/en-us/azure/data-factory/format-common-data-model) or take a look at the [`Consolidation_flow`](/synapse/dataflow/Consolidation_flow.json) in your Synapse workspace to understand how to read/ write CDM folders in your Synapse data flows.
 
 ### I need help because my export job is timing out!
