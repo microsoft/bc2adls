@@ -34,6 +34,7 @@ Having said that, here is a suggestion that could be adopted by those who feel c
     * reads the old CDM data from the archive container as source
     * if a new field has replaced the obsolete field in BC, adds the new field with the calculation of the new value derived from looking at the upgrade logic for the change
     * writes the data into the CDM entity in the main container as the sink, having mapped all the relevant columns manually 
+
 Read more [here](https://learn.microsoft.com/en-us/azure/data-factory/format-common-data-model) or take a look at the [`Consolidation_flow`](/synapse/dataflow/Consolidation_flow.json) in your Synapse workspace to understand how to read/ write CDM folders in your Synapse data flows.
 
 ### I need help because my export job is timing out!
