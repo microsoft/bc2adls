@@ -81,6 +81,18 @@ page 82565 "ADLSE Table API"
             until SelectedADLSETable.Next() = 0;
         SetActionResponse(ActionContext, Rec.SystemId);
     end;
+    [ServiceEnabled]
+    procedure AddAllFields(var ActionContext: WebServiceActionContext)
+    var
+        SelectedADLSETable: Record "ADLSE Table";
+    begin
+        CurrPage.SetSelectionFilter(SelectedADLSETable);
+        if SelectedADLSETable.FindSet(true) then
+            repeat
+                SelectedADLSETable.AddAllFields();
+            until SelectedADLSETable.Next() = 0;
+        SetActionResponse(ActionContext, Rec.SystemId);
+    end;
 
     local procedure SetActionResponse(var ActionContext: WebServiceActionContext; AdlsId: Guid)
     var
