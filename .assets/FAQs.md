@@ -10,13 +10,13 @@ We recommend that a data lake container holds data only for **only one** Busines
 The export process copies the updated data to the lake for ONLY the company it has been invoked from. This is true whether you start the process by a click on the `Export` button or by scheduling a `Job Queue Entry`. Therefore, one should log in and click the button or setup scheduled jobs from the company whose data needs to be exported. A field called `Multi- company export` was added in [Pull Request #47](https://github.com/microsoft/bc2adls/pull/47) to improve concurrency for parallel exports from different companies. The field, in and of itself, does not export data from  other companies.
 
 ### Can I export calculated fields into the lake?
-No, only persistent fields on the BC tables can be exported. But, the [issue #88](/issues/88) describes a way to show up those fields when consuming the lake data.
+No, only persistent fields on the BC tables can be exported. But, the [issue #88](/../../issues/88) describes a way to show up those fields when consuming the lake data.
 
 ### How can I export BLOB data to the lake?
 Data from blob fields in tables are not exported today to the lake. It should be possible however to convert the (possibly, binary) data to text using the [Codeunit `Base64 Convert`](https://learn.microsoft.com/en-us/dynamics365/business-central/application/reference/system%20application/codeunit/system_application_codeunit_base64_convert) and then store it as a separate field in a new table and exporting it to the lake using the bc2adls solution.
 
 ### How do I export some tables at a different frequency than the rest?
-Normally, all the tables that are setup for export will export at the same time. However you may invoke exports of selected tables by using the API pages available. The [issue #87](/issues/87) describes this possibility in more detail.
+Normally, all the tables that are setup for export will export at the same time. However you may invoke exports of selected tables by using the API pages available. The [issue #87](/../../issues/87)  describes this possibility in more detail.
 
 ### How do I track the files in the `deltas` folder in my data lake container?
 Incremental exports create files in the `deltas` folder in the lake container. Each such file has a `Modified` field that indicates the time when it was last updated, in other words, when the export process finished with that file. Each export process for an entity and in a company logs its execution on the  [`ADLSE Run`](https://github.com/microsoft/bc2adls/blob/main/businessCentral/src/ADLSERun.Table.al) table using the `Started` and `Ended` fields. Thus you may tally the value in the `Modified` field of the file to these fields and determine which run resulted in creation of that file. You may also use telemetry to determine which run created which file.
