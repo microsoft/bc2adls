@@ -1,5 +1,7 @@
 ![](.assets/bc2adls_banner.png)
 
+# Contributions
+**This repository will be set to read-only so contributing to the project isn't possible anymore. If you want to contribute to this project we refer to the [open source repository](https://github.com/Bertverbeek4PS/bc2adls). Here you can contribute and create issues.**
 # Project
 
 > **This tool is an <u>experiment</u> on Dynamics 365 Business Central with the sole purpose of discovering the possibilities of having data exported to an Azure Data Lake. To see the details of how this tool is supported, please visit [the Support page](./SUPPORT.md). In case you wish to use this tool for your next project and engage with us, you are welcome to write to bc2adls@microsoft.com. As we are a small team, please expect delays in getting back to you.**
