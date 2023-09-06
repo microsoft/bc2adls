@@ -1,8 +1,9 @@
 ![](.assets/bc2adls_banner.png)
 
 # Project
+This tool is an <u>experiment</u> on Dynamics 365 Business Central with the sole purpose of discovering the possibilities of having data exported to an Azure Data Lake. To see the details of how this tool is supported, please visit [the Support page](./SUPPORT.md).
 
-> **This tool is an <u>experiment</u> on Dynamics 365 Business Central with the sole purpose of discovering the possibilities of having data exported to an Azure Data Lake. To see the details of how this tool is supported, please visit [the Support page](./SUPPORT.md). In case you wish to use this tool for your next project and engage with us, you are welcome to write to bc2adls@microsoft.com. As we are a small team, please expect delays in getting back to you.**
+Please be aware that, for the forseeable future, **this repository will not receive any new updates**. However, development is continued in forks of this repository, e.g., [Bertverbeek4PS/bc2adls](https://github.com/Bertverbeek4PS/bc2adls). If you would like to contribute to **bc2adls**, please do so in one of the active forks.
 
 ## Introduction
 
@@ -32,7 +33,7 @@ More details:
 
 ## Changelog
 
-This project is constantly receiving new features and fixes. Find a list of all major updates in the [changelog](/.assets/Changelog.md).
+This project is no longer receiving new updates. Find a list of all previous updates in the [changelog](/.assets/Changelog.md).
 
 ## Testimonials
 
@@ -60,17 +61,7 @@ Here are a few examples of what our users are saying ...
 
 ## Contributing
 
-This project welcomes contributions and suggestions.  Most contributions require you to agree to a
-Contributor License Agreement (CLA) declaring that you have the right to, and actually do, grant us
-the rights to use your contribution. For details, visit https://cla.opensource.microsoft.com.
-
-When you submit a pull request, a CLA bot will automatically determine whether you need to provide
-a CLA and decorate the PR appropriately (e.g., status check, comment). Simply follow the instructions
-provided by the bot. You will only need to do this once across all repos using our CLA.
-
-This project has adopted the [Microsoft Open Source Code of Conduct](https://opensource.microsoft.com/codeofconduct/).
-For more information see the [Code of Conduct FAQ](https://opensource.microsoft.com/codeofconduct/faq/) or
-contact [opencode@microsoft.com](mailto:opencode@microsoft.com) with any additional questions or comments.
+Please be aware that, for the forseeable future, **this repository will not receive any new updates**. However, development is continued in forks of this repository, e.g., [Bertverbeek4PS/bc2adls](https://github.com/Bertverbeek4PS/bc2adls). If you would like to contribute to **bc2adls**, please do so in one of the active forks.
 
 ## Trademarks
 
