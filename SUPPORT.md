@@ -10,8 +10,6 @@ This project uses GitHub Issues to track bugs and feature requests. Please searc
 issues before filing new issues to avoid duplicates.  For new issues, file your bug or 
 feature request as a new Issue. As this is a Github project, a self-service approach is encouraged. Feel free to create pull requests with your changes.
 
-For help and other relevant questions about using this project, please feel free to write to bc2adls@microsoft.com. 
-
 ## Microsoft Support Policy  
 
 Support for this project is limited to the resources listed above.
